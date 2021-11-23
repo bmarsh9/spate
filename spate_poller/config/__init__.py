@@ -13,7 +13,7 @@ class Config():
         self.LOG_LEVEL = os.environ.get("LOG_LEVEL","DEBUG")
         self.SLEEP_TIME = os.environ.get("SLEEP_TIME",120)
 
-        db_uri = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db12:db12@10.0.10.171/db12")
+        db_uri = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
         db_engine = sqlalchemy.create_engine(db_uri)
         db.prepare(db_engine,reflect=True)
         self.db_session = Session(db_engine)

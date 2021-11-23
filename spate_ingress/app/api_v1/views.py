@@ -6,7 +6,14 @@ from app.utils.misc import request_to_json
 
 @api.route('/health', methods=['GET'])
 def get_health():
-    return jsonify({"message":"ok"})
+    return jsonify({
+        "message":"ok",
+        "version":current_app.config["VERSION"],
+        "routes":[
+            {"endpoint":"/api/v1/workflows/<int:workflow_id>/results/<int:result_id>","desc":"view results of execution"},
+            {"endpoint":"/workflows/<int:workflow_id>/actions/run","desc":"execute workflow via API route"},
+        ]
+    })
 
 @api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
 @token_required
@@ -41,6 +48,8 @@ def run_workflow(workflow_id):
         return jsonify({"message":"workflow not found"}),404
     try:
         results = WorkflowManager(workflow_id).run(workflow.name,request=request_to_json(request))
+        code = 200
     except Exception as e:
         results = str(e)
-    return jsonify({"response":results})
+        code = 400
+    return jsonify({"response":results}),code

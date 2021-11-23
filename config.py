@@ -3,9 +3,10 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     #SERVER_NAME = "localhost"
-    APP_NAME = "Spate"
-    APP_SUBTITLE = "Workflows made easy"
-    CR_YEAR = "2021"
+    APP_NAME = os.environ.get("APP_NAME","Spate")
+    APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
+    CR_YEAR = os.environ.get("CR_YEAR","2021")
+    VERSION = os.environ.get("VERSION","1.0.0")
 
     LOG_TYPE = os.environ.get("LOG_TYPE", "stream")
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
@@ -44,12 +45,12 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URL') or \
-        'postgresql://db12:db12@10.0.10.171/db12'
+        "postgresql://db1:db1@postgres_db/db1"
 
 class TestingConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URL') or \
-        'postgresql://db12:db12@postgres_db/db12'
+        "postgresql://db1:db1@postgres_db/db1"
     WTF_CSRF_ENABLED = False
 
 config = {

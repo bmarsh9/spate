@@ -11,9 +11,9 @@ class Config():
         # --------------------------------- Scheduler Setting
         self.VERSION = os.environ.get("VERSION","1.0.0")
         self.LOG_LEVEL = os.environ.get("LOG_LEVEL","DEBUG")
-        self.SLEEP_TIME = os.environ.get("SLEEP_TIME",10)
+        self.SLEEP_TIME = os.environ.get("SLEEP_TIME",30)
 
-        db_uri = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db12:db12@10.0.10.171/db12")
+        db_uri = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
         db_engine = sqlalchemy.create_engine(db_uri)
         db.prepare(db_engine,reflect=True)
         self.db_session = Session(db_engine)

@@ -3,9 +3,10 @@ import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
-    APP_NAME = "Spate"
-    APP_SUBTITLE = "Workflow made easy"
-    CR_YEAR = "2021"
+    APP_NAME = os.environ.get("APP_NAME","Spate Ingress")
+    APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
+    CR_YEAR = os.environ.get("CR_YEAR","2021")
+    VERSION = os.environ.get("VERSION","1.0.0")
 
     LOG_TYPE = os.environ.get("LOG_TYPE", "stream")
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
@@ -16,7 +17,7 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     BASE_DIR = basedir
 
-    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db12:db12@10.0.10.171/db12")
+    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
     SHARED_TOKEN = os.environ.get("SHARED_TOKEN","changeme")
 
     @staticmethod
