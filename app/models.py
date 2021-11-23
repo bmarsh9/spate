@@ -205,6 +205,9 @@ class Workflow(db.Model, LogMixin):
         workflow_dir = os.path.join(current_app.config["WORKFLOW_MOUNT_DIRECTORY"],self.name,"tmp")
         dm = DockerManager()
         container = dm.get_container(self.name)
+        if container:
+            if container.status != "running":
+                container.restart()
         if not container:
             dict = {}
             if current_app.config["LOCAL_DB"]:
