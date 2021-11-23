@@ -21,6 +21,7 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     BASE_DIR = basedir
     ENABLE_SELF_REGISTRATION = False
+    DOC_LINK = "/"
 
     RESTRICTED_FIELDS = ["password_hash"]
 

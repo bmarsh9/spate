@@ -8,6 +8,10 @@ from flask_login import login_required,current_user
 def get_health():
     return jsonify({"message":"ok"})
 
+@api.route('/service/status', methods=['GET'])
+def get_service_status():
+    return jsonify({"message":"ok"})
+
 @api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
 @login_required
 def workflow_endpoint(workflow_id,result_id):
