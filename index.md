@@ -1,10 +1,8 @@
 <p align="center">
-  <img height="120px" src="https://github.com/bmarsh9/spate/raw/de65a206015f1119db5981f21fc3974b8a8c8c7f/app/static/img/spate_full.PNG" alt="Logo"/>
+  <img height="100px" src="https://github.com/bmarsh9/spate/raw/de65a206015f1119db5981f21fc3974b8a8c8c7f/app/static/img/spate_full.PNG" alt="Logo"/>
 </p>
 
-View Results           |  Create Workflows
-:-------------------------:|:-------------------------:
-![](https://github.com/bmarsh9/spate/blob/7947fa3e00af25916b7c551e787ea58e7c133a70/app/static/img/spate_dash1.PNG)  |  ![](https://github.com/bmarsh9/spate/blob/7947fa3e00af25916b7c551e787ea58e7c133a70/app/static/img/spate_dash2.PNG)
+<img src="images/spate_dash1.PNG" alt="" class="inline"/>
 
 ## Table of Contents
 1. [What is Spate?](#what-is-spate)
@@ -54,19 +52,19 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 After the "Getting Started" section above, lets set up and execute a API based Workflow.
 
 #### 1.) Select the "Graph" icon on "Default Workflow"
-![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step1.PNG)
+<img src="images/spate_step1.PNG" alt="" class="inline"/>
 
 #### 2.) Drop the "API Ingress" and "Basic Operator" (under Actions) and connect them. After, hit the "Refresh" button at the bottom right (IMPORTANT)
-![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step2.PNG)
+<img src="images/spate_step2.PNG" alt="" class="inline"/>
 
 #### 3.) Visit the API endpoint (port 8080) to start the Workflow
-![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step3.PNG)
+<img src="images/spate_step3.PNG" alt="" class="inline"/>
 
 #### 4.) Go back to the Workflows page and select the "Results" icon
-![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step4.PNG)
+<img src="images/spate_step4.PNG" alt="" class="inline"/>
 
 #### 5.) View the results of your Workflow
-![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step5.PNG)
+<img src="images/spate_step5.PNG" alt="" class="inline"/>
 
 
 ### Development
@@ -89,4 +87,4 @@ After the "Getting Started" section above, lets set up and execute a API based W
 ##### Docker debugging
 Your 'docker ps' command should look something like this (4 containers with spate_). Check the logs of the containers for errors.
 
-![](https://github.com/bmarsh9/spate/blob/92f1b4a2aa740695415099401e29dfeab232cabe/app/static/img/spate_debug.PNG)
+<img src="images/spate_debug.PNG" alt="" class="inline"/>
