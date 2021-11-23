@@ -58,7 +58,7 @@ After the "Getting Started" section above, lets set up and execute a API based W
 #### 2.) Drop the "API Ingress" and "Basic Operator" (under Actions) and connect them. After, hit the "Refresh" button at the bottom right (IMPORTANT)
 ![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step2.PNG)
 
-#### 3.) Visit the API endpoint (port 8080)
+#### 3.) Visit the API endpoint (port 8080) to start the Workflow
 ![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step3.PNG)
 
 #### 4.) Go back to the Workflows page and select the "Results" icon
