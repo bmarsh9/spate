@@ -39,5 +39,8 @@ def run_workflow(workflow_id):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
-    results = WorkflowManager(workflow_id).run(workflow.name,request=request_to_json(request))
+    try:
+        results = WorkflowManager(workflow_id).run(workflow.name,request=request_to_json(request))
+    except Exception as e:
+        results = str(e)
     return jsonify({"response":results})

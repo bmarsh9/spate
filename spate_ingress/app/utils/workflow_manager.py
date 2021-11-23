@@ -29,10 +29,10 @@ class WorkflowManager():
     def run(self,name,env={},request={}):
         trigger = self.get_trigger()
         if not trigger:
-            raise ValueError("Trigger not found")
+            raise ValueError("Trigger not found. Please add an API trigger.")
         container = self.find_container_by_workflow_name(name)
         if not container:
-            raise ValueError("Container not found")
+            raise ValueError("Container not found. Please refresh it.")
 
         result = self.add_in_progress_result()
 
