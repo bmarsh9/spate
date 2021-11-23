@@ -4,7 +4,7 @@
 
 Dark Theme            |  White Theme (:zap: BETA)
 :-------------------------:|:-------------------------:
-![](photos/a7_dash.PNG?raw=true)  |  ![](photos/a7_white.PNG?raw=true)
+![](https://github.com/bmarsh9/spate/blob/7947fa3e00af25916b7c551e787ea58e7c133a70/app/static/img/spate_dash1.PNG)  |  ![](https://github.com/bmarsh9/spate/blob/7947fa3e00af25916b7c551e787ea58e7c133a70/app/static/img/spate_dash2.PNG)
 
 ## Build docker images
 `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
