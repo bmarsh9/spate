@@ -1,6 +1,7 @@
 from flask import current_app
 import docker
 import json
+from datetime import datetime
 
 class WorkflowManager():
     def __init__(self, workflow_id):
@@ -21,7 +22,7 @@ class WorkflowManager():
         return None
 
     def add_in_progress_result(self):
-        result = current_app.Result(workflow_id=self.workflow_id,status="in progress")
+        result = current_app.Result(workflow_id=self.workflow_id,status="in progress",date_added=datetime.utcnow())
         current_app.db_session.add(result)
         current_app.db_session.commit()
         return result
@@ -44,7 +45,8 @@ class WorkflowManager():
             if result.status != "complete":
                 response = {
                     "id":result.id,
-                    "status":result.status
+                    "status":result.status,
+                    "date_requested":str(result.date_added),
                 }
             else:
                 response = {
@@ -59,7 +61,6 @@ class WorkflowManager():
                     "execution_time":result.execution_time,
                     "date_requested":str(result.date_added),
                 }
-
         else:
             response = {
                 "callback_url":"/api/v1/workflows/{}/results/{}".format(self.workflow_id,result.id),

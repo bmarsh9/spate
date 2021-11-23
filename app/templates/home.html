@@ -145,7 +145,10 @@
         </div>
         <div class="modal-body">
           <h5>Run Workflow</h5>
-          <p>/workflows/{{workflow.id}}/actions/run</p>
+          <p>:8080/api/v1/workflows/{{workflow.id}}/actions/run</p>
+          <br>
+          <h5>Results</h5>
+          <p>:8080/api/v1/workflows/{{workflow.id}}/results/result_id</p>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>

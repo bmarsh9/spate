@@ -1,5 +1,6 @@
 import docker
 import json
+from datetime import datetime
 
 class WorkflowManager():
     def __init__(self, app, docker_client, workflow_id):
@@ -19,7 +20,7 @@ class WorkflowManager():
         return None
 
     def add_in_progress_result(self):
-        result = self.current_app.Result(workflow_id=self.workflow_id,status="in progress")
+        result = self.current_app.Result(workflow_id=self.workflow_id,status="in progress",date_added=datetime.utcnow())
         self.current_app.db_session.add(result)
         self.current_app.db_session.commit()
         return result

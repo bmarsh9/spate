@@ -168,6 +168,14 @@ class Workflow(db.Model, LogMixin):
             return workflow_exists
         return False
 
+    def last_executed(self):
+        latest_result = self.results.order_by(Result.id.desc()).first()
+        if not latest_result:
+            return "never"
+        if not latest_result.date_added:
+            return "unknown"
+        return arrow.get(latest_result.date_added).humanize()
+
     def create_file(self, path, content):
         with open(path, 'w') as f:
             f.write(content)
@@ -557,6 +565,11 @@ class Operator(db.Model, LogMixin):
         if add_output:
             operator.add_output()
         return operator
+
+    def last_executed_humanized(self):
+        if not self.last_executed:
+            return "never"
+        return arrow.get(self.last_executed).humanize()
 
     def get_label(self):
         '''remove random ID from label b/c it has to be unique per workflow'''

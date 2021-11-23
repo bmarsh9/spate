@@ -22,7 +22,7 @@ services:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
       - DEFAULT_EMAIL=admin@example.com
       - DEFAULT_PASSWORD=admin
-      - SETUP_DB=yes
+      - SETUP_DB=no
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
