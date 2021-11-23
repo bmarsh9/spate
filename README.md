@@ -11,7 +11,8 @@ View Results           |  Create Workflows
 2. [Use Case](#use-case)
 3. [How it Works](#how-it-works)
 4. [Getting Started](#getting-started)
-5. [Development](#development)
+5. [Setting Up](#setting-up)
+6. [Development](#development)
 
 
 ### What is Spate?
@@ -45,6 +46,27 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 + Create base image with: `cd docker_image && docker build -t base-python .`
 + Start the containers: `docker-compose up -d postgres_db && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 + Visit `http://your-ip`
++ See the following "Setting Up" section for your first Workflow
+
+### Setting Up
+
+After the "Getting Started" section above, lets set up and execute a API based Workflow.
+
+#### 1.) Select the "Graph" icon on "Default Workflow"
+![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step1.PNG)
+
+#### 2.) Drop the "API Ingress" and "Basic Operator" (under Actions) and connect them. After, hit the "Refresh" button at the bottom right (IMPORTANT)
+![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step2.PNG)
+
+#### 3.) Visit the API endpoint (port 8080)
+![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step3.PNG)
+
+#### 4.) Go back to the Workflows page and select the "Results" icon
+![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step4.PNG)
+
+#### 5.) View the results of your Workflow
+![](https://github.com/bmarsh9/spate/blob/3341f6c2c8e6a24738ebedf57982a5c107cd2908/app/static/img/spate_step5.PNG)
+
 
 ### Development
 
