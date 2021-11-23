@@ -41,6 +41,7 @@ Spate currently supports "API" and "CRON" Triggers. A trigger is "how" the Workf
 Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. 
 
 ### Getting Started
++ Make sure docker is installed (ubuntu works fine)
 + Clone the repo
 + Build the images with: `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
 + Create base image with: `cd docker_image && docker build -t base-python .`
@@ -84,3 +85,8 @@ After the "Getting Started" section above, lets set up and execute a API based W
 
 ##### Start docker images
 `docker-compose up -d postgres_db && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
+
+##### Docker debugging
+Your 'docker ps' command should look something like this (4 containers with spate_). Check the logs of the containers for errors.
+
+![](https://github.com/bmarsh9/spate/blob/92f1b4a2aa740695415099401e29dfeab232cabe/app/static/img/spate_debug.PNG)
