@@ -1,11 +1,11 @@
-## Spate Documentation
+# Spate Documentation
 
 
 Easily create and run Workflows          |  
 :-------------------------:|
 ![](images/spate_dash2.PNG)  |
 
-## Table of Contents
+### Table of Contents
 1. [What is Spate?](#what-is-spate)
 2. [Use Case](#use-case)
 3. [How it Works](#how-it-works)
