@@ -2,6 +2,10 @@
   <img height="120px" src="https://github.com/bmarsh9/spate/raw/de65a206015f1119db5981f21fc3974b8a8c8c7f/app/static/img/spate_full.PNG" alt="Logo"/>
 </p>
 
+Dark Theme            |  White Theme (:zap: BETA)
+:-------------------------:|:-------------------------:
+![](photos/a7_dash.PNG?raw=true)  |  ![](photos/a7_white.PNG?raw=true)
+
 ## Build docker images
 `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
 
