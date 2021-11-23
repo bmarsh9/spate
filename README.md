@@ -1,5 +1,9 @@
 # Spate
 
+<p align="center">
+  <img height="150px" src="https://github.com/bmarsh9/spate/raw/main/static/img/spate_full.PNG?raw=true" alt="Logo"/>
+</p>
+
 ## Build docker
 `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
 
