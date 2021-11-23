@@ -11,7 +11,7 @@ View Results           |  Create Workflows
 2. [Use Case](#use-case)
 3. [How it Works](#how-it-works)
 4. [Getting Started](#getting-started)
-5. [Setting Up](#setting-up)
+5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
 6. [Development](#development)
 
 
@@ -46,9 +46,9 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 + Create base image with: `cd docker_image && docker build -t base-python .`
 + Start the containers: `docker-compose up -d postgres_db && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 + Visit `http://your-ip`
-+ See the following "Setting Up" section for your first Workflow
++ See the following "Setting Up Your First Workflow" section for your first Workflow
 
-### Setting Up
+### Setting Up Your First Workflow
 
 After the "Getting Started" section above, lets set up and execute a API based Workflow.
 
