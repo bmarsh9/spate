@@ -32,7 +32,6 @@ def get_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
-    workflow = Workflow.query.get(id)
     data = workflow.to_workflow()
     return jsonify(data)
 
@@ -51,7 +50,6 @@ def get_workflow_config(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
-    workflow = Workflow.query.get(id)
     return jsonify({"config":workflow.to_html_settings()})
 
 @api.route('/operators/<string:operator_name>/inputs', methods=['GET'])
@@ -78,7 +76,6 @@ def update_config_for_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
-    workflow = Workflow.query.get(id)
     data = request.get_json()
     workflow.label = data["label"]
     workflow.description = data["description"]
