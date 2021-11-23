@@ -1,0 +1,89 @@
+{% extends "layouts/condensed.html" %}
+
+{% block head %}
+{% import "helpers/src_macros.html" as macro %}
+{{ macro.filehelper(select=True) }}
+{% endblock %}
+
+{%block contentHeader_pretitle%}<a href="{{url_for("main.users")}}">Users</a>{%endblock%}
+{%block contentHeader_title%}Manage {{user.email}}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Users</h3>
+          </div>
+          <div class="card-body">
+
+            <form method="POST" action="{{url_for('main.view_user',id=user.id)}}">
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Email</label>
+                  <div>
+                    <input type="text" class="form-control" value="{{user.email}}" name="email" placeholder="Email" disabled>
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">First Name</label>
+                  <div>
+                    <input type="text" class="form-control" value="{{user.first_name}}" name="first" placeholder="First Name">
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Last Name</label>
+                  <div>
+                    <input type="text" class="form-control" value="{{user.last_name}}" name="last" placeholder="Last Name">
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Username</label>
+                  <div>
+                    <input type="text" class="form-control" value="{{user.username or ""}}" name="username" placeholder="Username">
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Active</label>
+                  <div>
+                    <select name="is_active" class="form-select">
+                      <option value="yes" {%if user.is_active%}selected{%endif%}>Yes</option>
+                      <option value="no" {%if not user.is_active%}selected{%endif%}>No</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Edit Roles</label>
+                  <div>
+                    <select name="roles[]" data-placeholder="Search for Roles..." class="chosen-select form-control" multiple>
+                    {%if roles%}
+                     {% for role,enabled in roles.items() %}
+                     {% if enabled %}
+                       <option value="{{role.name}}" selected>{{role.name}}</option>
+                     {% else %}
+                       <option value="{{role.name}}">{{role.name}}</option>
+                     {% endif %}
+                     {% endfor %}
+                    {% endif %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+              </form>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{% block extrajs %}
+  <script>
+    $(document).ready(function () {
+        $(".chosen-select").chosen({
+          no_results_text: "Oops, nothing found!"
+        })
+    });
+  </script>
+{% endblock %}
+

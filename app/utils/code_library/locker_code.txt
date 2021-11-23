@@ -1,0 +1,7 @@
+def locker(config,name,key):
+    lockers = json.loads(config["LOCKERS"])
+    locker = lockers.get(name)
+    if not locker:
+        return None
+    return locker.get(key)
+    

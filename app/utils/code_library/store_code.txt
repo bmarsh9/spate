@@ -1,0 +1,14 @@
+def put_store(key,value):
+    path = "/app/workflow/tmp/store.json"
+    with open(path) as json_file:
+        json_decoded = json.load(json_file)
+    json_decoded[key] = value
+    with open(path, 'w') as json_file:
+        json.dump(json_decoded, json_file)
+    return True
+
+def get_store(key):
+    path = "/app/workflow/tmp/store.json"
+    with open(path) as json_file:
+        json_decoded = json.load(json_file)
+        return json_decoded.get(key)

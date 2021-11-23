@@ -1,0 +1,79 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflows")}}">workflows</a>
+      </div>
+      <h2 class="page-title">
+        Workflow Results
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn btn-primary">
+            View Graph
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">{{workflow.label}}</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Paths</th>
+                    <th>Return Value</th>
+                    <th class="w-1">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for result in results%}
+                  <tr>
+                    <td class="subheader">{{result.id}}</td>
+                    <td><span class="badge {%if result.is_complete()%}bg-green-lt{%elif result.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{result.status}}</span></td>
+                    <td><span class="badge bg-blue-lt">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></td>
+                    <td class="subheader">{{result.return_value}}</td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}"><i class="ti ti-report-analytics"></i></a>
+                    </td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+  } );
+</script>
+{% endblock %}

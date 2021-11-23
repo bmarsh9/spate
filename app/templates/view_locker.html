@@ -1,0 +1,160 @@
+{% extends "layouts/condensed.html" %}
+
+{% block head %}
+{% import "helpers/src_macros.html" as macro %}
+{{ macro.filehelper(select=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.lockers")}}">Lockers</a>
+      </div>
+      <h2 class="page-title">
+        {{locker.label}}
+      </h2>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Settings</h3>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{url_for('main.edit_locker_settings',id=locker.id)}}">
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Label</label>
+                  <div>
+                    <input type="text" class="form-control" value="{{locker.label}}" name="label" placeholder="Add Label">
+                    <small class="form-hint">
+                      Add label to identify the locker
+                    </small>
+                  </div>
+                </div>
+                <div class="form-group mb-3 ">
+                  <label class="form-label">Workflows</label>
+                  <div>
+  <select name="workflows[]" data-placeholder="Search for Workflows..." class="chosen-select form-control" multiple>
+    {%if workflows%}
+    {% for workflow,enabled in workflows.items() %}
+      {% if enabled %}
+        <option value="{{workflow.name}}" selected>{{workflow.label}}</option>
+      {% else %}
+        <option value="{{workflow.name}}">{{workflow.label}}</option>
+      {% endif %}
+    {% endfor %}
+    {% endif %}
+  </select>
+                    <small class="form-hint">
+                      Locker attributes will be accessible to Workflows added above
+                    </small>
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+              </form>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Locker Attributes <span class="badge bg-green-lt ml-2">{{locker.name}}</span></h3>
+          </div>
+          <div class="card-body">
+            <small class="form-hint mb-2">The attributes below will be available to the operators and links in the workflows.</small>
+            <div class="row">
+              <div class="col-2">
+                <figure class="highlight"><pre style="white-space:inherit"><code class="language-python" data-lang="python">
+                  # Access the attributes in your Workflow with the following code<br><br>
+
+                  your_value = locker(kwargs["config"],"{{locker.name}}","your_key")
+                </code></pre></figure>
+              </div>
+              <div class="col-10">
+                <form method="POST" action="{{url_for('main.edit_locker_attributes',id=locker.id)}}">
+                    <table id="myTable" class="table order-list">
+                        <thead class="thead-white">
+                            <tr>
+                                <th scope="col" style="width:25%">Key</th>
+                                <th scope="col" style="width:75%">Value</th>
+                                <th scope="col">Manage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {%for key,value in locker.config.items()%}
+                            <tr>
+                                <td>
+                                    <input type="text" name="key_{{loop.index}}" value="{{key}}" class="form-control" required="true" placeholder="Insert Key"/>
+                                </td>
+                                <td>
+                                    <input type="text" name="value_{{loop.index}}" value="{{value}}" class="form-control" required="true" placeholder="Insert Value"/>
+                                </td>
+                                <td><a class="deleteRow"></a>
+                                  <input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete">
+                                </td>
+                            </tr>
+                            {%endfor%}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-start">
+                                    <input type="button" class="btn btn-white" id="addrow" value="Add Key (limit 20)" />
+                                </td>
+                            </tr>
+                            <tr>
+                            </tr>
+
+                        </tfoot>
+                    </table>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{% block extrajs %}
+  <script>
+    $(document).ready(function () {
+        $(".chosen-select").chosen({
+          no_results_text: "Oops, nothing found!"
+        })
+        var counter = {{locker.config|length}}+1;
+        $("#addrow").on("click", function () {
+            if (counter >= 20) {
+              console.log("Reached row limit")
+              return ""
+            };
+            var newRow = $("<tr>");
+            var cols = "";
+
+            cols += '<td><input type="text" required="true" class="form-control" name="key_' + counter + '"/></td>';
+            cols += '<td><input type="text" required="true" class="form-control" name="value_' + counter + '"/></td>';
+            cols += '<td><input type="button" class="ibtnDel btn btn-md btn-danger "  value="Delete"></td>';
+            newRow.append(cols);
+            $("table.order-list").append(newRow);
+            counter++;
+        });
+
+        $("table.order-list").on("click", ".ibtnDel", function (event) {
+            $(this).closest("tr").remove();       
+            counter -= 1
+        });
+
+    });
+  </script>
+{% endblock %}

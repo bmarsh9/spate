@@ -1,0 +1,234 @@
+import logging
+import importlib
+import configparser
+import os
+import sys
+import json
+import hashlib
+from datetime import datetime
+import sqlalchemy
+from sqlalchemy.sql import func
+from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.orm import Session
+import io
+
+# path inside docker container
+CONFIG_PATH = "/app/workflow/tmp/config.ini"
+
+DB = automap_base()
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, 'w')
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
+
+class WorkflowRunner():
+    def __init__(self, referral_id, save_to_db=True, request={}):
+        self.date_started = datetime.utcnow()
+        self.request = request
+        self.failed = False
+        self.config = self.load_config_to_app()
+        self.path_map = self.load_path_map()
+        self.referral_id = referral_id
+        self.save_to_db = save_to_db
+        self.workflow_id = self.config["WORKFLOW_ID"]
+        self.result = {"user_messages":[],"logs":[],"return_value":None,
+            "return_hash":self.path_map.get("return_path"),"paths":[],
+            "workflow_id":self.workflow_id,"referral_id":self.referral_id}
+        self.init_db()
+        self.init_logging()
+        if not self.config:
+            self.result["logs"].append(self.log("warning","Workflow does not have any config variables!"))
+            self.failed = True
+        if not self.path_map:
+            self.result["logs"].append(self.log("warning","Workflow does not contain any paths! Exiting..."))
+            self.failed = True
+            sys.exit()
+
+    def init_logging(self):
+        self.log_capture_string = io.StringIO()
+        ch = logging.StreamHandler(self.log_capture_string)
+        logging.basicConfig(format='%(levelname)s - %(asctime)s - %(message)s',
+          level=getattr(logging,self.config.get("LOG_LEVEL","INFO").upper()),
+          handlers=[ch]
+        )
+        return True
+
+    def get_debug_logs(self,as_list=True):
+        '''capture log messages from the workflow that the user might implement'''
+        log_contents = self.log_capture_string.getvalue()
+        self.log_capture_string.close()
+        if as_list:
+            return log_contents.split("\n")
+        return log_contents
+
+    def start(self):
+        self.execute()
+        self.result["user_messages"] = self.get_debug_logs(as_list=False)
+        self.result["logs"] = "\n".join(self.result["logs"])
+        if self.save_to_db:
+            self.add_result_to_db(self.result)
+        return self.result
+
+    def init_db(self):
+        db_engine = sqlalchemy.create_engine(self.config["SQLALCHEMY_DATABASE_URL"])
+        DB.prepare(db_engine,reflect=True)
+        self.db_session = Session(db_engine)
+        self.Workflow = DB.classes.workflows
+        self.Operator = DB.classes.operators
+        self.Result = DB.classes.results
+        return True
+
+    def log(self,level,message):
+        format = "{} - {} - {}".format(level.upper(),str(datetime.utcnow()),message)
+        return format
+
+    def add_result_to_db(self,result):
+        row = self.db_session.query(self.Result).filter(self.Result.id == self.referral_id).filter(self.Result.workflow_id == self.workflow_id).first()
+        row.paths = result["paths"]
+        row.user_messages = result["user_messages"]
+        row.return_value = str(result["return_value"])
+        row.return_hash = result["return_hash"]
+        row.log = result["logs"]
+        row.execution_time = result["execution_time"]
+        status = "complete"
+        if self.failed:
+            status = "failed"
+        row.status = status
+        row.date_updated = datetime.utcnow()
+        self.db_session.commit()
+        return True
+
+    def load_config_to_app(self):
+        config = {}
+        if os.path.exists(CONFIG_PATH):
+            parser = configparser.ConfigParser()
+            parser.read(CONFIG_PATH)
+            for each_section in parser.sections():
+                for (each_key, each_val) in parser.items(each_section):
+                    config[each_key.upper()] = each_val
+        else:
+            self.result["logs"].append(self.log("warning","Configuration file:{} not found!".format(CONFIG_PATH)))
+        return config
+
+    def load_path_map(self):
+        path = self.config["WORKFLOW_MAP"]
+        if os.path.exists(path):
+            with open(path) as f:
+                return json.load(f)
+        else:
+            self.result["logs"].append(self.log("warning","Workflow file:{} not found!".format(path)))
+        return None
+
+    def execute_function(self, operator_name,function_name,event={}):
+        if function_name == "code":
+            file_name = "operator"
+        else:
+            file_name = "links"
+        module_name = "{}.{}".format(operator_name,file_name)
+        try:
+            module = importlib.import_module(module_name)
+            if self.config.get("HIDE_PRINT","yes") == "yes":
+                with HiddenPrints():
+                    return getattr(module,function_name)(event,config=self.config,request=self.request)
+            else:
+                return getattr(module,function_name)(event,config=self.config,request=self.request)
+        except AttributeError:
+            self.failed = True
+            self.result["logs"].append(self.log("error","AttributeError - Failed to execute module:{}".format(module_name)))
+            return False
+        except ModuleNotFoundError:
+            self.failed = True
+            self.result["logs"].append(self.log("error","ModuleNotFoundError - Module not found:{}".format(module_name)))
+            return False
+        except NameError as e:
+            self.failed = True
+            self.result["logs"].append(self.log("error","NameError - Missing import:{} on module:{}".format(e,module_name)))
+            return False
+        except Exception as e:
+            self.failed = True
+            self.result["logs"].append(self.log("error","Exception:{} on {}".format(e,module_name)))
+            return False
+        return False
+
+    def create_hash(self,values):
+        sha1 = hashlib.sha1()
+        for value in values:
+            val = str(value["name"]).encode('utf-8')
+            sha1.update(val)
+        return sha1.hexdigest()
+
+    def execute(self):
+        hash_tree = {}
+        self.result["logs"].append(self.log("info","Successfully parsed {} workflow paths. Got {}".format(self.config.get("WORKFLOW_NAME","UNKNOWN"),len(self.path_map))))
+        for tree in self.path_map.get("paths",[]):
+            for path_name,functions in tree.items():
+                path_tree = {}
+                temp = {"logs":[],"execution":[],"complete":False,"result":None,"direction":functions}
+                temp["logs"].append(self.log("info","Starting workflow execution path:{}. Total steps:{}".format(path_name,len(functions))))
+                temp["logs"].append(self.log("debug","Path direction: {}".format(functions)))
+                for previous_function, current_function in zip(functions, functions[1:]):
+                    current_step = functions[:functions.index(current_function)]
+                    hash = self.create_hash(current_step)
+                    current_name = current_function["name"]
+                    previous_name = previous_function["name"]
+                    temp["logs"].append(self.log("debug","Current function: {}. Previous function: {}".format(current_name,previous_name)))
+                    if current_name.startswith("Operator"):
+                        previous_result = hash_tree.get(hash)
+                        # path with same hash already executed
+                        if previous_result:
+                            execute = False
+                            temp["logs"].append(self.log("debug","Operator has already executed: {}".format(current_name)))
+                            path_tree[current_name] = previous_result
+                            result = previous_result
+                        else:
+                            execute = True
+                            previous_result = path_tree.get(previous_name,{})
+                        if execute:
+                            self.log("debug","Executing function:{} for Operator:{}".format(current_name,"code"))
+                            result = self.execute_function(current_name,"code",event=previous_result)
+                            path_tree[current_name] = result
+                            if result == False:
+                                temp["logs"].append(self.log("warning","Operator:{} returned False. Stopping execution of path:{}".format(current_name,path_name)))
+                                break
+                    else: # evaluating link
+                        previous_result = hash_tree.get(hash)
+                        if previous_result:
+                            execute = False
+                            temp["logs"].append(self.log("debug","Link has already executed: {}".format(current_name)))
+                            path_tree[current_name] = previous_result
+                            result = previous_result
+                        else:
+                            execute = True
+                            previous_result = path_tree.get(previous_name,{})
+                        if execute:
+                            self.log("debug","Executing function:{} for Operator:{}".format(current_name,previous_name))
+                            result = self.execute_function(previous_name,current_name,event=previous_result)
+                            path_tree[current_name] = result
+                            if result == False:
+                                temp["logs"].append(self.log("warning","Link:{} returned False. Stopping execution of path:{}".format(current_name,path_name)))
+                                break
+                    hash_tree[hash] = result
+                    temp["execution"].append({"result":result,"function":current_name})
+                self.result["paths"].append({path_name:temp})
+                temp["logs"].append(self.log("info","Return value ({}):{}".format(functions[-1]["name"],path_tree.get(functions[-1]["name"]))))
+                temp["logs"].append(self.log("info","Completed path:{}".format(path_name)))
+                temp["complete"] = True
+                temp["result"] = path_tree.get(functions[-1]["name"])
+                temp["execution_time"] = round((datetime.utcnow() - self.date_started).total_seconds())
+                if path_name == self.path_map.get("return_path"):
+                    self.result["return_value"] = path_tree.get(functions[-1]["name"])
+        self.result["execution_time"] = round((datetime.utcnow() - self.date_started).total_seconds())
+        self.result["logs"].append(self.log("info","Successfully completed {} workflow paths.".format(self.config.get("WORKFLOW_NAME","UNKNOWN"))))
+        return self.result
+
+if __name__ == "__main__":
+    request = {}
+    if len(sys.argv) > 2: #grab request
+        request = json.loads(sys.argv[2])
+    workflow = WorkflowRunner(referral_id=sys.argv[1],request=request)
+    workflow.start()

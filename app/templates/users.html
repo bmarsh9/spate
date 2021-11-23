@@ -1,0 +1,80 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        Users
+      </div>
+      <h2 class="page-title">
+        View Users
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.add_user")}}" class="btn btn-primary">
+            Add User
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Users</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Roles</th>
+                    <th class="w-1">Manage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for user in users%}
+                  <tr>
+                    <td class="subheader">{{user.id}}</td>
+                    <td class="subheader">{{user.first_name}} {{user.last_name}}</td>
+                    <td class="subheader">{{user.email}}</td>
+                    <td>{%for role in user.pretty_roles()%}{%if role == "admin"%}<span class="badge bg-yellow-lt mr-1">{{role}}</span>{%else%}<span class="badge bg-blue-lt mr-1">{{role}}</span>{%endif%}{%endfor%}</td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.view_user",id=user.id)}}"><i class="ti ti-edit"></i></a>
+                    </td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+  } );
+</script>
+{% endblock %}
+

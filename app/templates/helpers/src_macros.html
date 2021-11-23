@@ -1,0 +1,64 @@
+{% macro filehelper(datatables=False,chartjs=False,counter=False,sparkline=False,d3=False,select=False,apex=False,datepicker=False,apex_history=False,requests=False,slider=False,notify_js=False) -%}
+  {% if datatables %}
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/dataTables.bootstrap4.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/buttons/1.4.2/css/buttons.dataTables.min.css" rel="stylesheet" />
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.5.6/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.colVis.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.2.3/js/dataTables.responsive.min.js"></script>
+    <script src="{{url_for('static',filename='js/datatables_template.js')}}"></script>
+  {% endif %}
+  {% if chartjs %}
+    <script src="{{ url_for('static', filename='js/chartjs.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/chartjs-plugin-colorschemes.js') }}"></script>
+    <script src="{{url_for('static',filename='js/chartjs_template.js')}}"></script>
+  {% endif %}
+  {% if counter %}
+    <script src="{{url_for('static',filename='assets/js/update_template.js')}}"></script>
+    <!-- Number counter -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Counter-Up/1.0.0/jquery.counterup.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/waypoints/4.0.1/jquery.waypoints.min.js"></script>
+  {% endif %}
+  {% if sparkline %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
+    <script src="{{url_for('static',filename='assets/js/sparkline_template.js')}}"></script>
+  {% endif %}
+  {% if d3 %}
+    <!-- D3 Map -->
+    <script src="{{url_for('static',filename='js/d3.min.js')}}"></script>
+  {% endif %}
+  {% if select %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.7.0/chosen.jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.7.0/chosen.min.css"/>
+  {% endif %}
+  {% if apex %}
+    <script src="{{url_for('static',filename='js/apex_charts.js')}}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  {% endif %}
+
+  {% if datepicker %}
+      <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+      <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  {% endif %}
+
+  {% if apex_history %}
+    <script src="{{url_for('static',filename='js/apex_history_chart.js')}}"></script>
+  {% endif %}
+
+  {% if requests %}
+    <script src="{{url_for('static',filename='js/ajax_requests.js')}}"></script>
+  {% endif %}
+
+  {% if slider %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/bootstrap-slider.min.js" integrity="sha512-f0VlzJbcEB6KiW8ZVtL+5HWPDyW1+nJEjguZ5IVnSQkvZbwBt2RfCBY0CBO1PsMAqxxrG4Di6TfsCPP3ZRwKpA==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/11.0.2/css/bootstrap-slider.min.css" integrity="sha512-3q8fi8M0VS+X/3n64Ndpp6Bit7oXSiyCnzmlx6IDBLGlY5euFySyJ46RUlqIVs0DPCGOypqP8IRk/EyPvU28mQ==" crossorigin="anonymous" />
+  {% endif %}
+  {% if notify_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.5/bootstrap-notify.min.js"></script>
+    <script src="{{url_for('static',filename='js/notify.js')}}"></script>
+  {% endif %}
+
+{%- endmacro %}

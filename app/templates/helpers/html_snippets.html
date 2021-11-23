@@ -1,0 +1,35 @@
+{% macro pagination(url_function,object) -%}
+    {#{{kwargs}}#}
+    <div class="text-right">
+        <a href="{{ url_for(url_function, page=object['prev_num'],**kwargs) }}"
+           class="btn btn-outline-dark
+           {% if object["page"] == 1 %}disabled{% endif %}">
+            &laquo;
+        </a>
+        {% for page_num in object.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+            {% if page_num %}
+                {% if object["page"] == page_num %}
+                <a href="{{ url_for(url_function, page=page_num,**kwargs) }}"
+                   class="btn btn-dark">
+                    {{ page_num }}
+                </a>
+                {% else %}
+                <a href="{{ url_for(url_function, page=page_num,**kwargs) }}"
+                   class="btn btn-outline-dark">
+                    {{ page_num }}
+                </a>
+                {% endif %}
+            {% else %}
+                ...
+            {% endif %}
+        {% endfor %}
+        <a href="{{ url_for(url_function, page=object['next_num'],**kwargs) }}"
+           class="btn btn-outline-dark
+           {% if object["page"] == object["pages"] %}disabled{% endif %}">
+            &raquo;
+        </a>
+    </div>
+    <p class="text-right mt-3">
+       Showing page {{ object["page"] }} of {{ object["pages"] }}
+    </p>
+{%- endmacro %}

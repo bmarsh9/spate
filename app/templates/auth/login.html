@@ -1,0 +1,51 @@
+{% extends "layouts/vertical.html" %}
+
+{%block body%}
+  <body class="antialiased border-top-wide border-primary d-flex flex-column">
+    <div class="page page-center">
+      <div class="container-tight py-4">
+        <div class="text-center mb-4">
+          <a href="."><img src="./static/logo.svg" height="36" alt=""></a>
+        </div>
+        <form class="card card-md" method="POST" autocomplete="off">
+          {{form.hidden_tag()}}
+          <div class="card-body">
+            <h2 class="card-title text-center mb-4">Login to your account</h2>
+            <div class="mb-3">
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input class="form-control" placeholder="{{ _('Email') }}" id="email" name="email" type="text" required>
+              </div>
+            </div>
+            <div class="mb-2">
+              <label class="form-label">
+                Password
+                <span class="form-label-description">
+                  <a href="{{ url_for('auth.reset_password',next=request.args.get("next")) }}" class="">{{ _('Forgot your password ?') }}</a>
+                </span>
+              </label>
+            </div>
+            <div class="mb-2">
+              <div class="form-group"><input class="form-control" placeholder="{{ _('Password') }}" id="password" name="password" type="password" required></div>
+            </div>
+            <div class="mb-2">
+              <label class="form-check">
+                <input type="checkbox" class="form-check-input"/>
+                <span class="form-check-label">Remember me on this device</span>
+              </label>
+            </div>
+            <div class="form-footer">
+              <button class="btn btn-primary w-100" type="submit">{{ _('Sign in') }}</button>
+            </div>
+          </div>
+        </form>
+        {%if config["ENABLE_REGISTRATION"]%}
+        <div class="text-center text-muted mt-3">
+          Don't have account yet? <a href="{{ url_for('auth.register',next=request.args.get("next")) }}" class="">{{ _('or Register') }}</a>
+        </div>
+        {%endif%}
+      </div>
+    </div>
+  </div>
+{%endblock%}
+

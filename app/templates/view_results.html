@@ -1,0 +1,136 @@
+{% extends "layouts/condensed.html" %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}">{{workflow.name}} - {{result.id}}</a>
+      </div>
+      <h2 class="page-title">
+        Workflow Results
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn">
+            View Graph
+          </a>
+        </span>
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,result_id=result.id)}}" class="btn btn-primary">
+            View Endpoint
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+<div class="row gx-lg-4">
+              <div class="d-none d-lg-block col-lg-2">
+                <ul class="nav nav-pills nav-vertical">
+                  <li class="nav-item active bg-blue-lt">
+                    <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                      Overview
+                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
+                    </a>
+                  </li>
+                  <li class="nav-item">
+                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                      Paths
+                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div class="col-lg-10">
+                <div class="card card-lg">
+                  <div class="card-body">
+                    <div class="markdown">
+                      <div>
+                        <div class="mb-3">
+                          <h1 class="m-0">Overview {%if result.is_complete()%}<span class="badge bg-blue-lt ml-2">{{result.status}}</span>{%else%}<span class="badge bg-yellow-lt ml-2">{{result.status}}</span>{%endif%}</h1>
+                          <div class="row mt-4">
+                              <div class="col-md-12 col-lg-12">
+                                <div class="card">
+                                  <div class="card-header">
+                                    <h3 class="card-title">Return Value</h3>
+                                  </div>
+                                  <div class="card-body">
+                                    <pre>{{result.return_value}}</pre>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                              <div class="col-md-12 col-lg-12">
+                                <div class="card">
+                                  <div class="card-header">
+                                    <h3 class="card-title">Execution Time ({{result.execution_time}} s)</h3>
+                                  </div>
+                                  <table class="table card-table table-vcenter">
+                                    <thead>
+                                      <tr>
+                                        <th>Path Hash</th>
+                                        <th>Steps</th>
+                                        <th colspan="2">Time (s)</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {%if result.paths%}
+                                      {%for path in result.paths%}
+                                      {%for hash,data in path.items()%}
+                                      <tr>
+                                        <td><small class="subheader">{%if hash == result.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{hash}}</small></td>
+                                        <td><span class="badge bg-dark">{{data["execution"]|length}}</span></td>
+                                        <td><span class="badge bg-dark">{{data["execution_time"]}}</span></td>
+                                        <td class="w-50">
+                                          <div class="progress progress-xs">
+                                            <div class="progress-bar bg-primary" style="width: {%if result.execution_time%}{{(data["execution_time"]/result.execution_time)*100}}%{%endif%}"></div>
+                                          </div>
+                                        </td>
+                                      </tr>
+                                      {%endfor%}
+                                      {%endfor%}
+                                      {%endif%}
+                                    </tbody>
+                                  </table>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                              <div class="col-md-12 col-lg-12">
+                                <div class="card">
+                                  <div class="card-header">
+                                    <h3 class="card-title">Log</h3>
+                                  </div>
+                                  <div class="card-body">
+                                    <pre>{%if result.log%}{%for log in result.log.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                              <div class="col-md-12 col-lg-12">
+                                <div class="card">
+                                  <div class="card-header">
+                                    <h3 class="card-title">Debug Log (from workflow)</h3>
+                                  </div>
+                                  <div class="card-body">
+                                    <pre>{%if result.user_messages%}{%for log in result.user_messages.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+{%endblock%}

@@ -1,0 +1,105 @@
+{% extends "layouts/condensed.html" %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}">{{workflow.name}} - {{result.id}}</a>
+      </div>
+      <h2 class="page-title">
+        Workflow Results
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn">
+            View Graph
+          </a>
+        </span>
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,result_id=result.id)}}" class="btn btn-primary">
+            View Endpoint
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+<div class="row gx-lg-4">
+              <div class="d-none d-lg-block col-lg-2">
+                <ul class="nav nav-pills nav-vertical">
+                  <li class="nav-item">
+                    <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                      Overview
+                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
+                    </a>
+                  </li>
+                  <li class="nav-item active bg-blue-lt">
+                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                      Paths
+                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+              <div class="col-lg-10">
+                <div class="card card-lg">
+                  <div class="card-body">
+                    <div class="markdown">
+                      <div>
+                        <div class="mb-3">
+                          <h1 class="m-0">Results from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></h1>
+                          <div class="row mt-3">
+                          {%if result.paths%}
+                          {%for path in result.paths%}
+                            {%for hash,data in path.items()%}
+                            <div class="accordion mt-2" id="accordion{{hash}}">
+                              <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading{{hash}}">
+                                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{hash}}" aria-expanded="true" aria-controls="collapse{{hash}}">
+                                    {%if data["complete"]%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{data["complete"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == result.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}{{hash}}
+                                  </button>
+                                </h2>
+                                <div id="collapse{{hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{hash}}">
+                                  <div class="accordion-body">
+                                    <div class="row">
+                                      <h4>Result<small class="ml-2"> (Execution took {{data["execution_time"]}} seconds)</small></h4>
+                                      <pre>{{data["result"]}}</pre>
+                                    </div>
+                                    <div class="row mb-3">
+                                      <h4>Path</h4>
+                                      <ol class="breadcrumb breadcrumb-arrows ml-2" aria-label="breadcrumbs">
+                                      {%for direction in data["direction"]%}
+                                        <li class="breadcrumb-item"><a href="#"><span class="badge bg-blue-lt">{{direction["name"]}}</span></a></li>
+                                      {%endfor%}
+                                      </ol>
+                                    </div>
+                                    <div class="row">
+                                      <h4>Execution Path Results</h4>
+                                      <pre>{%for exec in data["execution"]%}{{exec}}<br>{%endfor%}</pre>
+                                    </div>
+                                    <div class="row">
+                                      <h4>Path Logs</h4>
+                                      <pre>{%for log in data["logs"]%}{{log}}<br>{%endfor%}</pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            {%endfor%}
+                          {%endfor%}
+                          {%endif%}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+{%endblock%}

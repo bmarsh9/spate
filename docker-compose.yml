@@ -1,0 +1,91 @@
+version: '3'
+services:
+  #ubuntu: # debug: docker exec -i -t ubuntu bash
+  #  image: ubuntu
+  #  command: tail -F anything
+  #  networks:
+  #    - db_nw
+  #    - web_nw
+
+  spate_ui:
+    container_name: spate-ui
+    image: spate-ui
+    depends_on:
+      - postgres_db
+    networks:
+      - db_nw
+      - web_nw
+    ports:
+      - "80:5000"
+    restart: unless-stopped
+    environment:
+      - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
+      - DEFAULT_EMAIL=admin@example.com
+      - DEFAULT_PASSWORD=admin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+  spate_ingress:
+    container_name: spate-ingress
+    image: spate-ingress
+    depends_on:
+      - postgres_db
+    networks:
+      - db_nw
+      - web_nw
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+  spate_cron:
+    container_name: spate-cron
+    image: spate-cron
+    depends_on:
+      - postgres_db
+    networks:
+      - db_nw
+      - web_nw
+    restart: unless-stopped
+    environment:
+      - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+  spate_poller:
+    container_name: spate-poller
+    image: spate-poller
+    depends_on:
+      - postgres_db
+    networks:
+      - db_nw
+      - web_nw
+    restart: unless-stopped
+    environment:
+      - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+  postgres_db:
+    container_name: postgres_db
+    image: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-db1}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-db1}
+      PGDATA: /data/postgres
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:rw
+    #volumes:
+    #   - postgres:/data/postgres
+    #ports:
+    #  - "5432:5432"
+    networks:
+      - db_nw
+    restart: unless-stopped
+
+networks:
+  db_nw:
+    driver: bridge
+  web_nw:
+    driver: bridge
+volumes:
+  dbdata:

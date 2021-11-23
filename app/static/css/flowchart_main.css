@@ -1,0 +1,97 @@
+.flowchart-operator-connector-label {
+  cursor: pointer!important;
+}
+.flowchart-operator.selected{border-top:3px solid #206bc4 !important}
+
+.page-body {
+  margin-top: 0rem !important;
+  margin-bottom: 0rem !important;
+}
+a.nav-link.active {
+    border-bottom: 4px solid #206bc4 !important;
+}
+.blockelem:hover {
+    box-shadow: 0px 4px 30px rgb(190 190 190 / 52%);
+}
+
+.blockelem-hover {
+    box-shadow: 0px 4px 30px rgb(190 190 190 / 52%) !important;
+}
+
+.flowchart-operator-title.ui-draggable-handle:hover {
+  background-color:#eeeeee;
+}
+
+.flowchart-operator-title.ui-draggable-handle {
+    color: #656d77;
+}
+
+.flowchart-operator-outputs .flowchart-operator-connector-label,.flowchart-operator-inputs .flowchart-operator-connector-label {
+    font-size: .500rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    line-height: 1.6;
+    color: #656d77;
+}
+
+.flowchart-operator {
+    border-radius: 8px !important;
+    box-shadow: 0px 4px 30px rgb(190 190 190 / 52%);
+    border: 1px solid #e6e6e6 !important;
+    background: #FFF;
+    width: 200px !important;
+    pointer-events: auto;
+}
+
+.flowchart-operator .flowchart-operator-title {
+    border-radius: 8px 8px 0px 0px !important;
+    border-bottom: 1px solid #c5c5cb !important;
+    background: #FFF;
+    padding: 10px !important;
+}
+
+#chart_container {
+  width: 100%;
+  height: 90vh;
+  overflow: hidden;
+  background: repeating-linear-gradient( 45deg, #eee, #eee 10px, #e5e5e5 10px, #e5e5e5 20px);
+  border: 1px solid #e5e5e5;
+  border-radius: 0px;
+  background-image: url("/static/tile.png");
+  background-repeat: repeat;
+  background-size: 30px 30px;
+}
+
+.flowchart-example-container {
+  height: 200px;
+  border: 1px solid #BBB;
+  margin-bottom: 10px;
+}
+#example {
+  width: 4000px;
+  height: 4000px;
+  /*background: white;*/
+}
+
+.draggable_operators_label {
+  margin-bottom: 5px;
+}
+
+.draggable_operators_divs {
+  margin-bottom: 20px;
+}
+
+.draggable_operator {
+  display: inline-block;
+  padding: 2px 5px 2px 5px;
+  border: 1px solid #ccc;
+  cursor: grab;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+

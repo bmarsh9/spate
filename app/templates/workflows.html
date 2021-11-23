@@ -1,0 +1,88 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        workflows
+      </div>
+      <h2 class="page-title">
+        View Workflows
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.lockers")}}" class="btn">
+            View Lockers
+          </a>
+        </span>
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.add_workflow")}}" class="btn btn-primary">
+            Add Workflow
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Workflows</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Label</th>
+                    <th>Name</th>
+                    <th>Executions</th>
+                    <th class="w-1">Results</th>
+                    <th class="w-1">Graph</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for workflow in workflows%}
+                  <tr>
+                    <td class="subheader">{{workflow.id}}</td>
+                    <td class="subheader">{{workflow.label}}</td>
+                    <td class="subheader">{{workflow.name}}</td>
+                    <td><span class="badge bg-blue-lt">{{workflow.results.count()}}</span></td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}"><i class="ti ti-report-analytics"></i></a>
+                    </td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.view_workflow",id=workflow.id)}}"><i class="ti ti-vector-beizer-2"></i></a>
+                    </td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+  } );
+</script>
+{% endblock %}

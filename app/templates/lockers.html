@@ -1,0 +1,76 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        Lockers
+      </div>
+      <h2 class="page-title">
+        View Lockers
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.add_locker")}}" class="btn btn-primary">
+            Add Locker
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Lockers</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>Label</th>
+                    <th>Values</th>
+                    <th>Workflows</th>
+                    <th class="w-1">Manage</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for locker in lockers %}
+                  <tr>
+                    <td class="subheader">{{locker.label}}</td>
+                    <td class="text-muted"><span class="badge bg-blue-lt">{{locker.config.keys()|length}}</span></td>
+                    <td class="text-muted"><span class="badge bg-blue-lt">{{locker.get_workflows()|length}}</span></td>
+                    <td class="text-center"><a href="{{url_for("main.view_locker",id=locker.id)}}"><i class="ti ti-lock"></i></a></td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+  } );
+</script>
+{% endblock %}
+

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <meta name="description" content />
+        <meta name="author" content />
+        <title>{%block title%}{%endblock%}</title>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+        {% block before_head %}
+        {% endblock %}
+        <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
+        <link href="{{ url_for('static', filename='css/custom.css') }}" rel="stylesheet" />
+        <link rel="icon" type="image/x-icon" href="assets/img/favicon.png" />
+        <script data-search-pseudo-elements defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/js/all.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.24.1/feather.min.js" crossorigin="anonymous"></script>
+        {% block head %}
+        {% endblock %}
+    </head>
+    <body>
+        <div id="layoutDefault">
+            <div id="layoutDefault_content">
+                <main>
+                    <nav class="navbar navbar-marketing navbar-expand-lg bg-dark navbar-dark">
+                        <div class="container">
+                            <a class="navbar-brand text-light" href="/">{{config["APP_NAME"]|capitalize}}</a><button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><i data-feather="menu"></i></button>
+                            {% block remove_nav %}
+                            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                                <ul class="navbar-nav ml-auto mr-lg-5">
+                                    {% block navlist %}
+                                    {% if call_or_get(current_user.is_authenticated) %}
+                                    <li class="nav-item"><a class="nav-link" href=""></a></li>
+                                    <li class="nav-item dropdown no-caret">
+                                        <a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Placeholder<i class="fas fa-chevron-right dropdown-arrow"></i></a>
+                                        <div class="dropdown-menu dropdown-menu-right animated--fade-in-up" aria-labelledby="navbarDropdownDocs">
+                                            <a class="dropdown-item py-3" href="" target="">
+                                                <div>
+                                                    <div class="">PH</div>
+                                                </div>
+                                            </a>
+                                            <div class="dropdown-divider m-0"></div>
+                                        </div>
+                                    </li>
+                                    <li class="nav-item dropdown no-caret">
+                                        <a class="nav-link dropdown-toggle" id="navbarDropdownDocs" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Settings<i class="fas fa-chevron-right dropdown-arrow"></i></a>
+                                        <div class="dropdown-menu dropdown-menu-right animated--fade-in-up" aria-labelledby="navbarDropdownDocs">
+                                            <a class="dropdown-item py-3" href="{{url_for('main.users')}}">
+                                                <div>
+                                                    <div class="">Users</div>
+                                                </div>
+                                            </a>
+                                            <div class="dropdown-divider m-0"></div>
+                                        </div>
+                                    </li>
+                                    {% else %}
+                                    <a href="{{ url_for('user.login') }}" class="text-white">{%trans%}Sign in{%endtrans%}</a>
+                                    {% endif %}
+                                    {% endblock %}
+                                </ul>
+                            </div>
+                            {% endblock %}
+                        </div>
+                    </nav>
+                    <div class="container">
+                        <section>
+                            {% for category,message in get_flashed_messages(with_categories=True)[:3] %}
+                            {% if category == "message" %}
+                            {% set category = "primary" %}
+                            {% endif %}
+                            <div class="alert alert-{{category}} mt-4 text-dark">
+                                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                                {{ message }}
+                            </div>
+                            {% endfor %}
+                        </section>
+                    </div>
+                    {% block content %}
+                    {% endblock %}
+                </main>
+            </div>
+            {% block remove_footer%}
+            <div id="layoutDefault_footer">
+                <footer class="footer pt-10 pb-5 mt-auto bg-light footer-white">
+                    <div class="container">
+                        {% block footer %}
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="footer-brand">{{config["APP_NAME"]|capitalize}}</div>
+                                <div class="mb-3">{{config["APP_SUBTITLE"]|upper}}</div>
+                                <div class="icon-list-social mb-5">
+                                    <a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-instagram"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-facebook"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-github"></i></a><a class="icon-list-social-link" href="javascript:void(0);"><i class="fab fa-twitter"></i></a>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-6 mb-5 mb-lg-0">
+                                        <div class="text-uppercase-expanded text-xs mb-4">Product</div>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2"><a href="javascript:void(0);">Landing</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 mb-5 mb-lg-0">
+                                        <div class="text-uppercase-expanded text-xs mb-4">Technical</div>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2"><a href="javascript:void(0);">Documentation</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6 mb-5 mb-md-0">
+                                        <div class="text-uppercase-expanded text-xs mb-4">Includes</div>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2"><a href="javascript:void(0);">Utilities</a></li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-lg-3 col-md-6">
+                                        <div class="text-uppercase-expanded text-xs mb-4">Legal</div>
+                                        <ul class="list-unstyled mb-0">
+                                            <li class="mb-2"><a href="javascript:void(0);">Privacy Policy</a></li>
+                                            <li class="mb-2"><a href="javascript:void(0);">Terms and Conditions</a></li>
+                                            <li><a href="javascript:void(0);">License</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endblock %}
+                        <hr class="my-5" />
+                        <div class="row align-items-center">
+                            <div class="col-md-6 small">Copyright &#xA9; {{config["APP_NAME"]|capitalize}} {{config["CR_YEAR"]}}</div>
+                            <div class="col-md-6 text-md-right small">
+                                <a href="javascript:void(0);">Privacy Policy</a>
+                                &#xB7;
+                                <a href="javascript:void(0);">Terms &amp; Conditions</a>
+                            </div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+            {% endblock %}
+        </div>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+        <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mouse0270-bootstrap-notify/3.1.3/bootstrap-notify.min.js"></script>
+        <sb-customizer project="sb-ui-kit-pro"></sb-customizer>
+        {% block extrajs %}
+        {% endblock %}
+    </body>
+</html>

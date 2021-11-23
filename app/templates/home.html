@@ -1,0 +1,311 @@
+{% extends "layouts/condensed.html" %}
+{% block include_jquery %}
+{% endblock %}
+{% block before_head %}
+<link href="https://cdn.rawgit.com/sdrdis/jquery.flowchart/master/jquery.flowchart.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.0/jquery-ui.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.panzoom/3.2.2/jquery.panzoom.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-mousewheel/3.1.13/jquery.mousewheel.min.js" crossorigin="anonymous"></script>
+<script src="{{ url_for('static', filename='js/jquery.flowchart.js') }}"></script>
+<link href="{{ url_for('static', filename='css/flowchart_main.css') }}" rel="stylesheet" />
+
+<!-- code editor -->
+<script src="https://ajaxorg.github.io/ace-builds/src-min-noconflict/ace.js" type="text/javascript" ></script>
+<script src="{{ url_for('static', filename='js/flowchart_custom.js') }}"></script>
+<style>
+  #code-editor {
+    width: 100%;
+    height: 100%;
+    border-radius:5px;
+  }
+  #code-output-editor {
+    width: 100%;
+    height: 100%;
+    border-radius:5px;
+  }
+</style>
+{% import "helpers/src_macros.html" as macro %}
+{{ macro.filehelper(notify_js=True) }}
+{% endblock %}
+
+{%block header%}{%endblock%}
+{%block contentHeader%}{%endblock%}
+
+{% block container %}
+<div class="container-fluid g-0">
+  <div class="row g-0">
+    <div class="col-3">
+      <div class="card h-100">
+        <div class="card-body m-3">
+          <h3 style="color:#656d77" class="page-title font-weight-bold mb-3"><a href="{{url_for("main.workflows")}}" class="btn btn-white btn-pill btn-icon mr-2"><i class="ti ti-arrow-big-left"></i></a>{{workflow.label}}</h3>
+          <span id="workflow_id" value="{{workflow.id}}" class="badge bg-blue-lt mb-2">{{workflow.name}}</span>
+          <div class="input-icon">
+            <span class="input-icon-addon">
+              <!-- Download SVG icon from http://tabler-icons.io/i/search -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
+                stroke-linejoin="round">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                <circle cx="10" cy="10" r="7"></circle>
+                <line x1="21" y1="21" x2="15" y2="15"></line>
+              </svg>
+            </span>
+            <input type="text" class="form-control" placeholder="Search…" aria-label="Search in website">
+          </div>
+          <div class="card mt-3">
+            <ul class="nav nav-tabs nav-fill" data-bs-toggle="tabs">
+              <li class="nav-item">
+                <a href="#tabs-trigger" style="font-size:.700rem" class="nav-link subheader active" data-bs-toggle="tab">
+                  <!-- Download SVG icon from http://tabler-icons.io/i/home -->
+                  <i class="ti ti-urgent icon mr-1"></i>Trigger
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#tabs-action" style="font-size:.700rem" class="nav-link subheader" data-bs-toggle="tab">
+                  <!-- Download SVG icon from http://tabler-icons.io/i/user -->
+                  <!-- SVG icon code -->
+                  <i class="ti ti-git-merge icon mr-1"></i>Actions
+                </a>
+              </li>
+              <li class="nav-item">
+                <a href="#tabs-misc" style="font-size:.700rem" class="nav-link subheader" data-bs-toggle="tab">
+                  <!-- Download SVG icon from http://tabler-icons.io/i/activity -->
+                  <!-- SVG icon code -->
+                  <i class="ti ti-tool icon mr-1"></i>Misc
+                </a>
+              </li>
+            </ul>
+            <div class="card-body">
+              <div style="height:50vh;overflow-y:auto" class="tab-content">
+                <div class="tab-pane active show" id="tabs-trigger">
+                </div>
+                <div class="tab-pane" id="tabs-action">
+                </div>
+                <div class="tab-pane" id="tabs-misc">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-9">
+    <div class="row g-0 h-100">
+      <div class="col-12">
+        <div id="chart_container">
+          <div class="flowchart-example-container" id="example"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-0">
+    <div class="col-3">
+      <div class="card">
+        <div class="card-body">
+          <div class="btn-list">
+            <button id="delete_selected_button" class="btn bg-red-lt"><i class="ti ti-trash icon text-red mr-1"></i>Operator/Link</button>
+            <button id="get_data" class="btn">View</button>
+            <button id="set_data" class="btn bg-green-lt">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-9">
+      <div class="card h-100">
+        <div class="card-body">
+          <section class="buttons">
+            <!--
+            <button class="btn zoom-in"><i class="ti ti-zoom-in"></i></button>
+            <button class="btn zoom-out"><i class="ti ti-zoom-out"></i></button>
+            <input type="range" class="zoom-range cursor-pointer">
+            -->
+            <div class="row">
+              <div class="col-2">
+                <button class="btn reset"  id="reset_zoom"><i class="ti ti-arrows-diagonal"></i></button>
+              </div>
+              <div class="col-10 text-end">
+                <button class="btn workflow_endpoints"><i class="ti ti-access-point"></i><small class="ml-2">Endpoints</small></button>
+                <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}" class="btn"><i class="ti ti-report-analytics"></i><small class="ml-2">Results</small></a>
+                <button class="btn workflow_settings"><i class="ti ti-tools"></i><small class="ml-2">Settings</small></button>
+                <button class="btn workflow_refresh"><i class="ti ti-refresh"></i><small class="ml-2">Refresh</small></button>
+                <!--<button class="btn workflow_run"><i class="ti ti-run"></i><small class="ml-2">Run</small></button>-->
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="workflow-endpoints" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Workflow Endpoints</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h5>Run Workflow</h5>
+          <p>/workflows/{{workflow.id}}/actions/run</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="workflow-modal-run" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Workflow Results</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <pre><div id="workflow-run" class="modal-body">
+        </div></pre>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="workflow-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Workflow Settings</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div id="workflow-settings">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="operator-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Block</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-1">
+              <div id="savedAlert"></div>
+          </div>
+          <div class="row mb-1 g-1">
+            <div id="operatorHeaderInputs" class="col-2 card card-body">
+              <div class="row align-items-center">
+                <div class="col-2">
+                  <i class="ti ti-arrow-bar-to-right icon text-secondary mr-3"></i>
+                </div>
+                <div class="col-10">
+                  <h4>Inputs</h4>
+                  <p style="font-size:10px" class="text-muted mb-0">The (source) Operators connected to this Operator are listed below</p>
+                </div>
+              </div>
+            </div>
+            <div id="operatorHeaderLogic" class="col-8 card card-body">
+              <div class="row align-items-center">
+                <div class="col"><h4>Core Operator Logic</h4><p style="font-size:10px" class="text-muted mb-0">The core code of the Operator. You can consume data from source operators, manipulate the data and send it off.</p></div>
+                <div class="col-auto" id="operatorButtonView"><a href="#" class="btn btn-primary modalOperatorButton">Reload Logic<i class="ti ti-refresh ml-2"></i></a></div>
+              </div>
+            </div>
+            <div id="operatorHeaderOutputs" class="col-2 card card-body">
+              <div class="row align-items-center">
+                <div class="col-2">
+                  <i class="ti ti-arrow-bar-right icon text-secondary mr-3"></i>
+                </div>
+                <div class="col-10">
+                  <h4>Outputs</h4>
+                  <p style="font-size:10px" class="text-muted mb-0">Use outputs for exit points to other operators. You can attach code to Outputs if desired.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3 g-1">
+            <div class="col-2">
+              <div class="card card-body pt-0 h-100">
+                <div id="operatorInputs" class="operator-pane pt-2">
+                </div>
+              </div>
+            </div>            
+            <div id="code-editor-wrapper" class="col-8">
+              <div id="code-editor"></div>
+            </div>
+            <div class="col-2">
+              <div class="card card-body pt-0 h-100">
+                <div id="operatorOutputs" class="operator-pane pt-2">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto subheader" data-bs-dismiss="modal">Close</button>
+          <div id="modalSaveButton"></div>          
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="operator-output-modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-fullscreen" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Block</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+            <div class="col-6">
+              <h3>Configure Connections</h3>
+              <p>Connections link operators together. Select the connections below to view/edit the logic.</p>
+            </div>
+            <div class="col-6">
+              <h3>Edit Logic</h3>
+              <p>The logic code determines the condition in which the event is sent to the next operator.</p>
+              <div class="mt-2" id="savedAlert"></div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+                <div class="card">
+                  <ul id="modal-tabs" class="nav nav-tabs nav-tabs-alt" data-bs-toggle="tabs">
+                  </ul>
+                  <div class="card-body">
+                    <div id="tab-body" class="tab-content">
+                    </div>
+                  </div>
+                </div>
+            </div>
+            <div class="col-6">
+              <div id="code-output-editor">
+                <div class="text-center"><h3 class="mt-5"><i class="ti ti-alert-triangle text-danger mr-1 mt-1"></i>Select connection to view/edit the logic</h3></div>
+              </div>
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-6">
+            </div>
+            <div id="linkCodeButton" class="col-6">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto subheader" data-bs-dismiss="modal">Close</button>
+          <button type="button" data-bs-dismiss="modal" class="btn subheader text-white btn-primary">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block footer %}
+{% endblock %}
+{% block extrajs %}
+  <script>
+    $(document).ready(function() {
+      loadFlowchart("#example",{{workflow.id}})
+    });
+  </script>
+{% endblock %}
