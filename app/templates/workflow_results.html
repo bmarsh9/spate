@@ -44,6 +44,7 @@
                   <tr>
                     <th>ID</th>
                     <th>Status</th>
+                    <th>Finished</th>
                     <th>Paths</th>
                     <th>Return Value</th>
                     <th class="w-1">View</th>
@@ -51,9 +52,11 @@
                 </thead>
                 <tbody>
                   {%for result in results%}
+                  {%set finished = result.finished()%}
                   <tr>
                     <td class="subheader">{{result.id}}</td>
                     <td><span class="badge {%if result.is_complete()%}bg-green-lt{%elif result.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{result.status}}</span></td>
+                    <td>{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}</td>
                     <td><span class="badge bg-blue-lt">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></td>
                     <td class="subheader">{{result.return_value}}</td>
                     <td class="text-center">

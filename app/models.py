@@ -133,6 +133,11 @@ class Result(db.Model, LogMixin):
             template["complete"] = True
         return template
 
+    def finished(self):
+        if not self.date_added:
+            return "unknown"
+        return arrow.get(self.date_added).humanize()
+
 class Workflow(db.Model, LogMixin):
     __tablename__ = 'workflows'
     id = db.Column(db.Integer, primary_key=True)
