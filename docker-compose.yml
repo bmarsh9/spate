@@ -22,7 +22,8 @@ services:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
       - DEFAULT_EMAIL=admin@example.com
       - DEFAULT_PASSWORD=admin
-      - SETUP_DB=no
+      - SETUP_DB=yes
+      - POSTGRES_DB: ${POSTGRES_DB:-db1}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
@@ -69,12 +70,12 @@ services:
   postgres_db:
     container_name: postgres_db
     image: postgres
+    #image: postgres_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-db1}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-db1}
+      POSTGRES_DB: ${POSTGRES_DB:-db1}
       PGDATA: /data/postgres
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:rw
     #volumes:
     #   - postgres:/data/postgres
     #ports:
