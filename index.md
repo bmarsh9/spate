@@ -12,6 +12,7 @@ Easily create and run Workflows          |
 4. [Getting Started](#getting-started)
 5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
 6. [Development](#development)
+7. [Todo](#todo)
 
 
 ### What is Spate?
