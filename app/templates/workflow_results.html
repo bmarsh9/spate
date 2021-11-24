@@ -56,7 +56,7 @@
                   <tr>
                     <td class="subheader">{{result.id}}</td>
                     <td><span class="badge {%if result.is_complete()%}bg-green-lt{%elif result.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{result.status}}</span></td>
-                    <td>{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}</td>
+                    <td>{%if result.status != "complete"%}<span class="badge bg-gray-lt">never</span>{%else%}{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}{%endif%}</td>
                     <td><span class="badge bg-blue-lt">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></td>
                     <td class="subheader">{{result.return_value}}</td>
                     <td class="text-center">

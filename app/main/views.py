@@ -5,6 +5,7 @@ from app.models import *
 from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
 from app.utils.misc import parse_locker_creation,generate_uuid
+from app.utils.docker_manager import DockerManager
 
 @main.route('/', methods=['GET'])
 @login_required
@@ -15,6 +16,21 @@ def home():
 @login_required
 def docs():
     return render_template("docs.html")
+
+@main.route('/status', methods=['GET'])
+@login_required
+def status():
+    data = {}
+    docker_manager = DockerManager()
+    container_list = ["spate-ui","spate-poller","spate-ingress","spate-cron","postgres_db"]
+    for name in container_list:
+        data[name] = {"status":"not running","running":False}
+        container = docker_manager.get_container(name)
+        if container:
+            state = container.attrs["State"]
+            data[name]["status"] = state["Status"]
+            data[name]["running"] = state["Running"]
+    return render_template("status.html",status=data)
 
 #--------------- Workflow ----------------------
 @main.route('/workflows', methods=['GET'])
