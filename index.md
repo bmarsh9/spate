@@ -96,3 +96,7 @@ You can check the status of the deployment by viewing the "Status" page
 
 <img src="images/spate_status.PNG" alt="" class="inline"/>
 
+### TODO
+- [ ] Add "Form" trigger
+- [ ] Improve admin controls in UI (e.g. what users can edit/view workflows)
+- [ ] Improve documentation
