@@ -46,6 +46,7 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 + Create base image with: `cd docker_image && docker build -t base-python .`
 + Start the containers: `docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 + Visit `https://your-ip`. Email is `admin@example.com` and password is `admin`
++ Check the [Health of your deployment](#service-status)
 + See the following "Setting Up Your First Workflow" section for your first Workflow
 
 ### Setting Up Your First Workflow
@@ -89,3 +90,9 @@ After the "Getting Started" section above, lets set up and execute a API based W
 Your 'docker ps' command should look something like this (4 containers with spate_). Check the logs of the containers for errors.
 
 <img src="images/spate_debug.PNG" alt="" class="inline"/>
+
+##### Service status
+You can check the status of the deployment by viewing the "Status" page
+
+<img src="images/spate_status.PNG" alt="" class="inline"/>
+
