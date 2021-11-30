@@ -10,6 +10,7 @@ import sqlalchemy
 from sqlalchemy.sql import func
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
+import timeout_decorator
 import io
 
 # path inside docker container
@@ -124,6 +125,7 @@ class WorkflowRunner():
             self.result["logs"].append(self.log("warning","Workflow file:{} not found!".format(path)))
         return None
 
+    @timeout_decorator.timeout(30)
     def execute_function(self, operator_name,function_name,event={}):
         if function_name == "code":
             file_name = "operator"
