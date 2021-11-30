@@ -168,7 +168,7 @@ class WorkflowRunner():
         for tree in self.path_map.get("paths",[]):
             for path_name,functions in tree.items():
                 path_tree = {}
-                temp = {"logs":[],"execution":[],"complete":False,"result":None,"direction":functions}
+                temp = {"logs":[],"execution":[],"complete":True,"result":None,"direction":functions}
                 temp["logs"].append(self.log("info","Starting workflow execution path:{}. Total steps:{}".format(path_name,len(functions))))
                 temp["logs"].append(self.log("debug","Path direction: {}".format(functions)))
                 for previous_function, current_function in zip(functions, functions[1:]):
@@ -194,6 +194,8 @@ class WorkflowRunner():
                             path_tree[current_name] = result
                             if result == False:
                                 temp["logs"].append(self.log("warning","Operator:{} returned False. Stopping execution of path:{}".format(current_name,path_name)))
+                                temp["execution"].append({"result":False,"function":current_name})
+                                temp["complete"] = False
                                 break
                     else: # evaluating link
                         previous_result = hash_tree.get(hash)
@@ -211,13 +213,14 @@ class WorkflowRunner():
                             path_tree[current_name] = result
                             if result == False:
                                 temp["logs"].append(self.log("warning","Link:{} returned False. Stopping execution of path:{}".format(current_name,path_name)))
+                                temp["execution"].append({"result":False,"function":current_name})
+                                temp["complete"] = False
                                 break
                     hash_tree[hash] = result
                     temp["execution"].append({"result":result,"function":current_name})
                 self.result["paths"].append({path_name:temp})
                 temp["logs"].append(self.log("info","Return value ({}):{}".format(functions[-1]["name"],path_tree.get(functions[-1]["name"]))))
                 temp["logs"].append(self.log("info","Completed path:{}".format(path_name)))
-                temp["complete"] = True
                 temp["result"] = path_tree.get(functions[-1]["name"])
                 temp["execution_time"] = round((datetime.utcnow() - self.date_started).total_seconds())
                 if path_name == self.path_map.get("return_path"):

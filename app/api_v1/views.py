@@ -3,6 +3,7 @@ from . import api
 from app.models import *
 from app.utils.misc import request_to_json
 from flask_login import login_required,current_user
+from app.utils.decorators import roles_required
 
 @api.route('/health', methods=['GET'])
 def get_health():
@@ -13,7 +14,7 @@ def get_service_status():
     return jsonify({"message":"ok"})
 
 @api.route('/operators/<int:id>/official', methods=['PUT'])
-@login_required
+@roles_required("admin")
 def update_operator_official(id):
     operator = Operator.query.get(id)
     if not operator:
@@ -23,7 +24,7 @@ def update_operator_official(id):
     return jsonify({"message":"ok"})
 
 @api.route('/operators/<int:id>/public', methods=['PUT'])
-@login_required
+@roles_required("admin")
 def update_operator_public(id):
     operator = Operator.query.get(id)
     if not operator:

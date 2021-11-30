@@ -58,6 +58,23 @@
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
                                   <div class="card-header">
+                                    <h3 class="card-title">Details</h3>
+                                  </div>
+                                  <div class="card-body">
+                                    <pre style="white-space:nowrap">
+                                    Workflow Name: {{result.workflow.name}}<br>
+                                    Workflow Label: {{result.workflow.label}}<br>
+                                    Type: {{result.trigger_type()}}<br>
+                                    Start Time: {{result.date_added}}<br>
+                                    </pre>
+                                  </div>
+                                </div>
+                              </div>
+                          </div>
+                          <div class="row mt-4">
+                              <div class="col-md-12 col-lg-12">
+                                <div class="card">
+                                  <div class="card-header">
                                     <h3 class="card-title">Return Value</h3>
                                   </div>
                                   <div class="card-body">

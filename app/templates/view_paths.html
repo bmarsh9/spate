@@ -61,8 +61,8 @@
                             <div class="accordion mt-2" id="accordion{{hash}}">
                               <div class="accordion-item">
                                 <h2 class="accordion-header" id="heading{{hash}}">
-                                  <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{hash}}" aria-expanded="true" aria-controls="collapse{{hash}}">
-                                    {%if data["complete"]%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{data["complete"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == result.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}{{hash}}
+                                  <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{hash}}" aria-expanded="true" aria-controls="collapse{{hash}}">
+                                    {%if data["complete"]%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}Complete: {{data["complete"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == result.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{hash}}
                                   </button>
                                 </h2>
                                 <div id="collapse{{hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{hash}}">

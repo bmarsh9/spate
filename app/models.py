@@ -113,6 +113,12 @@ class Result(db.Model, LogMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+    def trigger_type(self):
+        trigger = self.workflow.get_trigger()
+        if trigger:
+            return trigger.subtype
+        return "unknown"
+
     def is_complete(self):
         return self.status == "complete"
 
