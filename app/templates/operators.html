@@ -1,0 +1,93 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        Operators
+      </div>
+      <h2 class="page-title">
+        View Operators
+      </h2>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Operators</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Label</th>
+                    <th>Workflow</th>
+                    <th>Official</th>
+                    <th>Public</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for operator in operators%}
+                  <tr>
+                    <td class="subheader">{{operator.name}}</td>
+                    <td class="subheader">{{operator.label}}</td>
+                    <td class="subheader">{{operator.workflow.label}}</td>
+                    <td class="text-center">{%if operator.official%}<button id="{{operator.id}}" class="btn btn-sm btn-primary official">Yes</button>{%else%}<button id="{{operator.id}}" class="btn btn-sm btn-secondary official">No</button>{%endif%}</td>
+                    <td class="text-center">{%if operator.public%}<button id="{{operator.id}}" class="btn btn-sm btn-warning public">Yes</button>{%else%}<button id="{{operator.id}}" class="btn btn-sm btn-success public">No</button>{%endif%}</td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+    $(".official").click(function() {
+      $.ajax({
+        url: "/api/v1/operators/"+this.id+"/official",
+        type: "PUT",
+        success: function (response) {
+          location.reload();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
+    $(".public").click(function() {
+      $.ajax({
+        url: "/api/v1/operators/"+this.id+"/public",
+        type: "PUT",
+        success: function (response) {
+          location.reload();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

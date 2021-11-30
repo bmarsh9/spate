@@ -383,7 +383,7 @@ class Workflow(db.Model, LogMixin):
 
     def get_sidebar(self, search_term=None):
         data = []
-        _query = Operator.query.filter(Operator.official == True)
+        _query = Operator.query.filter(Operator.official == True).order_by(Operator.id.desc())
         if search_term:
             search = "%{}%".format(search_term)
             _query = _query.filter(Operator.label.ilike(search))
@@ -1387,7 +1387,7 @@ class User(LogMixin,db.Model, UserMixin):
             roles = [roles]
         new_roles = []
         for role in roles:
-            found = Role.query.filter(Role.name == role).first()
+            found = Role.find_by_name(role)
             if found:
                 new_roles.append(found)
         self.roles[:] = new_roles
@@ -1419,6 +1419,13 @@ class Role(db.Model):
     __tablename__ = 'roles'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
+
+    @staticmethod
+    def find_by_name(name):
+        role_exists = Role.query.filter(func.lower(Role.name) == func.lower(name)).first()
+        if role_exists:
+            return role_exists
+        return False
 
 # Define the UserRoles association table
 class UserRoles(db.Model):

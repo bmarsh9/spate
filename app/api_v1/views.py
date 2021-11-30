@@ -12,6 +12,26 @@ def get_health():
 def get_service_status():
     return jsonify({"message":"ok"})
 
+@api.route('/operators/<int:id>/official', methods=['PUT'])
+@login_required
+def update_operator_official(id):
+    operator = Operator.query.get(id)
+    if not operator:
+        return jsonify({"message":"operator not found"}),404
+    operator.official = not operator.official
+    db.session.commit()
+    return jsonify({"message":"ok"})
+
+@api.route('/operators/<int:id>/public', methods=['PUT'])
+@login_required
+def update_operator_public(id):
+    operator = Operator.query.get(id)
+    if not operator:
+        return jsonify({"message":"operator not found"}),404
+    operator.public = not operator.public
+    db.session.commit()
+    return jsonify({"message":"ok"})
+
 @api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
 @login_required
 def workflow_endpoint(workflow_id,result_id):

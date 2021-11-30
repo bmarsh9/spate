@@ -45,3 +45,9 @@ def add_user():
         token = "{}{}?token={}".format(request.host_url,"register",token)
         flash("Provide the following link to the user.")
     return render_template('add_user.html',token=token)
+
+@main.route('/admin/operators', methods=['GET'])
+@roles_required("admin")
+def operators():
+    operators = Operator.query.all()
+    return render_template('operators.html',operators=operators)

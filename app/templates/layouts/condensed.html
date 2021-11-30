@@ -80,6 +80,7 @@
                     </span>
                   </a>
                 </li>
+                {%if current_user.has_role("admin")%}
                 <li class="nav-item">
                   <a class="nav-link" href="{{url_for("main.users")}}">
                     <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler-icons.io/i/home -->
@@ -90,6 +91,17 @@
                     </span>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="{{url_for("main.operators")}}">
+                    <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler-icons.io/i/home -->
+                      <i class="ti ti-box icon"></i>
+                    </span>
+                    <span class="nav-link-title">
+                      Operators
+                    </span>
+                  </a>
+                </li>
+                {%endif%}
               </ul>
             </div>
           </div>
