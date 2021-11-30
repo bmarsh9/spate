@@ -1,0 +1,97 @@
+{% extends "layouts/condensed.html" %}
+
+{% block head %}
+{% import "helpers/src_macros.html" as macro %}
+{{ macro.filehelper(select=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflows")}}">workflows</a>
+      </div>
+      <h2 class="page-title">
+        Access for {{workflow.label}}
+      </h2>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Read Access</h3>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{url_for("main.edit_workflow_read_access",id=workflow.id)}}">
+                <div class="form-group mb-3 ">
+                  <div>
+                    <select id="read" name="read_users[]" data-placeholder="Search for Users..." class="chosen-select form-control" multiple>
+                    {% for user in read_users %}
+                      <option value="{{user.user_id}}" selected>{{user.email}}</option>
+                    {% endfor %}
+                    {% for user in users %}
+                      {%if user not in read_users%}
+                      <option value="{{user.id}}">{{user.email}}</option>
+                      {%endif%}
+                    {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+              </form>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Write Access</h3>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{url_for("main.edit_workflow_write_access",id=workflow.id)}}">
+                <div class="form-group mb-3 ">
+                  <div>
+                    <select id="write" name="write_users[]" data-placeholder="Search for Users..." class="chosen-select form-control" multiple>
+                    {% for user in write_users %}
+                      <option value="{{user.user_id}}" selected>{{user.email}}</option>
+                    {% endfor %}
+                    {% for user in users %}
+                      {%if user not in write_users%}
+                      <option value="{{user.id}}">{{user.email}}</option>
+                      {%endif%}
+                    {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+              </form>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{% block extrajs %}
+  <script>
+    $(document).ready(function () {
+        $("#read").chosen({
+          no_results_text: "Oops, nothing found!"
+        })
+        $("#write").chosen({
+          no_results_text: "Oops, nothing found!"
+        })
+    });
+  </script>
+{% endblock %}

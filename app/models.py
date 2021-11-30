@@ -158,6 +158,23 @@ class Workflow(db.Model, LogMixin):
             return workflow_exists
         return False
 
+    def get_read_user_access(self):
+        '''warning... this function is just for the form. It does not include the users with perm_level > 1 (which do have read access)'''
+        users = []
+        for user in WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.permission == 1).all():
+            user = User.query.get(user.user_id)
+            if user and user not in users:
+                users.append(user)
+        return users
+
+    def get_write_user_access(self):
+        users = []
+        for user in WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.permission == 2).all():
+            user = User.query.get(user.user_id)
+            if user and user not in users:
+                users.append(user)
+        return users
+
     def set_user(self,user_id,permission_level=1):
         '''
         give/take user access to the workflow
@@ -1323,6 +1340,9 @@ class WorkflowUser(LogMixin,db.Model):
     workflow_id = db.Column(db.Integer(), db.ForeignKey('workflows.id', ondelete='CASCADE'))
     user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
     permission = db.Column(db.Integer(), nullable=False) #1 = Read-only, 2 = RW
+
+    def user(self):
+        return User.query.get(self.user_id)
 
 class User(LogMixin,db.Model, UserMixin):
     __tablename__ = 'users'

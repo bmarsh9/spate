@@ -55,6 +55,7 @@
                     <th>Executions</th>
                     <th class="w-1">Results</th>
                     <th class="w-1">Graph</th>
+                    <th class="w-1">Access</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -73,6 +74,9 @@
                     </td>
                     <td class="text-center">
                       <a href="{{url_for("main.view_workflow",id=workflow.id)}}"><i class="ti ti-vector-beizer-2"></i></a>
+                    </td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.workflow_access",id=workflow.id)}}"><i class="ti ti-users"></i></a>
                     </td>
                   </tr>
                   {%endfor%}

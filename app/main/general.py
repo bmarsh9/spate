@@ -46,8 +46,39 @@ def add_user():
         flash("Provide the following link to the user.")
     return render_template('add_user.html',token=token)
 
-@main.route('/admin/operators', methods=['GET'])
-@roles_required("admin")
-def operators():
-    operators = Operator.query.all()
-    return render_template('operators.html',operators=operators)
+@main.route('/workflows/<int:id>/read-access', methods=['POST'])
+@login_required
+def edit_workflow_read_access(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_write(current_user.id) and not current_user.has_role("admin"):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
+    current_access = WorkflowUser.query.filter(WorkflowUser.workflow_id == workflow.id).filter(WorkflowUser.permission == 1).delete()
+    read_users = request.form.getlist('read_users[]')
+    for user_id in read_users:
+        workflow.set_user(user_id,permission_level=1)
+    db.session.commit()
+    flash("Updated access to the workflow")
+    return redirect(url_for("main.workflow_access",id=id))
+
+@main.route('/workflows/<int:id>/write-access', methods=['POST'])
+@login_required
+def edit_workflow_write_access(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_write(current_user.id) and not current_user.has_role("admin"):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
+    current_access = WorkflowUser.query.filter(WorkflowUser.workflow_id == workflow.id).filter(WorkflowUser.permission == 2).delete()
+    write_users = request.form.getlist('write_users[]')
+    WorkflowUser.query.filter(WorkflowUser.workflow_id == workflow.id)
+    for user_id in write_users:
+        workflow.set_user(user_id,permission_level=2)
+    db.session.commit()
+    flash("Updated access to the workflow")
+    return redirect(url_for("main.workflow_access",id=id))
