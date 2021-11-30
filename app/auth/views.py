@@ -18,6 +18,7 @@ from app import db
 from app.forms import LoginForm, RegisterForm, ResetPasswordReq, ResetPassword
 from app.models import *
 from app.email import send_email
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -30,11 +31,9 @@ def create_user(form):
         flash(_l(f'({email}) already created!'), 'info')
         return redirect(url_for('auth.login'))
     else:
-        now = dt.now().replace(second=0, microsecond=0)
         new_user = User(
             email=email,
-            token=token_urlsafe(),
-            token_expiration=dt.now()
+            email_confirmed_at=datetime.datetime.utcnow(),
         )
         new_user.set_password(form.password.data)
         flash(_l(f'{email} you are registered now'), 'success')

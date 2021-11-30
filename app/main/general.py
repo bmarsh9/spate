@@ -7,21 +7,25 @@ from app.utils.decorators import roles_required
 from app.models import Role,User
 
 @main.route('/admin/users', methods=['GET'])
-@roles_required("admin")
+@login_required
 def users():
     users = User.query.all()
     return render_template('users.html',users=users)
 
 @main.route('/admin/users/<int:id>', methods=['GET','POST'])
-@roles_required("admin")
+@login_required
 def view_user(id):
     user = User.query.get(id)
     if not user:
         flash("User does not exist!")
         return redirect(url_for("main.users"))
+    if not current_user.has_role("admin") and not current_user.id == id:
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
     if request.method == "POST":
-        roles =  request.form.getlist('roles[]')
-        user.set_roles_by_name(roles)
+        if current_user.has_role("admin"):
+            roles =  request.form.getlist('roles[]')
+            user.set_roles_by_name(roles)
         user.first_name = request.form["first"]
         user.last_name = request.form["last"]
         user.username = request.form["username"]

@@ -198,12 +198,22 @@ class Workflow(db.Model, LogMixin):
         return True
 
     def user_can_read(self,user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return False
+        if user.has_role("admin"):
+            return True
         user = WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.user_id == user_id).first()
         if not user:
             return False
         return True
 
     def user_can_write(self,user_id):
+        user = User.query.get(user_id)
+        if not user:
+            return False
+        if user.has_role("admin"):
+            return True
         user = WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.user_id == user_id).first()
         if not user:
             return False

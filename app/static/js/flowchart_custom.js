@@ -59,6 +59,9 @@ $(document).on('click','.workflow_refresh', function(){
     type: "GET",
     success: function (response) {
         notify_js("Refreshed workflow", type = "primary",time=1000)
+    },
+    error: function (request, status, error) {
+        notify_js("Error occurred", type = "warning",time=1000)
     }
   });
 });
@@ -71,6 +74,9 @@ $(document).on('click','.workflow_run', function(){
       $("#workflow-run").html(response["results"])
       $(".modal-title").html("Workflow Results")
       $("#workflow-modal-run").modal("show");
+    },
+    error: function (request, status, error) {
+      notify_js("Error occurred", type = "warning",time=1000)
     }
   });
 });
@@ -82,6 +88,9 @@ $(document).on('click','.workflow_settings', function(){
       $("#workflow-settings").html(response["config"])
       $(".modal-title").html("Workflow Settings")
       $("#workflow-modal").modal("show");
+    },
+    error: function (request, status, error) {
+        notify_js("Error occurred", type = "warning",time=1000)
     }
   });
 });
@@ -509,6 +518,9 @@ function loadFlowchart(selector, workflowId) {
         success: function (response) {
           $(".modal-title").html(response["label"])
           loadOperatorModal(operatorName)
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
         }
     });
   });
@@ -625,6 +637,9 @@ function loadFlowchart(selector, workflowId) {
               notify_js("Deleted block", type = "warning",time=1000)
               var data = $flowchart.flowchart('getData');
               $flowchart.flowchart('setData', data);
+            },
+            error: function (request, status, error) {
+              notify_js("Error occurred", type = "warning",time=1000)
             }
           });
           return true;
@@ -638,6 +653,9 @@ function loadFlowchart(selector, workflowId) {
             type: "DELETE",
             success: function (response) {
               notify_js("Deleted Link", type = "primary",time=1000)
+            },
+            error: function (request, status, error) {
+              notify_js("Error occurred", type = "warning",time=1000)
             }
           });
           return true;
@@ -654,6 +672,9 @@ function loadFlowchart(selector, workflowId) {
             dataType: "json",
             success: function (response) {
               console.log("operator moved")
+            },
+            error: function (request, status, error) {
+              notify_js("Error occurred", type = "warning",time=1000)
             }
           });
         },
@@ -692,6 +713,9 @@ function loadFlowchart(selector, workflowId) {
         notify_js("Saved workflow", type = "primary",time=1000)
         var currentData = $flowchart.flowchart('getData');
         $flowchart.flowchart('setData', currentData);
+      },
+      error: function (request, status, error) {
+        notify_js("Error occurred", type = "warning",time=1000)
       }
     });
   })
