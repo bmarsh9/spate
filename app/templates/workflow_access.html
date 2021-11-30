@@ -33,7 +33,7 @@
                   <div>
                     <select id="read" name="read_users[]" data-placeholder="Search for Users..." class="chosen-select form-control" multiple>
                     {% for user in read_users %}
-                      <option value="{{user.user_id}}" selected>{{user.email}}</option>
+                      <option value="{{user.id}}" selected>{{user.email}}</option>
                     {% endfor %}
                     {% for user in users %}
                       {%if user not in read_users%}
@@ -63,7 +63,7 @@
                   <div>
                     <select id="write" name="write_users[]" data-placeholder="Search for Users..." class="chosen-select form-control" multiple>
                     {% for user in write_users %}
-                      <option value="{{user.user_id}}" selected>{{user.email}}</option>
+                      <option value="{{user.id}}" selected>{{user.email}}</option>
                     {% endfor %}
                     {% for user in users %}
                       {%if user not in write_users%}
