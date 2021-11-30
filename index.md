@@ -99,5 +99,6 @@ You can check the status of the deployment by viewing the "Status" page
 
 ### TODO
 - [ ] Add "Form" trigger
-- [ ] Improve admin controls in UI (e.g. what users can edit/view workflows)
+- [x] Improve admin controls in UI (e.g. what users can edit/view workflows)
 - [ ] Improve documentation
+- [ ] Add RBAC to the Lockers
