@@ -381,9 +381,13 @@ class Workflow(db.Model, LogMixin):
             config["links"] = {**config["links"],**operator.format_links()}
         return config
 
-    def get_sidebar(self):
+    def get_sidebar(self, search_term=None):
         data = []
-        for operator in Operator.query.filter(Operator.official == True).all(): # include workspace ID
+        _query = Operator.query.filter(Operator.official == True)
+        if search_term:
+            search = "%{}%".format(search_term)
+            _query = _query.filter(Operator.label.ilike(search))
+        for operator in _query.all(): # include workspace ID
             data.append({"type":operator.type,"html":operator.sidebar_html()})
         return data
 

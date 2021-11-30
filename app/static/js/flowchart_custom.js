@@ -1,3 +1,50 @@
+
+function resetSidebar() {
+  $("#tabs-trigger").html("")
+  $("#tabs-action").html("")
+  $("#tabs-misc").html("")
+}
+
+function fillSidebar(response) {
+    $.each(response, function (index, value) {
+      if (value["type"] === "trigger") {
+        $("#tabs-trigger").append(value["html"]);
+      } else if (value["type"] === "action") {
+        $("#tabs-action").append(value["html"]);
+      } else if (value["type"] === "misc") {
+        $("#tabs-misc").append(value["html"]);
+      }
+    });
+}
+
+$(window).on('load', function() {
+  let timeoutID = null;
+
+  var $flowchart = $("#example");
+  var $container = $flowchart.parent();
+
+  function findMember(str) {
+      $.ajax({
+        url: "/api/v1/workflows/"+get_workflow_id()+"/sidebar?search="+str,
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        success: function (response) {
+          resetSidebar()
+          fillSidebar(response)
+          initSidebar($flowchart,$container)
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred while searching", type = "warning",time=1000)
+        }
+      });
+  }
+  $('#target').keyup(function(e) {
+    clearTimeout(timeoutID);
+    const value = e.target.value
+    timeoutID = setTimeout(() => findMember(value), 500)
+  });
+});
+
 function get_workflow_id() {
   return $("#workflow_id").attr("value")
 };
@@ -654,16 +701,13 @@ function loadFlowchart(selector, workflowId) {
     url: "/api/v1/workflows/"+get_workflow_id()+"/sidebar",
     type: "GET",
     success: function (response) {
-      $.each(response, function (index, value) {
-        if (value["type"] === "trigger") {
-          $("#tabs-trigger").append(value["html"]);
-        } else if (value["type"] === "action") {
-          $("#tabs-action").append(value["html"]);
-        } else if (value["type"] === "misc") {
-          $("#tabs-misc").append(value["html"]);
-        }
-      });
+      fillSidebar(response)
+      initSidebar($flowchart,$container)
+    }
+  });
+}; //end loadFlowchart function
 
+function initSidebar($flowchart,$container) {
   var $draggableOperators = $('.draggable_operator');
 
   function getOperatorData($element) {
@@ -761,8 +805,4 @@ function loadFlowchart(selector, workflowId) {
       }
     }
   });
-    }
-  });
-
-
-}; //end loadFlowchart function
+}

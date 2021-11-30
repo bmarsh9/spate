@@ -290,7 +290,8 @@ def get_sidebar_for_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
-    data = workflow.get_sidebar()
+    search_term = request.args.get("search",None)
+    data = workflow.get_sidebar(search_term=search_term)
     return jsonify(data)
 
 @api.route('/workflows/<int:id>/links', methods=['POST'])
