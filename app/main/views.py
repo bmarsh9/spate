@@ -43,6 +43,12 @@ def workflows():
 @login_required
 def view_workflow(id):
     workflow = Workflow.query.get(id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
     return render_template("home.html",workflow=workflow)
 
 @main.route('/workflows/add', methods=['GET','POST'])
@@ -56,6 +62,12 @@ def add_workflow():
 @login_required
 def workflow_results(workflow_id):
     workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
     results = workflow.results.order_by(Result.id.desc()).all()
     return render_template("workflow_results.html",workflow=workflow,results=results)
 
@@ -63,6 +75,12 @@ def workflow_results(workflow_id):
 @login_required
 def view_results_of_workflow(workflow_id,result_id):
     workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
     result = workflow.results.filter(Result.id == result_id).first()
     if not result:
         flash("Resource does not exist")
@@ -73,6 +91,12 @@ def view_results_of_workflow(workflow_id,result_id):
 @login_required
 def view_paths_of_workflow(workflow_id,result_id):
     workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
     result = workflow.results.filter(Result.id == result_id).first()
     if not result:
         flash("Resource does not exist")

@@ -19,26 +19,6 @@ import json
 import inspect
 import os
 
-class Workspace(LogMixin,db.Model):
-    __tablename__ = 'workspaces'
-    id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(), unique=True)
-    description = db.Column(db.String())
-#    workflows = db.relationship('Workflow', backref='workspace', lazy='dynamic')
-#    users = db.relationship('User', secondary='workspace_user',lazy='dynamic')
-#    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-    date_added = db.Column(db.DateTime, default=datetime.utcnow)
-    date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
-
-"""
-class WorkspaceUser(LogMixin,db.Model):
-    __tablename__ = 'workspace_user'
-    id = db.Column(db.Integer(), primary_key=True)
-    workspace_id = db.Column(db.Integer(), db.ForeignKey('workspaces.id', ondelete='CASCADE'))
-    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
-    role_id = db.Column(db.Integer(), db.ForeignKey('roles.id', ondelete='CASCADE'),nullable=False)
-"""
-
 class Locker(LogMixin,db.Model):
     __tablename__ = 'lockers'
     id = db.Column(db.Integer(), primary_key=True)
@@ -157,7 +137,6 @@ class Workflow(db.Model, LogMixin):
     lockers = db.relationship('Locker', secondary='assoc_lockers', lazy='dynamic')
     operators = db.relationship('Operator', backref='workflow', lazy='dynamic')
     results = db.relationship('Result', backref='workflow', lazy='dynamic')
-#    workspace_id = db.Column(db.Integer, db.ForeignKey('workspaces.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
@@ -177,6 +156,42 @@ class Workflow(db.Model, LogMixin):
         workflow_exists = Workflow.query.filter(func.lower(Workflow.name) == func.lower(name)).first()
         if workflow_exists:
             return workflow_exists
+        return False
+
+    def set_user(self,user_id,permission_level=1):
+        '''
+        give/take user access to the workflow
+        0 = remove access
+        1 = read access
+        2 = write access
+        '''
+        if int(permission_level) not in [0,1,2]:
+            raise ValueError("Permission level must be 0, 1 or 2")
+        user = WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.user_id == user_id).first()
+        if permission_level == 0 and user:
+            db.session.delete(user)
+            db.session.commit()
+        if user:
+            user.permission = permission_level
+            db.session.commit()
+        if not user:
+            user = WorkflowUser(workflow_id=self.id,user_id=user_id,permission=permission_level)
+            db.session.add(user)
+            db.session.commit()
+        return True
+
+    def user_can_read(self,user_id):
+        user = WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.user_id == user_id).first()
+        if not user:
+            return False
+        return True
+
+    def user_can_write(self,user_id):
+        user = WorkflowUser.query.filter(WorkflowUser.workflow_id == self.id).filter(WorkflowUser.user_id == user_id).first()
+        if not user:
+            return False
+        if user.permission == 2:
+            return True
         return False
 
     def last_executed(self):
@@ -393,7 +408,7 @@ class Workflow(db.Model, LogMixin):
         if search_term:
             search = "%{}%".format(search_term)
             _query = _query.filter(Operator.label.ilike(search))
-        for operator in _query.all(): # include workspace ID
+        for operator in _query.all(): # include workflow ID
             data.append({"type":operator.type,"html":operator.sidebar_html()})
         return data
 
@@ -534,12 +549,9 @@ class Operator(db.Model, LogMixin):
     top = db.Column(db.Integer(),nullable=False)
     left = db.Column(db.Integer(),nullable=False)
     return_path = db.Column(db.String())
-#    links = db.relationship('Link', secondary='operator_links', backref="operator", lazy='dynamic')
     inputs = db.relationship('Input', backref='operator', lazy='dynamic')
     outputs = db.relationship('Output', backref='operator', lazy='dynamic')
-#    integration_id = db.Column(db.Integer, db.ForeignKey('integrations.id'), nullable=False)
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=False)
-#    workspace_id = db.Column(db.Integer, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
@@ -1299,12 +1311,18 @@ class Tag(LogMixin,db.Model):
     __tablename__ = 'tags'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(), unique=True)
-#    workspace_id = db.Column(db.Integer, nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
+
+class WorkflowUser(LogMixin,db.Model):
+    __tablename__ = 'workflow_user'
+    id = db.Column(db.Integer(), primary_key=True)
+    workflow_id = db.Column(db.Integer(), db.ForeignKey('workflows.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
+    permission = db.Column(db.Integer(), nullable=False) #1 = Read-only, 2 = RW
 
 class User(LogMixin,db.Model, UserMixin):
     __tablename__ = 'users'
@@ -1317,6 +1335,7 @@ class User(LogMixin,db.Model, UserMixin):
     first_name = db.Column(db.String(100), nullable=False, server_default='')
     last_name = db.Column(db.String(100), nullable=False, server_default='')
     roles = db.relationship('Role', secondary='user_roles')
+    workflows = db.relationship('Workflow', secondary='workflow_user',lazy='dynamic')
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 

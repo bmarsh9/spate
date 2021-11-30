@@ -39,6 +39,8 @@ def workflow_endpoint(workflow_id,result_id):
     workflow = Workflow.query.get(workflow_id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     result = Result.query.get(result_id)
     if not result:
         return jsonify({"message":"result does not exist"}),404
@@ -53,6 +55,8 @@ def get_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     data = workflow.to_workflow()
     return jsonify(data)
 
@@ -62,6 +66,8 @@ def refresh_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     results = workflow.setup_workflow()
     return jsonify({"message":"ok"})
 
@@ -71,6 +77,8 @@ def get_workflow_config(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     return jsonify({"config":workflow.to_html_settings()})
 
 @api.route('/operators/<string:operator_name>/inputs', methods=['GET'])
@@ -97,6 +105,8 @@ def update_config_for_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     data = request.get_json()
     workflow.label = data["label"]
     workflow.description = data["description"]
@@ -112,6 +122,8 @@ def add_operator_for_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     data = request.get_json()
     operator_id = data["operator_id"]
     operator = Operator.query.get(operator_id)
@@ -131,6 +143,8 @@ def update_operator_position(id, operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     data = request.get_json()
     operator = Operator.find_by_name(operator_name)
     if not operator:
@@ -146,6 +160,8 @@ def delete_operator_for_workflow(id, operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -158,6 +174,8 @@ def get_operator_meta(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -173,6 +191,8 @@ def does_operator_exist_for_workflow(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     return jsonify({"message":True})
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/code', methods=['GET'])
@@ -181,6 +201,8 @@ def get_code_for_operator(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -192,6 +214,8 @@ def update_code_for_operator(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -206,6 +230,8 @@ def get_config_for_operator(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -217,6 +243,8 @@ def update_config_for_operator(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -242,6 +270,8 @@ def get_code_for_link(id,link_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     link = OutputLink.find_by_name(link_name)
     if not link:
         return jsonify({"message":"link not found"}),404
@@ -253,6 +283,8 @@ def get_config_for_link(id,link_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     link = OutputLink.find_by_name(link_name)
     if not link:
         return jsonify({"message":"link not found"}),404
@@ -264,6 +296,8 @@ def update_config_for_link(id,link_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     link = OutputLink.find_by_name(link_name)
     if not link:
         return jsonify({"message":"link not found"}),404
@@ -281,6 +315,8 @@ def update_code_for_link(id,link_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     link = OutputLink.find_by_name(link_name)
     if not link:
         return jsonify({"message":"link not found"}),404
@@ -295,6 +331,8 @@ def get_outputs_for_operator(id,operator_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
@@ -311,6 +349,8 @@ def get_sidebar_for_workflow(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     search_term = request.args.get("search",None)
     data = workflow.get_sidebar(search_term=search_term)
     return jsonify(data)
@@ -321,8 +361,9 @@ def add_link(id):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     data = request.get_json()
-
     output = Output.find_by_name(data["from_connector"])
     if not output:
         return jsonify({"message":"output not found"}),404
@@ -335,6 +376,8 @@ def delete_link(id, link_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     link = OutputLink.find_by_name(link_name)
     if not link:
         return jsonify({"message":"link not found"}),404
@@ -348,6 +391,8 @@ def get_input_config(id,input_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     input = Input.find_by_name(input_name)
     if not input:
         return jsonify({"message":"input not found"}),404
@@ -359,6 +404,8 @@ def get_input_code(id,input_name):
     workflow = Workflow.query.get(id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
     input = Input.find_by_name(input_name)
     if not input:
         return jsonify({"message":"input not found"}),404

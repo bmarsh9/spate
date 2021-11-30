@@ -45,7 +45,8 @@ class Config:
 class DevelopmentConfig(Config):
     DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.environ.get('SQLALCHEMY_DATABASE_URL') or \
-        "postgresql://db1:db1@postgres_db/db1"
+        "postgresql://db12:db12@localhost/db12"
+#        "postgresql://db1:db1@postgres_db/db1"
 
 class TestingConfig(Config):
     TESTING = True
