@@ -1,1 +1,7 @@
+# name must match BASE_PYTHON_IMAGE
 docker build -t base-python .
+
+#clean docker
+
+#docker system prune -a
+#docker volume prune

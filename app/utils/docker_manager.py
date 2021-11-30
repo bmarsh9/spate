@@ -37,13 +37,16 @@ class DockerManager():
           'Comment', 'Created', 'Container', 'ContainerConfig',
           'DockerVersion', 'Author', 'Config', 'Architecture',
           'Os', 'Size', 'VirtualSize', 'Metadata']
-        image = self.client.images.get(id)
-        if not to_json:
-            return image
-        if image:
-            for attr in attrs:
-                data[attr] = image.attrs[attr]
-            data["Name"] = image.attrs["RepoTags"][-1]
+        try:
+            image = self.client.images.get(id)
+            if not to_json:
+                return image
+            if image:
+                for attr in attrs:
+                    data[attr] = image.attrs[attr]
+                data["Name"] = image.attrs["RepoTags"][-1]
+        except docker.errors.ImageNotFound:
+            pass
         return data
 
     def get_id_for_image(self,name):

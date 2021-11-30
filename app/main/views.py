@@ -20,7 +20,10 @@ def docs():
 @main.route('/status', methods=['GET'])
 @login_required
 def status():
-    data = {}
+    '''
+    check status of docker containers and the single docker image
+    '''
+    data = {current_app.config["BASE_PYTHON_IMAGE"]:{"status":"not running","running":False}}
     docker_manager = DockerManager()
     container_list = ["spate-ui","spate-poller","spate-ingress","spate-cron","postgres_db"]
     for name in container_list:
@@ -30,6 +33,9 @@ def status():
             state = container.attrs["State"]
             data[name]["status"] = state["Status"]
             data[name]["running"] = state["Running"]
+    image = docker_manager.get_image(current_app.config["BASE_PYTHON_IMAGE"])
+    if image:
+        data[current_app.config["BASE_PYTHON_IMAGE"]] = {"status":"running","running":True}
     return render_template("status.html",status=data)
 
 @main.route('/admin/operators', methods=['GET'])

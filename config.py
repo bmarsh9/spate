@@ -21,8 +21,8 @@ class Config:
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     BASE_DIR = basedir
-    ENABLE_SELF_REGISTRATION = False
-    DOC_LINK = "/"
+    ENABLE_SELF_REGISTRATION = os.environ.get("ENABLE_SELF_REGISTRATION",False)
+    DOC_LINK = os.environ.get("DOC_LINK","/")
 
     RESTRICTED_FIELDS = ["password_hash"]
 
@@ -34,9 +34,9 @@ class Config:
         os.mkdir(WORKFLOW_MOUNT_DIRECTORY)
 
     # network that hosts the postgres_db container (used for local dev)
-    POSTGRES_NW = "spate_db_nw"
-    LOCAL_DB = True
-    BASE_PYTHON_IMAGE = "base-python"
+    POSTGRES_NW = os.environ.get("POSTGRES_NW","spate_db_nw")
+    LOCAL_DB = os.environ.get("LOCAL_DB",True)
+    BASE_PYTHON_IMAGE = os.environ.get("BASE_PYTHON_IMAGE","base-python")
 
     @staticmethod
     def init_app(app):
