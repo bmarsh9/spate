@@ -143,6 +143,8 @@ class Workflow(db.Model, LogMixin):
     @staticmethod
     def add(**kwargs):
         name = "Workflow_{}".format(generate_uuid(length=10))
+        if not kwargs.get("imports"):
+            kwargs["imports"] = "import logging,os,sys,json,random"
         kwargs["name"] = name
         if "label" not in kwargs:
             kwargs["label"] = name
@@ -472,11 +474,10 @@ class Workflow(db.Model, LogMixin):
                 operator_tree.remove(operator)
                 resolve_link(operator)
 
-        #TODO get trigger
         if operator_id:
             operator = Operator.query.get(operator_id)
         else:
-            operator = Operator.query.filter(Operator.type == "trigger").filter(Operator.official == False).first()
+            operator = self.get_trigger()
         resolve_link(operator)
 
         parents, children = zip(*data)
@@ -553,7 +554,7 @@ class Workflow(db.Model, LogMixin):
                 path_name = self.create_hash(temp_path)
             else:
                 path_name = self.create_hash(path)
-            result["paths"].append({path_name:[{'name':i} for i in path]})
+            result["paths"].append({path_name:[{'name':i} for i in path if i]})
         return result
 
 class Operator(db.Model, LogMixin):
