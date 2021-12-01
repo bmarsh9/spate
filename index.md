@@ -104,6 +104,9 @@ Let's pretend you have a workflow that has executed twice. How does the second e
 ##### How do I know if my deployment is healthy?
 I would say the best way is to check the "Status" page on the Spate-ui container. Log into the web UI (port 443) and navigate to the Status page in the header. If everything is healthy, you are good to go. If not, I would recommend re-reading the docs for getting started.
 
+##### Is there a timeout on the workflow?
+There is a default 30 second timeout for each execution. So if the code within the Operator or Link takes longer than 30 seconds to complete, the specific path will stop executing. 
+
 ### Development
 
 ##### Stop docker images
