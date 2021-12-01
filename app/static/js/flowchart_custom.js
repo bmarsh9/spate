@@ -699,8 +699,9 @@ function loadFlowchart(selector, workflowId) {
     var data = $flowchart.flowchart('getData');
     $('#flowchart_data').val(JSON.stringify(data, null, 2));
     console.log(data)
+    notify_js("Check console for debugging", type = "primary",time=1000)
   })
-
+  /*
   $("#set_data").click(function () {
     var data = $flowchart.flowchart('getData');
     $.ajax({
@@ -719,6 +720,7 @@ function loadFlowchart(selector, workflowId) {
       }
     });
   })
+  */
 
   // Get sidebar
   $.ajax({

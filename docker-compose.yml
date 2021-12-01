@@ -24,6 +24,7 @@ services:
       - DEFAULT_PASSWORD=admin
       - SETUP_DB=yes
       - POSTGRES_DB=${POSTGRES_DB:-db1}
+      - DOC_LINK=https://bmarsh9.github.io/spate/
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
