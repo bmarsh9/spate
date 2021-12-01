@@ -311,4 +311,9 @@
       loadFlowchart("#example",{{workflow.id}})
     });
   </script>
+  <script>
+  {%if not workflow.has_return_value()%}
+    notify_js("You have not configured a return path! Please select a path on your trigger.",type="warning")
+  {%endif%}
+  </script>
 {% endblock %}

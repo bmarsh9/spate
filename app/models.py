@@ -160,6 +160,19 @@ class Workflow(db.Model, LogMixin):
             return workflow_exists
         return False
 
+    def has_return_value(self):
+        has_return = False
+        trigger = self.get_trigger()
+        if not trigger:
+            return False
+        if not trigger.return_path:
+            return False
+        for path in self.path_tree(operator_id=trigger.id).get("paths",[]):
+            for path_name,functions in path.items():
+                if path_name == trigger.return_path:
+                    has_return = True
+        return has_return
+
     def get_read_user_access(self):
         '''warning... this function is just for the form. It does not include the users with perm_level > 1 (which do have read access)'''
         users = []
