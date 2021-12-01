@@ -82,7 +82,7 @@ $(document).on('click','.workflow_run', function(){
 });
 $(document).on('click','.workflow_settings', function(){
   $.ajax({
-    url: "/api/v1/workflows/1/config",
+    url: "/api/v1/workflows/"+get_workflow_id()+"/config",
     type: "GET",
     success: function (response) {
       $("#workflow-settings").html(response["config"])
