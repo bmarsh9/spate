@@ -125,6 +125,7 @@ class DockerManager():
         return result.output.decode("utf-8")
 
     def copy_to(self, container, src, dst):
+        container.exec_run("rm -r /app/workflow/tmp",detach=False)
         os.chdir(os.path.dirname(src))
         srcname = os.path.basename(src)
         tar = tarfile.open(src + '.tar', mode='w')
