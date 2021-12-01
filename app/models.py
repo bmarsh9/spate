@@ -480,6 +480,9 @@ class Workflow(db.Model, LogMixin):
             operator = self.get_trigger()
         resolve_link(operator)
 
+        if not data:
+            data = [(operator.name,"")]
+
         parents, children = zip(*data)
         root_nodes = {x for x in parents if x not in children}
         for node in root_nodes:
