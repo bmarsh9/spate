@@ -92,11 +92,17 @@ Triggers and Actions are a type of Operator. Triggers will initiate the workflow
 ##### What does the "refresh" button do on the Workflow graph?
 The refresh button will take all of your code (on the Operators and Links in the Workflow) and deploy it (along with the neccesary imports/libraries) into a docker container so that it is ready for execution. When you update your Workflow, it does NOT automatically deploy the changes to the docker container. The refresh button pushes the changes to the container. This is why if you update your code in the Workflow and are not seeing different results, you need to hit the Refresh button.
 
+##### I setup my workflow and executed it, but the return value is None... what do I do?
+You need to setup `Path for Return Value`. This can be found by editing the Trigger Operator in your Workflow and under Settings, selecting the return path. Once selected, the specific path in your workflow will now be the return value. 
+
 ##### What are Lockers?
 Lockers basically can hold key:value pairs that your workflow can leverage. For example, you can store env variables in the Locker or sensitive data such as API keys and/or passwords. Only workflows that have the locker added can access the data within.
 
 ##### How can I share data between workflow executions?
 Let's pretend you have a workflow that has executed twice. How does the second execution access data from the first? Maybe you want to save or access data between executions? You can use the "Store" to do this. Within your workflow code, you can use `put_store("your_key","your_value")` to add data to the store and `my_value = get_store("your_key")` to access the data. This way, you can share data between executions. It is good to note that this is NOT a solution to share large amounts of data. I would say if you are storing more than 1MB of data, then use a external database. 
+
+##### How do I know if my deployment is healthy?
+I would say the best way is to check the "Status" page on the Spate-ui container. Log into the web UI (port 443) and navigate to the Status page in the header. If everything is healthy, you are good to go. If not, I would recommend re-reading the docs for getting started.
 
 ### Development
 
@@ -113,7 +119,7 @@ Let's pretend you have a workflow that has executed twice. How does the second e
 `admin@example.com:admin`
 
 ##### Start docker images
-`docker-compose up -d postgres_db && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
+`docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 
 ##### Docker debugging
 Your 'docker ps' command should look something like this (4 containers with spate_). Check the logs of the containers for errors.
