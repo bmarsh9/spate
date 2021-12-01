@@ -11,8 +11,9 @@ Easily create and run Workflows          |
 3. [How it Works](#how-it-works)
 4. [Getting Started](#getting-started)
 5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
-6. [Development](#development)
-7. [Todo](#todo)
+6. [FAQ](#faq)
+7. [Development](#development)
+8. [Todo](#todo)
 
 
 ### What is Spate?
@@ -69,6 +70,27 @@ After the "Getting Started" section above, lets set up and execute a API based W
 #### 5.) View the results of your Workflow
 <img src="images/spate_step5.PNG" alt="" class="inline"/>
 
+### FAQ
+
+##### What are the different docker images?
+There are 5 custom docker images and the 6th is a postgresql image (which may not be used if you are using something like RDS). 
++ spate-ui - This is the main UI portion (on port 443)
++ spate-ingress - This container (on port 8443) has a API endpoint for workflows that have a API trigger. You use this endpoint to execute your workflows.
++ spate-cron - This container (no listening ports) queries all the workflows with a Cron trigger and executes the workflow.
++ spate-poller - This container performs some background jobs such as removing unused images/containers
++ base-python - This image is used as the "base" image for the Workflows. Spate deploys your code into this container and executes it.
+
+##### How does Spate execute code?
+Each Workflow will have its own docker container. When you create a new Workflow, Spate starts a container with the Workflow name. When your workflow is executed (either through API or the Cron trigger) the code from the workflow is executed within the docker container. 
+
+##### What are Operators and Links?
+Operators are the small blocks you see in the workflow. They can contain code and are the building blocks of your workflow. Links just connect the operators together and can also contain code. If the code within the Operator or Link returns False (e.g. return False), the path in the workflow will stop execution. Any other value and the path will continue. Typically I recommend keeping the code within the Operator very specific and include logic within the Link code. For example, if you are a making a network request to a API endpoint, include that code within your Operator and processing the success/error within the Link. 
+
+##### What are Triggers and Actions?
+Triggers and Actions are a type of Operator. Triggers will initiate the workflow and Spate currently supports "API" and "Cron" triggers. If your workflow has a API trigger, Spate sets up a API endpoint and if you hit that endpoint (with curl or your browser for example), the workflow will execute. If your workflow has a Cron trigger, it will execute your workflow every X minutes (this is configurable). On the other hand, Actions are Operators that code building blocks. For example, you might create a Operator that "Adds a row to Google Sheets" and you can save it and reuse it elsewhere. 
+
+##### What does the "refresh" button do on the Workflow graph?
+The refresh button will take all of your code (on the Operators and Links in the Workflow) and deploy it (along with the neccesary imports/libraries) into a docker container so that it is ready for execution. When you update your Workflow, it does NOT automatically deploy the changes to the docker container. The refresh button pushes the changes to the container. This is why if you update your code in the Workflow and are not seeing different results, you need to hit the Refresh button.
 
 ### Development
 
