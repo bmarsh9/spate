@@ -79,7 +79,7 @@ def intake_complete(name):
     request_id = request.args.get("request_id")
     if not request_id:
         abort(404)
-    return render_template("forms/complete_form.html")
+    return render_template("forms/complete_form.html",request_id=request_id)
 
 #--------------- Workflow ----------------------
 @main.route('/workflows', methods=['GET'])

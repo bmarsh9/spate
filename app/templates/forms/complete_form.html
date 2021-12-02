@@ -11,15 +11,41 @@
         <div class="card">
           <div class="card-body">
             <div class="empty">
-              <div class="empty-img"><img src="{{url_for('static',filename='img/undraw_quitting_time_dm8t.svg')}}" height="128"  alt="">
-              </div>
               <p class="empty-title">Thank you for the submission</p>
-              <p class="empty-subtitle text-muted">
-                Your response has been recorded and we will reach out if necessary.
+              <p id="subtitle" class="empty-subtitle text-muted">
+                Your response is being processed. <bold class="animated-dots">Please wait</bold>
+                <div id="spinner" style="height:3rem;width:3rem" class="spinner-border mt-4" role="status"></div>
               </p>
+              <div class="text-center" id="complete"></div>
             </div>
+            <pre id="waiting">
+            </pre>
           </div>
         </div>
     </div>
   </div>
+{%endblock%}
+
+{%block extrajs%}
+  <script>
+    (function worker() {
+      $.ajax({
+        url: "/api/v1/intake/{{request_id}}/status",
+        success: function(data) {
+          if (data["complete"]) {
+            $("#spinner").remove();
+            $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-check text-green'></i>");
+            $("#subtitle").html("Request complete. Please find the response below.")
+            $("#waiting").html(data["message"]);
+          }
+          else {
+            $("#waiting").html(data["message"]);
+          };      
+        },
+        complete: function() {
+          setTimeout(worker, 3000);
+        }
+      });
+    })();
+  </script>
 {%endblock%}
