@@ -16,7 +16,7 @@ services:
       - db_nw
       - web_nw
     ports:
-      - "443:5000"
+      - "8443:5000"
     restart: unless-stopped
     environment:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
@@ -36,7 +36,7 @@ services:
       - db_nw
       - web_nw
     ports:
-      - "8443:5001"
+      - "443:5001"
     restart: unless-stopped
     environment:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1

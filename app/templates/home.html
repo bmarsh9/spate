@@ -152,10 +152,10 @@
         </div>
         <div class="modal-body">
           <h5>Run Workflow</h5>
-          <code>:8443/api/v1/workflows/{{workflow.id}}/actions/run</code>
+          <code>:443/api/v1/workflows/{{workflow.id}}/actions/run</code>
           <br>
           <h5 class="mt-2">Results</h5>
-          <code>:8443/api/v1/workflows/{{workflow.id}}/results/result_id</code>
+          <code>:443/api/v1/workflows/{{workflow.id}}/results/result_id</code>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
@@ -176,7 +176,7 @@
           {%set trigger = workflow.get_trigger()%}
           {%if trigger%}
           {%if trigger.form_id%}
-          <code>{{trigger.get_intake_link()}}</code>
+          <code>:443{{trigger.get_intake_link()}}</code>
           {%endif%}
           {%endif%}
           <br>
