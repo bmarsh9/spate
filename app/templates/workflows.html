@@ -50,9 +50,10 @@
                     <th>ID</th>
                     <th>Label</th>
                     <th>Name</th>
+                    <th>Enabled</th>
                     <th>Type</th>
                     <th>Last Run</th>
-                    <th>Executions</th>
+                    <th>Runs</th>
                     <th class="w-1">Results</th>
                     <th class="w-1">Graph</th>
                     <th class="w-1">Access</th>
@@ -66,6 +67,7 @@
                     <td class="subheader">{{workflow.id}}</td>
                     <td class="subheader">{{workflow.label}}</td>
                     <td class="subheader">{{workflow.name}}</td>
+                    <td>{%if workflow.enabled%}<span class="badge bg-green-lt">{{workflow.enabled}}</span>{%else%}<span class="badge bg-red-lt">{{workflow.enabled}}</span>{%endif%}</td>
                     <td>{%if trigger%}<span class="badge bg-yellow-lt">{{trigger.subtype}}</span>{%else%}<span class="badge bg-red-lt">Missing</span>{%endif%}</td>
                     <td>{%if last_executed == "never"%}<span class="badge bg-gray-lt">{{last_executed}}</span>{%else%}<span class="badge bg-blue-lt">{{last_executed}}</span>{%endif%}</td>
                     <td><span class="badge bg-blue-lt">{{workflow.results.count()}}</span></td>

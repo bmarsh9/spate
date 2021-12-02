@@ -46,6 +46,8 @@ def run_workflow(workflow_id):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
+    if not workflow.enabled:
+        return jsonify({"message":"workflow is disabled"}),400
     try:
         results = WorkflowManager(workflow_id).run(workflow.name,request=request_to_json(request))
         code = 200

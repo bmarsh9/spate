@@ -35,14 +35,17 @@ class Scheduler():
         enabled_triggers = app.db_session.query(app.Operator).filter(app.Operator.subtype == "cron").filter(app.Operator.official == False).all()
         logging.debug("Found {} triggers".format(len(enabled_triggers)))
         for trigger in enabled_triggers:
-            if not trigger.last_executed: # never ran
-                logging.debug("{} trigger has not executed. Adding.".format(trigger.name))
-                triggers.append(trigger)
+            if not trigger.workflow.enabled:
+                logging.debug("Workflow:{} is disabled. Skipping {}".format(trigger.workflow.name,trigger.name))
             else:
-                minutes = trigger.run_every or 1
-                if arrow.get(trigger.last_executed).shift(minutes=int(minutes)) < now:
-                    logging.debug("{} trigger is within schedule for execution. Adding.".format(trigger.name))
+                if not trigger.last_executed: # never ran
+                    logging.debug("{} trigger has not executed. Adding.".format(trigger.name))
                     triggers.append(trigger)
+                else:
+                    minutes = trigger.run_every or 1
+                    if arrow.get(trigger.last_executed).shift(minutes=int(minutes)) < now:
+                        logging.debug("{} trigger is within schedule for execution. Adding.".format(trigger.name))
+                        triggers.append(trigger)
         logging.debug("{} triggers are ready for execution".format(len(triggers)))
         return triggers
 
