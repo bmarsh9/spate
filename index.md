@@ -45,7 +45,7 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 + Make sure docker is installed (ubuntu works fine)
 + Clone the repo
 + Build the images with: `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
-+ Create base image with: `cd docker_image && docker build -t base-python .`
++ Create base image with: `cd docker_image && docker build -t base-python . && cd ..`
 + Start the containers: `docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 + Visit `https://your-ip`. Email is `admin@example.com` and password is `admin`
 + Check the [Health of your deployment](#service-status)
