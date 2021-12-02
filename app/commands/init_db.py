@@ -42,6 +42,7 @@ def create_default_workflow():
     workflow = Workflow.add(**attrs)
     Operator.add(workflow.id,type="trigger",label="API Ingress",description="Creates an API Endpoint that will trigger your workflow",official=True,subtype="api")
     Operator.add(workflow.id,type="trigger",label="Sensor",description="Periodically runs and will trigger your workflow",official=True,subtype="cron")
+    Operator.add(workflow.id,type="trigger",label="Form",description="Creates a UI form that will trigger your workflow",official=True,subtype="form")
     Operator.add(workflow.id,type="action",label="Basic Operator",description="Basic Operator that allows you to input your own code",official=True)
     #Operator.add(workflow.id,type="misc",label="Return Value",description="Returns the output value of a single path inside your workflow",official=True,add_output=False)
     return True

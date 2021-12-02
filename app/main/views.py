@@ -45,26 +45,41 @@ def operators():
     return render_template('operators.html',operators=operators)
 
 #--------------- Form ----------------------
-@main.route('/forms', methods=['GET','POST'])
+@main.route("/forms")
+@login_required
+def forms():
+    forms = IntakeForm.query.all()
+    return render_template("forms/forms.html",forms=forms)
+
+@main.route('/forms/add', methods=['GET','POST'])
 @login_required
 def create_form():
-    return render_template("create_form.html")
+    return render_template("forms/create_form.html")
+
+@main.route("/forms/<string:name>/edit")
+@login_required
+def edit_form(name):
+    form = IntakeForm.query.filter(IntakeForm.name == name).first()
+    if not form:
+        return redirect(url_for("main.forms"))
+    return render_template("forms/edit_form.html",form=form)
 
 @main.route('/intake/<string:name>', methods=['GET'])
-@login_required
 def view_intake(name):
     form = IntakeForm.query.filter(IntakeForm.name == name).first()
-    if not form:
-        return "Form not found"
-    return render_template("show_form.html",form=form)
+    if not form or not form.enabled and not current_user.is_authenticated:
+        abort(404)
+    return render_template("forms/show_form.html",form=form)
 
 @main.route('/intake/<string:name>/done', methods=['GET'])
-@login_required
 def intake_complete(name):
     form = IntakeForm.query.filter(IntakeForm.name == name).first()
-    if not form:
-        return jsonify({"message":"form not found"}),404
-    return render_template("complete_form.html")
+    if not form or not form.enabled and not current_user.is_authenticated:
+        abort(404)
+    request_id = request.args.get("request_id")
+    if not request_id:
+        abort(404)
+    return render_template("forms/complete_form.html")
 
 #--------------- Workflow ----------------------
 @main.route('/workflows', methods=['GET'])

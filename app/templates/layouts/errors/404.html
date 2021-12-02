@@ -6,10 +6,11 @@
       <div class="container-tight py-4">
         <div class="empty">
           <div class="empty-header">404</div>
-          <p class="empty-title">Oops… You just found an error page</p>
+          <p class="empty-title">Oops… Page not found</p>
           <p class="empty-subtitle text-muted">
             We are sorry but the page you are looking for was not found
           </p>
+          {%if current_user.is_authenticated%}
           <div class="empty-action">
             <a href="{{url_for('main.home')}}" class="btn btn-primary">
               <!-- Download SVG icon from http://tabler-icons.io/i/arrow-left -->
@@ -17,6 +18,7 @@
               Take me home
             </a>
           </div>
+          {%endif%}
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ class IntakeForm(LogMixin,db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
     label = db.Column(db.String())
+    enabled = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
     data = db.Column(db.JSON(),default={})
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
@@ -139,7 +140,7 @@ class Workflow(db.Model, LogMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
-    enabled = db.Column(db.Boolean, default=True)
+    enabled = db.Column(db.Boolean, default=False)
     description = db.Column(db.String())
     imports = db.Column(db.String())
     log_level = db.Column(db.String(),default="info")
@@ -648,6 +649,13 @@ class Operator(db.Model, LogMixin):
             operator.add_output()
         return operator
 
+    def get_intake_link(self):
+        if self.form_id:
+            intake = IntakeForm.query.get(self.form_id)
+            if intake:
+                return "/intake/{}".format(intake.name)
+        return None
+
     def last_executed_humanized(self):
         if not self.last_executed:
             return "never"
@@ -691,6 +699,24 @@ class Operator(db.Model, LogMixin):
                         <small class="form-hint">Configure how often you want this workflow to execute (in minutes)</small>
                       </div>
                     </div>""".format(self.name,self.run_every)
+            elif self.subtype == "form":
+                form_options = ""
+                for form in IntakeForm.query.all():
+                    select = ""
+                    if self.form_id == form.id:
+                        select = "selected"
+                    form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
+                sync_template = """
+                    <div class="form-group mb-3 row">
+                      <label class="form-label col-3 col-form-label">Form</label>
+                      <div class="col">
+                        <select class="form-select" id="form_{}">
+                          {}
+                        </select>
+                        <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+                      </div>
+                    </div>""".format(self.name,form_options)
+
             for path in self.workflow.path_tree(operator_id=self.id,identify_by="label").get("paths",[]):
                 list_item = ""
                 for path_name,functions in path.items():
@@ -845,7 +871,8 @@ class Operator(db.Model, LogMixin):
         input_count = self.inputs.count()
         output_count = self.outputs.count()
         if self.official:
-            icon = """<span class="text-yellow mr-1"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-filled" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg></span>"""
+            #icon = """<span class="text-yellow mr-1"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-filled" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg></span>"""
+            icon = """<i data-bs-toggle="tooltip" data-bs-placement="top" title="Official Operator" class='ti ti-circle-check icon text-success mr-1'></i>"""
         else:
             icon = """<span class="text-red mr-1"><i class="ti ti-alert-triangle icon"></i></span>"""
         data = """

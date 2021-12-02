@@ -39,8 +39,8 @@
       <div class="card h-100">
         <div class="card-body m-3">
           <h3 style="color:#656d77" class="page-title font-weight-bold mb-3"><a href="{{url_for("main.workflows")}}" class="btn btn-white btn-pill btn-icon mr-2"><i class="ti ti-arrow-big-left"></i></a>{{workflow.label}}</h3>
-          <span id="workflow_id" value="{{workflow.id}}" class="badge bg-blue-lt mb-2">{{workflow.name}}</span>
-          <div class="input-icon">
+          <code id="workflow_id" value="{{workflow.id}}">{{workflow.name}}</code>
+          <div class="input-icon mt-1">
             <span class="input-icon-addon">
               <!-- Download SVG icon from http://tabler-icons.io/i/search -->
               <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round"
@@ -124,7 +124,14 @@
                 <button class="btn reset"  id="reset_zoom"><i class="ti ti-arrows-diagonal"></i></button>
               </div>
               <div class="col-10 text-end">
+                {%set trigger = workflow.get_trigger()%}
+                {%if trigger%}
+                {%if trigger.subtype == "api"%}
                 <button class="btn workflow_endpoints"><i class="ti ti-access-point"></i><small class="ml-2">Endpoints</small></button>
+                {%elif trigger.subtype == "form" and trigger.form_id%}
+                <button class="btn workflow_form_endpoints"><i class="ti ti-access-point"></i><small class="ml-2">Form Link</small></button>
+                {%endif%}
+                {%endif%}
                 <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}" class="btn"><i class="ti ti-report-analytics"></i><small class="ml-2">Results</small></a>
                 <button class="btn workflow_settings"><i class="ti ti-tools"></i><small class="ml-2">Settings</small></button>
                 <button class="btn workflow_refresh"><i class="ti ti-refresh"></i><small class="ml-2">Refresh</small></button>
@@ -145,10 +152,34 @@
         </div>
         <div class="modal-body">
           <h5>Run Workflow</h5>
-          <p>:8443/api/v1/workflows/{{workflow.id}}/actions/run</p>
+          <code>:8443/api/v1/workflows/{{workflow.id}}/actions/run</code>
           <br>
-          <h5>Results</h5>
-          <p>:8443/api/v1/workflows/{{workflow.id}}/results/result_id</p>
+          <h5 class="mt-2">Results</h5>
+          <code>:8443/api/v1/workflows/{{workflow.id}}/results/result_id</code>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="workflow-form-endpoints" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Workflow Form URL</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <h5>Form URL</h5>
+          {%set trigger = workflow.get_trigger()%}
+          {%if trigger%}
+          {%if trigger.form_id%}
+          <code>{{trigger.get_intake_link()}}</code>
+          {%endif%}
+          {%endif%}
+          <br>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
@@ -312,8 +343,20 @@
     });
   </script>
   <script>
+  {%if not workflow.enabled%}
+    notify_js("Workflow is disabled! Enable it under Settings at the bottom of this page.",type="warning")
+  {%endif%}
   {%if not workflow.has_return_value()%}
     notify_js("You have not configured a return path! Please select a path on your trigger.",type="warning")
+  {%endif%}
+
+  {%set trigger = workflow.get_trigger()%}
+  {%if not trigger%}
+    notify_js("Workflow does not have a trigger!",type="warning")
+  {%else%}
+    {%if trigger.subtype == "form" and not trigger.form_id%}
+      notify_js("Please attach a form to the Form Trigger!",type="warning")
+    {%endif%}
   {%endif%}
   </script>
 {% endblock %}

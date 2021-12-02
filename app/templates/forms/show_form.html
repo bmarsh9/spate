@@ -8,7 +8,7 @@
 {%block head%}{%endblock%}
 
 {%block contentHeader_pretitle%}{%endblock%}
-{%block contentHeader_title%}{{form.label}}{%endblock%}
+{%block contentHeader_title%}{%if form.label%}{{form.label}}{%endif%}{%endblock%}
 {%block navbar%}{%endblock%}
 {%block toolbar%}{%endblock%}
 
@@ -56,5 +56,10 @@
       });
     });
   });
+</script>
+<script>
+{%if current_user.is_authenticated and not form.enabled%}
+  notify_js("Form is currently disabled. Unauthenticated users will not be able to view it.", type = "warning",time=1000)
+{%endif%}
 </script>
 {%endblock%}

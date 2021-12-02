@@ -263,6 +263,8 @@ def update_config_for_operator(id,operator_name):
             operator.synchronous = False
     if data.get("runevery"):
         operator.run_every = data.get("runevery")
+    if data.get("form"):
+        operator.form_id = data.get("form")
     db.session.commit()
     return jsonify({"config":operator.form_html()})
 
@@ -424,16 +426,17 @@ def add_form():
     db.session.commit()
     return jsonify({"message":"ok"})
 
-@api.route("/forms/<int:id>", methods=["PUT"])
+@api.route("/forms/<string:name>", methods=["PUT"])
 @login_required
-def edit_form(id):
+def edit_form(name):
     data = request.get_json()
-    form = IntakeForm.query.get(id)
+    form = IntakeForm.query.filter(IntakeForm.name == name).first()
     if not form:
         return jsonify({"message":"form not found"}),404
-    form.name = data["name"]
+    form.label = data["label"]
     form.description = data["description"]
     form.data = data["form"]
+    form.enabled = data["enabled"]
     db.session.commit()
     return jsonify({"message":"ok"})
 
@@ -444,4 +447,5 @@ def submit_intake(name):
     form = IntakeForm.query.filter(IntakeForm.name == name).first()
     if not form:
         return jsonify({"message":"form not found"}),404
-    return jsonify({"message":"ok","url":"/intake/{}/done".format(form.name)})
+    redirect_url = "/intake/{}/done?request_id={}".format(form.name,5)
+    return jsonify({"message":"ok","url":redirect_url})

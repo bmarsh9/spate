@@ -1,4 +1,3 @@
-
 function resetSidebar() {
   $("#tabs-trigger").html("")
   $("#tabs-action").html("")
@@ -52,6 +51,9 @@ function get_workflow_id() {
 // Events
 $(document).on('click','.workflow_endpoints', function(){
   $("#workflow-endpoints").modal("show");
+});
+$(document).on('click','.workflow_form_endpoints', function(){
+  $("#workflow-form-endpoints").modal("show");
 });
 $(document).on('click','.workflow_refresh', function(){
   $.ajax({
@@ -328,6 +330,7 @@ function saveOperatorSettings(operatorName) {
       "return_path":$("#path_"+operatorName+" input[type='radio']:checked").val(),
       "synchronous":$("#synchronous_"+operatorName).val(),
       "runevery":$("#runevery_"+operatorName).val(),
+      "form":$("#form_"+operatorName).val(),
     }),
     contentType: "application/json; charset=utf-8",
     dataType: "json",

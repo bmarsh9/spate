@@ -10,6 +10,7 @@
           <p class="empty-subtitle text-muted">
             We are sorry but our server encountered an internal error
           </p>
+          {%if current_user.is_authenticated%}
           <div class="empty-action">
             <a href="{{url_for('main.home')}}" class="btn btn-primary">
               <!-- Download SVG icon from http://tabler-icons.io/i/arrow-left -->
@@ -17,6 +18,7 @@
               Take me home
             </a>
           </div>
+          {%endif%}
         </div>
       </div>
     </div>

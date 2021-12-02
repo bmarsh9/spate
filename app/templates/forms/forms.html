@@ -1,0 +1,83 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        forms
+      </div>
+      <h2 class="page-title">
+        View Forms
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.create_form")}}" class="btn btn-primary">
+            Add Form
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Forms</h3>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th class="w-1">#</th>
+                    <th>Label</th>
+                    <th>Enabled</th>
+                    <th>Description</th>
+                    <th class="w-1">Edit</th>
+                    <th class="w-1">View</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for form in forms%}
+                  <tr>
+                    <td class="subheader">{{loop.index}}</td>
+                    <td class="subheader">{{form.label}}</td>
+                    <td>{%if form.enabled%}<span class="badge bg-green-lt">{{form.enabled}}</span>{%else%}<span class="badge bg-red-lt">{{form.enabled}}</span>{%endif%}</td>
+                    <td class="subheader">{{form.description}}</td>
+                    <td class="text-center">
+                      <a href="{{url_for('main.edit_form',name=form.name)}}"><i class="ti ti-tools"></i></a>
+                    </td>
+                    <td class="text-center">
+                      <a href="{{url_for('main.view_intake',name=form.name)}}"><i class="ti ti-arrow-forward-up"></i></a>
+                    </td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable();
+  } );
+</script>
+{%endblock%}
