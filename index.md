@@ -1,5 +1,6 @@
 # Spate Documentation
 
+#### Get started in 1 minute!
 
 Easily create and run Workflows          |  
 :-------------------------:|
