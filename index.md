@@ -61,7 +61,7 @@ After the "Getting Started" section above, lets set up and execute a API based W
 #### 2.) Drop the "API Ingress" and "Basic Operator" (under Actions) and connect them. After, hit the "Refresh" button at the bottom right (IMPORTANT)
 <img src="images/spate_step2.PNG" alt="" class="inline"/>
 
-#### 3.) Visit the API endpoint (port 8080) to start the Workflow
+#### 3.) Visit the API endpoint (port 443) to start the Workflow
 <img src="images/spate_step3.PNG" alt="" class="inline"/>
 
 #### 4.) Go back to the Workflows page and select the "Results" icon
