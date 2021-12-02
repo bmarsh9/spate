@@ -4,6 +4,7 @@ from app.models import *
 from app.utils.misc import request_to_json
 from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
+from app.utils.misc import generate_uuid
 
 @api.route('/health', methods=['GET'])
 def get_health():
@@ -33,6 +34,7 @@ def update_operator_public(id):
     db.session.commit()
     return jsonify({"message":"ok"})
 
+#----------------------------------------WORKFLOW-----------------------------------------
 @api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
 @login_required
 def workflow_endpoint(workflow_id,result_id):
@@ -410,3 +412,36 @@ def get_input_code(id,input_name):
     if not input:
         return jsonify({"message":"input not found"}),404
     return jsonify({"code":"test code"})
+
+#----------------------------------------FORM-----------------------------------------
+@api.route("/forms", methods=["POST"])
+@login_required
+def add_form():
+    data = request.get_json()
+    form = IntakeForm(name=generate_uuid(length=10),label=data["label"],
+        description=data["description"],data=data["form"])
+    db.session.add(form)
+    db.session.commit()
+    return jsonify({"message":"ok"})
+
+@api.route("/forms/<int:id>", methods=["PUT"])
+@login_required
+def edit_form(id):
+    data = request.get_json()
+    form = IntakeForm.query.get(id)
+    if not form:
+        return jsonify({"message":"form not found"}),404
+    form.name = data["name"]
+    form.description = data["description"]
+    form.data = data["form"]
+    db.session.commit()
+    return jsonify({"message":"ok"})
+
+@api.route('/intake/<string:name>', methods=['POST'])
+@login_required
+def submit_intake(name):
+    data = request.get_json()
+    form = IntakeForm.query.filter(IntakeForm.name == name).first()
+    if not form:
+        return jsonify({"message":"form not found"}),404
+    return jsonify({"message":"ok","url":"/intake/{}/done".format(form.name)})

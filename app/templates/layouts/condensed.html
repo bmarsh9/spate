@@ -40,6 +40,7 @@
           <div class="collapse navbar-collapse" id="navbar-menu">
             <div class="d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center">
               <ul class="navbar-nav">
+                {%block navbar%}
                 <li class="nav-item">
                   <a class="nav-link" href="{{url_for("main.workflows")}}">
                     <span class="nav-link-icon d-md-none d-lg-inline-block"><!-- Download SVG icon from http://tabler-icons.io/i/home -->
@@ -103,10 +104,12 @@
                   </a>
                 </li>
               </ul>
+              {%endblock%}
             </div>
           </div>
 
           <div class="navbar-nav flex-row order-md-last">
+            {%block rightnavbar%}
             <div class="nav-item dropdown d-none d-md-flex me-3">
               <a href="#" class="nav-link px-0" data-bs-toggle="dropdown" tabindex="-1" aria-label="Show notifications">
                 <!-- Download SVG icon from http://tabler-icons.io/i/bell -->
@@ -137,6 +140,7 @@
                 <a href="{{url_for("auth.logout")}}" class="dropdown-item">Logout</a>
               </div>
             </div>
+            {%endblock%}
           </div>
         </div>
       </header>

@@ -44,6 +44,28 @@ def operators():
     operators = Operator.query.all()
     return render_template('operators.html',operators=operators)
 
+#--------------- Form ----------------------
+@main.route('/forms', methods=['GET','POST'])
+@login_required
+def create_form():
+    return render_template("create_form.html")
+
+@main.route('/intake/<string:name>', methods=['GET'])
+@login_required
+def view_intake(name):
+    form = IntakeForm.query.filter(IntakeForm.name == name).first()
+    if not form:
+        return "Form not found"
+    return render_template("show_form.html",form=form)
+
+@main.route('/intake/<string:name>/done', methods=['GET'])
+@login_required
+def intake_complete(name):
+    form = IntakeForm.query.filter(IntakeForm.name == name).first()
+    if not form:
+        return jsonify({"message":"form not found"}),404
+    return render_template("complete_form.html")
+
 #--------------- Workflow ----------------------
 @main.route('/workflows', methods=['GET'])
 @login_required

@@ -1,0 +1,25 @@
+{% extends "layouts/overlap.html" %}
+
+{%block contentHeader_pretitle%}{%endblock%}
+{%block contentHeader_title%}{%endblock%}
+{%block navbar%}{%endblock%}
+{%block toolbar%}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="empty">
+              <div class="empty-img"><img src="{{url_for('static',filename='img/undraw_quitting_time_dm8t.svg')}}" height="128"  alt="">
+              </div>
+              <p class="empty-title">Thank you for the submission</p>
+              <p class="empty-subtitle text-muted">
+                Your response has been recorded and we will reach out if necessary.
+              </p>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}

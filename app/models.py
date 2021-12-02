@@ -19,6 +19,16 @@ import json
 import inspect
 import os
 
+class IntakeForm(LogMixin,db.Model):
+    __tablename__ = 'intake_forms'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(), nullable=False)
+    label = db.Column(db.String())
+    description = db.Column(db.String())
+    data = db.Column(db.JSON(),default={})
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
 class Locker(LogMixin,db.Model):
     __tablename__ = 'lockers'
     id = db.Column(db.Integer(), primary_key=True)
@@ -593,6 +603,7 @@ class Operator(db.Model, LogMixin):
     top = db.Column(db.Integer(),nullable=False)
     left = db.Column(db.Integer(),nullable=False)
     return_path = db.Column(db.String())
+    form_id = db.Column(db.Integer, db.ForeignKey('intake_forms.id'))
     inputs = db.relationship('Input', backref='operator', lazy='dynamic')
     outputs = db.relationship('Output', backref='operator', lazy='dynamic')
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=False)

@@ -1,0 +1,86 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js'></script>
+    <script src='https://formbuilder.online/assets/js/form-builder.min.js'></script>
+    <script src='https://formbuilder.online/assets/js/form-render.min.js'></script>
+{% endblock %}
+
+{%block contentHeader_pretitle%}<a href="{{url_for("main.create_form")}}">Forms</a>{%endblock%}
+{%block contentHeader_title%}Create New Form{%endblock%}
+{%block navbar%}{%endblock%}
+{%block rightnavbar%}{%endblock%}
+{% block content %}
+  <div class="row row-cards">
+    <div class="col-lg-12">
+      <div id="builder"></div>
+      <div id="fb-render"></div>
+    </div>
+  </div>
+
+  <!-- preview form in modal -->
+  <div class="modal modal-blur fade" id="modal-large" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Preview of your form</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="hr-text mt-1">This is what your form will look like</div>
+            <div id="modal-body" class="col-12">
+            </div>
+            <div class="hr-text">Form Details (will not be visible)</div>
+            <div class="row">
+              <div class="col-6">
+                <label class="form-label">Label</label>
+                <input type="text" class="form-control" id="label" placeholder="Form Label (users will see this)">
+              </div>
+              <div class="col-6">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" id="description" placeholder="Internal description">
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+            <button onclick="saveForm(this);" type="button" class="btn btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+  <script>
+    var options = {
+      disableFields: ['hidden','button'],
+      controlPosition: 'left',
+      onSave: function(evt, formData) {
+        $('#modal-large').modal("show")
+        $('#modal-body').formRender({
+          formData: formData
+        });
+      }
+    };
+    var fbEditor = document.getElementById('builder');
+    var formBuilder = $(fbEditor).formBuilder(options);
+
+    function saveForm(e) {
+      var data = formBuilder.formData;
+      $.ajax({
+        type: "POST",
+        url: "/api/v1/forms",
+        data: JSON.stringify({"form":data,"label":$("#label").val(),
+            "description":$("#description").val()}),
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        success: function(data){
+          notify_js("Saved form",type="primary")
+          $('#modal-large').modal("hide")
+        }
+      });
+    };
+  </script>
+{%endblock%}
