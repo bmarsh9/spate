@@ -63,24 +63,6 @@ def edit_form(name):
     if not form:
         return redirect(url_for("main.forms"))
     return render_template("forms/edit_form.html",form=form)
-
-@main.route('/intake/<string:name>', methods=['GET'])
-def view_intake(name):
-    form = IntakeForm.query.filter(IntakeForm.name == name).first()
-    if not form or not form.enabled and not current_user.is_authenticated:
-        abort(404)
-    return render_template("forms/show_form.html",form=form)
-
-@main.route('/intake/<string:name>/done', methods=['GET'])
-def intake_complete(name):
-    form = IntakeForm.query.filter(IntakeForm.name == name).first()
-    if not form or not form.enabled and not current_user.is_authenticated:
-        abort(404)
-    request_id = request.args.get("request_id")
-    if not request_id:
-        abort(404)
-    return render_template("forms/complete_form.html",request_id=request_id)
-
 #--------------- Workflow ----------------------
 @main.route('/workflows', methods=['GET'])
 @login_required

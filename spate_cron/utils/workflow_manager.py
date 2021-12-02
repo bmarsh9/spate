@@ -1,6 +1,7 @@
 import docker
 import json
 from datetime import datetime
+import logging
 
 class WorkflowManager():
     def __init__(self, app, docker_client, workflow_id):
@@ -28,8 +29,10 @@ class WorkflowManager():
     def run(self,name,env={},request={}):
         container = self.find_container_by_workflow_name(name)
         if not container:
-            raise ValueError("Container not found")
-        result = self.add_in_progress_result()
-        command = "python3 /app/workflow/tmp/router.py {} '{}'".format(result.id,json.dumps(request))
-        container.exec_run(command,environment=env,detach=True)
-        return True
+            logging.warning("Container not found. Please refresh the {} workflow".format(name))
+            return False
+        else:
+            result = self.add_in_progress_result()
+            command = "python3 /app/workflow/tmp/router.py {} '{}'".format(result.id,json.dumps(request))
+            container.exec_run(command,environment=env,detach=True)
+            return True

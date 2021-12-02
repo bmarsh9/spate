@@ -22,6 +22,7 @@ def create_app(config_name="default"):
     app.Workflow = getattr(db.classes,"workflows")
     app.Operator = getattr(db.classes,"operators")
     app.Result = getattr(db.classes,"results")
+    app.IntakeForm = getattr(db.classes,"intake_forms")
 
     app.docker_client = docker.from_env()
 
@@ -39,6 +40,9 @@ def configure_extensions(app):
     return
 
 def registering_blueprints(app):
+    from app.main import main as main_blueprint
+    app.register_blueprint(main_blueprint)
+
     from app.api_v1 import api as api_v1_blueprint
     app.register_blueprint(api_v1_blueprint, url_prefix='/api/v1')
     return

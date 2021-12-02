@@ -157,7 +157,6 @@ jQuery(function ($) {
             });
 
             this.objs.layers.operators.on('click', '.flowchart-operator', function (e) {
-//haaaaaaaaaaa
 //custom work
                 // allows you to click on elements in the footer
                 var target = $(e.target), article;
@@ -549,7 +548,6 @@ jQuery(function ($) {
             } else {
                 $operator_inputs_outputs.appendTo($operator);
 //custom work
-//haaaaaaaaaa
                 $operator_custom.appendTo($operator);
                 $operator_inputs.appendTo($operator_inputs_outputs);
                 $operator_outputs.appendTo($operator_inputs_outputs);

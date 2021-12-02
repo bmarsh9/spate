@@ -49,9 +49,47 @@ def run_workflow(workflow_id):
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
     try:
-        results = WorkflowManager(workflow_id).run(workflow.name,request=request_to_json(request))
+        results = WorkflowManager(workflow.id).run(workflow.name,
+            request=request_to_json(request))
         code = 200
     except Exception as e:
         results = str(e)
-        code = 400
+        code = 500
     return jsonify({"response":results}),code
+
+@api.route('/intake/<string:name>', methods=['POST'])
+def submit_intake(name):
+    form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
+    if not form:
+        return jsonify({"message":"form not found"}),404
+    operator = current_app.db_session.query(current_app.Operator).filter(current_app.Operator.form_id == form.id).first()
+    if not operator:
+        return jsonify({"message":"trigger  not found"}),404
+    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == operator.workflow_id).first()
+    if not workflow:
+        return jsonify({"message":"workflow not found"}),404
+    if not workflow.enabled:
+        return jsonify({"message":"workflow is disabled"}),400
+    # result returns the ID of the submitted Result or 0 (failed)
+    try:
+        result = WorkflowManager(workflow.id).run(workflow.name,
+            request=request_to_json(request),subtype="form")
+        request_id = result.id
+        code = 200
+    except Exception as e:
+        result = str(e)
+        request_id = 0
+        code = 500
+    redirect_url = "/intake/{}/done?request_id={}".format(form.name,request_id)
+    return jsonify({"message":"ok","url":redirect_url}),code
+
+@api.route('/intake/<int:id>/status', methods=['GET'])
+def get_intake_status(id):
+    if id == 0:
+        return jsonify({"id":id,"complete":False,"status":"error","message":"Hmmm... looks like an error occurred. We are looking into it."})
+    request = current_app.db_session.query(current_app.Result).filter(current_app.Result.id == id).first()
+    if not request:
+        return jsonify({"message":"resource not found"}),404
+    if request.status != "complete":
+        return jsonify({"id":id,"complete":False,"status":request.status,"message":"[{}] Please wait...".format(request.status)})
+    return jsonify({"id":id,"complete":True,"status":request.status,"message":request.return_value})

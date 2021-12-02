@@ -29,14 +29,18 @@ class Scheduler():
         results = WorkflowManager(app,app.docker_client,workflow.id).run(workflow.name)
         return results
 
+    def get_workflow(self,id):
+        return app.db_session.query(app.Workflow).filter(app.Workflow.id == id).first()
+
     def ready_to_run(self):
         triggers = []
         now = arrow.utcnow()
         enabled_triggers = app.db_session.query(app.Operator).filter(app.Operator.subtype == "cron").filter(app.Operator.official == False).all()
         logging.debug("Found {} triggers".format(len(enabled_triggers)))
         for trigger in enabled_triggers:
-            if not trigger.workflow.enabled:
-                logging.debug("Workflow:{} is disabled. Skipping {}".format(trigger.workflow.name,trigger.name))
+            workflow = self.get_workflow(trigger.workflow_id)
+            if not workflow.enabled:
+                logging.debug("Workflow:{} is disabled. Skipping {}".format(workflow.name,trigger.name))
             else:
                 if not trigger.last_executed: # never ran
                     logging.debug("{} trigger has not executed. Adding.".format(trigger.name))

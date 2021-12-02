@@ -7,8 +7,8 @@ class WorkflowManager():
     def __init__(self, workflow_id):
         self.workflow_id = workflow_id
 
-    def get_trigger(self):
-        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == "api").filter(current_app.Operator.workflow_id == self.workflow_id).first()
+    def get_trigger(self,subtype):
+        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
 
     def find_container_by_workflow_name(self,name,by_id=False):
         '''search for workflow_name key set on the
@@ -27,8 +27,8 @@ class WorkflowManager():
         current_app.db_session.commit()
         return result
 
-    def run(self,name,env={},request={}):
-        trigger = self.get_trigger()
+    def run(self,name,env={},request={},subtype="api"):
+        trigger = self.get_trigger(subtype=subtype)
         if not trigger:
             raise ValueError("Trigger not found. Please add an API trigger.")
         container = self.find_container_by_workflow_name(name)
@@ -39,6 +39,9 @@ class WorkflowManager():
 
         command = "python3 /app/workflow/tmp/router.py {} '{}'".format(result.id,json.dumps(request))
         container.exec_run(command,environment=env,detach=not trigger.synchronous)
+
+        if trigger.subtype == "form":
+            return result
 
         if trigger.synchronous:
             result = current_app.db_session.query(current_app.Result).filter(current_app.Result.id == result.id).first()

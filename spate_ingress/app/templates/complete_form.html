@@ -1,0 +1,66 @@
+{% extends "layouts/overlap.html" %}
+
+{%block contentHeader_pretitle%}{%endblock%}
+{%block contentHeader_title%}{%endblock%}
+{%block navbar%}{%endblock%}
+{%block toolbar%}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="empty">
+              <p class="empty-title">Thank you for the submission</p>
+              <p id="subtitle" class="empty-subtitle text-muted">
+                Your response is being processed. <bold class="animated-dots">Please wait</bold>
+                <div id="spinner" style="height:3rem;width:3rem" class="spinner-border mt-4" role="status"></div>
+              </p>
+              <div class="text-center" id="complete"></div>
+            </div>
+            <pre id="waiting">
+            </pre>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+  <script>
+    var stop = false;
+    var loop = 0;
+    (function worker() {
+      $.ajax({
+        url: "/api/v1/intake/{{request_id}}/status",
+        success: function(data) {
+          if (data["complete"]) {
+            $("#spinner").remove();
+            $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-check text-green'></i>");
+            $("#subtitle").html("Request complete. Please find the response below.")
+            $("#waiting").html(data["message"]);
+            stop = true;
+          }
+          else {
+            $("#waiting").html(data["message"]);
+          };
+        },
+        complete: function() {
+          if (stop){
+            console.log("Stopping the request")
+          } else if (loop > 20) {
+            console.log("Loop expired. Stopping the requests")
+            $("#spinner").remove();
+            $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-alert-circle text-yellow'></i>");
+            $("#subtitle").html("There is probably an issue...")
+            $("#waiting").html("Hmm... seems to be taking a long time. There may be a problem or please refresh the page");
+            stop = true;
+          } else {
+            setTimeout(worker, 3000);
+            loop++
+          };
+        }
+      });
+    })();
+  </script>
+{%endblock%}

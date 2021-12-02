@@ -439,24 +439,3 @@ def edit_form(name):
     form.enabled = data["enabled"]
     db.session.commit()
     return jsonify({"message":"ok"})
-
-@api.route('/intake/<string:name>', methods=['POST'])
-def submit_intake(name):
-    data = request.get_json()
-    form = IntakeForm.query.filter(IntakeForm.name == name).first()
-    if not form:
-        return jsonify({"message":"form not found"}),404
-
-    # submit form to the workflow
-    # return the redirect url
-    redirect_url = "/intake/{}/done?request_id={}".format(form.name,1)
-    return jsonify({"message":"ok","url":redirect_url})
-
-@api.route('/intake/<int:id>/status', methods=['GET'])
-def get_intake_status(id):
-    request = Result.query.get(id)
-    if not request:
-        return jsonify({"message":"resource not found"}),404
-    if not request.is_complete():
-        return jsonify({"id":id,"complete":False,"status":request.status,"message":"Processing..."})
-    return jsonify({"id":id,"complete":True,"status":request.status,"message":"all done!"})

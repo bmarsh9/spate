@@ -7,6 +7,7 @@ class Config:
     APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
     CR_YEAR = os.environ.get("CR_YEAR","2021")
     VERSION = os.environ.get("VERSION","1.0.0")
+    HELP_LINK = os.environ.get("HELP_LINK","/")
 
     LOG_TYPE = os.environ.get("LOG_TYPE", "stream")
     LOG_LEVEL = os.environ.get("LOG_LEVEL", "WARNING")
@@ -17,7 +18,9 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     BASE_DIR = basedir
 
-    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
+#    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
+    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db12:db12@localhost/db12")
+
     SHARED_TOKEN = os.environ.get("SHARED_TOKEN","changeme")
 
     @staticmethod

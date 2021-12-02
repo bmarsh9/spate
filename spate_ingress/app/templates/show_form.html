@@ -1,0 +1,59 @@
+{% extends "layouts/overlap.html" %}
+
+{% block before_head %}
+  {{ super() }}
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js'></script>
+    <script src='https://formbuilder.online/assets/js/form-render.min.js'></script>
+{% endblock %}
+{%block head%}{%endblock%}
+
+{%block contentHeader_pretitle%}{%endblock%}
+{%block contentHeader_title%}{%if form.label%}{{form.label}}{%endif%}{%endblock%}
+{%block navbar%}{%endblock%}
+{%block toolbar%}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <form method="POST">
+              <div id="form-body"></div>
+              <div class="form-footer">
+                <button id="submit" type="button" class="btn btn-primary">Submit</button>
+              </div>
+            </form>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    var formRenderOptions = {
+      formData: {{form.data|tojson}}
+    }    
+    var formRenderInstance = $('#form-body').formRender(formRenderOptions);
+
+    $('#submit').click( function() {
+      var data = {"data":formRenderInstance.userData};
+      console.log(data)
+      $.ajax({
+        url: '{{url_for('api.submit_intake',name=form.name)}}',
+        type: 'post',
+        dataType: 'json',
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(data),
+        success: function(data) {
+          window.location.replace(data["url"]);
+        },
+        error: function (request, status, error) {
+          console.log(request,status,error)
+        }
+      });
+    });
+  });
+</script>
+{%endblock%}
