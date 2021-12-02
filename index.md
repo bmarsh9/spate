@@ -37,7 +37,7 @@ Spate is a workflow and automation platform that allows anyone to quickly automa
 
 Spate is built on Flask (e.g. python framework) and leverages containerization (docker) for executing workflows. A "Workflow" is just a set of blocks that contain your automation tree. Users can use the drag-and-drop UI to add and connect Operators (blocks of logic) to their Workflow. Each Workflow has its own docker container.
 
-Spate currently supports "API" and "CRON" Triggers. A trigger is "how" the Workflow is executed. For example, if your Workflow contains the "API" trigger, then users can visit a API endpoint to start the Workflow. The "CRON" trigger executes every X minutes and runs your Workflow. These two triggers will support the majority of your Workflows. Coming soon is a "FORM" trigger (basically lets you build a UI based form for input).
+Spate currently supports "API", "FORM", and "CRON" Triggers. A trigger is "how" the Workflow is executed. For example, if your Workflow contains the "API" trigger, then users can visit a API endpoint to start the Workflow. "FORM" trigger shows a custom UI-based form. The "CRON" trigger executes every X minutes and runs your Workflow. These two triggers will support the majority of your Workflows. Coming soon is a "FORM" trigger (basically lets you build a UI based form for input).
 
 Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. 
 
@@ -47,7 +47,7 @@ Users can add Operators to your Workflow and also edit the code. Everything is i
 + Build the images with: `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
 + Create base image with: `cd docker_image && docker build -t base-python . && cd ..`
 + Start the containers: `docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
-+ Visit `https://your-ip`. Email is `admin@example.com` and password is `admin`
++ Visit `https://your-ip:8443`. Email is `admin@example.com` and password is `admin`
 + Check the [Health of your deployment](#service-status)
 + See the following "Setting Up Your First Workflow" section for your first Workflow
 
@@ -74,8 +74,8 @@ After the "Getting Started" section above, lets set up and execute a API based W
 
 ##### What are the different docker images?
 There are 5 custom docker images and the 6th is a postgresql image (which may not be used if you are using something like RDS). 
-+ spate-ui - This is the main UI portion (on port 443)
-+ spate-ingress - This container (on port 8443) has a API endpoint for workflows that have a API trigger. You use this endpoint to execute your workflows.
++ spate-ui - This is the main UI portion (on port 8443)
++ spate-ingress - This container (on port 443) has a API endpoint for workflows that have a API trigger. It also has endpoints to support the Form trigger. You use this endpoint to execute your workflows.
 + spate-cron - This container (no listening ports) queries all the workflows with a Cron trigger and executes the workflow.
 + spate-poller - This container performs some background jobs such as removing unused images/containers
 + base-python - This image is used as the "base" image for the Workflows. Spate deploys your code into this container and executes it.
@@ -87,7 +87,7 @@ Each Workflow will have its own docker container. When you create a new Workflow
 Operators are the small blocks you see in the workflow. They can contain code and are the building blocks of your workflow. Links just connect the operators together and can also contain code. If the code within the Operator or Link returns False (e.g. return False), the path in the workflow will stop execution. Any other value and the path will continue. Typically I recommend keeping the code within the Operator very specific and include logic within the Link code. For example, if you are a making a network request to a API endpoint, include that code within your Operator and processing the success/error within the Link. 
 
 ##### What are Triggers and Actions?
-Triggers and Actions are a type of Operator. Triggers will initiate the workflow and Spate currently supports "API" and "Cron" triggers. If your workflow has a API trigger, Spate sets up a API endpoint and if you hit that endpoint (with curl or your browser for example), the workflow will execute. If your workflow has a Cron trigger, it will execute your workflow every X minutes (this is configurable). On the other hand, Actions are Operators that code building blocks. For example, you might create a Operator that "Adds a row to Google Sheets" and you can save it and reuse it elsewhere. 
+Triggers and Actions are a type of Operator. Triggers will initiate the workflow and Spate currently supports "API", "Cron" and "Form" triggers. If your workflow has a API trigger, Spate sets up a API endpoint and if you hit that endpoint (with curl or your browser for example), the workflow will execute. The Form trigger presents a UI based form that you can build and collect input from the end user. Upon submission, your workflow runs. If your workflow has a Cron trigger, it will execute your workflow every X minutes (this is configurable). On the other hand, Actions are Operators that code building blocks. For example, you might create a Operator that "Adds a row to Google Sheets" and you can save it and reuse it elsewhere. 
 
 ##### What does the "refresh" button do on the Workflow graph?
 The refresh button will take all of your code (on the Operators and Links in the Workflow) and deploy it (along with the neccesary imports/libraries) into a docker container so that it is ready for execution. When you update your Workflow, it does NOT automatically deploy the changes to the docker container. The refresh button pushes the changes to the container. This is why if you update your code in the Workflow and are not seeing different results, you need to hit the Refresh button.
@@ -135,7 +135,7 @@ You can check the status of the deployment by viewing the "Status" page
 <img src="images/spate_status.PNG" alt="" class="inline"/>
 
 ### TODO
-- [ ] Add "Form" trigger
+- [x] Add "Form" trigger
 - [x] Improve admin controls in UI (e.g. what users can edit/view workflows)
 - [ ] Improve documentation
 - [ ] Add RBAC to the Lockers
