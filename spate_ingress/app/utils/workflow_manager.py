@@ -29,7 +29,7 @@ class WorkflowManager():
         return id
 
     def add_in_progress_result(self):
-        result = current_app.Result(name=self.generate_uuid(length=10),workflow_id=self.workflow_id,
+        result = current_app.Result(name=self.generate_uuid(),workflow_id=self.workflow_id,
             status="in progress",date_added=datetime.utcnow())
         current_app.db_session.add(result)
         current_app.db_session.commit()
