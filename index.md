@@ -39,7 +39,7 @@ Spate is a workflow and automation platform that allows anyone to quickly automa
 
 Spate is built on Flask (e.g. python framework) and leverages containerization (docker) for executing workflows. A "Workflow" is just a set of blocks that contain your automation tree. Users can use the drag-and-drop UI to add and connect Operators (blocks of logic) to their Workflow. Each Workflow has its own docker container.
 
-Spate currently supports "API", "FORM", and "CRON" Triggers. A trigger is "how" the Workflow is executed. For example, if your Workflow contains the "API" trigger, then users can visit a API endpoint to start the Workflow. "FORM" trigger shows a custom UI-based form. The "CRON" trigger executes every X minutes and runs your Workflow. These two triggers will support the majority of your Workflows. Coming soon is a "FORM" trigger (basically lets you build a UI based form for input).
+Spate currently supports "API", "FORM", and "CRON" Triggers. A trigger is "how" the Workflow is executed. For example, if your Workflow contains the "API" trigger, then users can visit a API endpoint to start the Workflow. "FORM" trigger shows a custom UI-based form. The "CRON" trigger executes every X minutes and runs your Workflow. These three triggers will support the majority of your Workflows.
 
 Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. 
 
