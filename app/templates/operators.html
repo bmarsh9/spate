@@ -2,7 +2,7 @@
 
 {% block before_head %}
   {{ super() }}
-  {% import "src_macros.html" as macro %}
+  {% import "helpers/src_macros.html" as macro %}
   {{ macro.filehelper(datatables=True) }}
 {% endblock %}
 
