@@ -47,7 +47,6 @@
                     <th>Enabled</th>
                     <th>Description</th>
                     <th class="w-1">Edit</th>
-                    <th class="w-1">View</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -59,9 +58,6 @@
                     <td class="subheader">{{form.description}}</td>
                     <td class="text-center">
                       <a href="{{url_for('main.edit_form',name=form.name)}}"><i class="ti ti-tools"></i></a>
-                    </td>
-                    <td class="text-center">
-                      <a href="{{url_for('main.view_intake',name=form.name)}}"><i class="ti ti-arrow-forward-up"></i></a>
                     </td>
                   </tr>
                   {%endfor%}

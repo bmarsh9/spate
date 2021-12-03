@@ -1,0 +1,24 @@
+{% extends "layouts/overlap.html" %}
+
+{%block contentHeader_pretitle%}{%endblock%}
+{%block contentHeader_title%}{%endblock%}
+{%block navbar%}{%endblock%}
+{%block toolbar%}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="empty">
+              <div class="mb-4"><img src="{{url_for('static',filename='img/spate_icon.PNG')}}" height="40" alt=""></div>
+              <p class="empty-title">Spate Ingress</p>
+              <p id="subtitle" class="empty-subtitle text-muted">
+                This is the default landing page.
+              </p>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}

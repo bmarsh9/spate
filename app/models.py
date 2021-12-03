@@ -711,6 +711,7 @@ class Operator(db.Model, LogMixin):
                       <label class="form-label col-3 col-form-label">Form</label>
                       <div class="col">
                         <select class="form-select" id="form_{}">
+                          <option value="">Select an Form</option>
                           {}
                         </select>
                         <small class="form-hint">Select which form you want end users to see for your Workflow</small>
