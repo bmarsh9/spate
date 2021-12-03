@@ -12,9 +12,10 @@ Easily create and run Workflows          |
 3. [How it Works](#how-it-works)
 4. [Getting Started](#getting-started)
 5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
-6. [FAQ](#faq)
-7. [Development](#development)
-8. [Todo](#todo)
+6. [Setting Up a Form Workflow](#setting-up-a-form-workflow)
+7. [FAQ](#faq)
+8. [Development](#development)
+9. [Todo](#todo)
 
 
 ### What is Spate?
@@ -70,6 +71,34 @@ After the "Getting Started" section above, lets set up and execute a API based W
 
 #### 5.) View the results of your Workflow
 <img src="images/spate_step5.PNG" alt="" class="inline"/>
+
+### Setting Up a Form Workflow
+
+We are going to show you how to set up a form based workflow using a FORM trigger. Remember, there are three (3) types of triggers (api,cron and form). The Form trigger will allow us to create your own Form and when someone visits/submits data, we can process it.
+
+#### 1.) At the top of the page, select Form and Add Form
+<img src="images/spate_form_0.PNG" alt="" class="inline"/>
+
+#### 2.) Drag and drop components onto your form. Once complete, click Save and input a label/description and Save
+<img src="images/spate_form_2.PNG" alt="" class="inline"/>
+
+#### 3.) Click on your Workflow, drag "Form" trigger onto the map and click edit
+<img src="images/spate_form_1.PNG" alt="" class="inline"/>
+
+#### 4.) I added some code as seen in the screenshot... `return "Your message here" onto the operator`. Click Save in the botton right.
+<img src="images/spate_form_8.PNG" alt="" class="inline"/>
+
+#### 5.) Now click the "Settings" button (yellow ish). Scroll down to the bottom, Select the return path AND your form you created. Make sure to click save in bottom right.
+<img src="images/spate_form_3.PNG" alt="" class="inline"/>
+
+#### 6.) Close the modal and select "Refresh" in the bottom right corner. Then select "Form Link". This is the link of your form (on a different port)
+<img src="images/spate_form_4.PNG" alt="" class="inline"/>
+
+#### 7.) Visit the link in a new tab in your browser (as shown below)
+<img src="images/spate_form_5.PNG" alt="" class="inline"/>
+
+#### 8.) Add dummy data to the form and click "Submit". After submission, your workflow will execute and in a few seconds, the page will update. Notice that your message appears in the response.
+<img src="images/spate_form_6.PNG" alt="" class="inline"/>
 
 ### FAQ
 
