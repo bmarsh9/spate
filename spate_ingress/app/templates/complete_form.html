@@ -34,15 +34,24 @@
       $.ajax({
         url: "/api/v1/intake/{{request_id}}/status",
         success: function(data) {
-          if (data["complete"]) {
+          if (data["status"] === "failed") {
+            console.log("Request failed. Stopping.")
             $("#spinner").remove();
-            $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-check text-green'></i>");
-            $("#subtitle").html("Request complete. Please find the response below.")
+            $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-urgent text-red'></i>");
+            $("#subtitle").html("Request failed. Please find the response below.")
             $("#waiting").html(data["message"]);
             stop = true;
-          }
-          else {
-            $("#waiting").html(data["message"]);
+          } else {
+            if (data["complete"]) {
+              $("#spinner").remove();
+              $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-check text-green'></i>");
+              $("#subtitle").html("Request complete. Please find the response below.")
+              $("#waiting").html(data["message"]);
+              stop = true;
+            }
+            else {
+              $("#waiting").html(data["message"]);
+            };
           };
         },
         complete: function() {
@@ -59,6 +68,14 @@
             setTimeout(worker, 3000);
             loop++
           };
+        },
+        error: function (request, status, error) {
+          console.log("Error occurred. Stopping.")
+          $("#spinner").remove();
+          $("#complete").html("<i style='font-size:4rem;height:3rem;width:3rem' class='ti ti-urgent text-red'></i>");
+          $("#subtitle").html("Request failed. Please find the response below.")
+          $("#waiting").html(request.responseText);
+          stop = true;
         }
       });
     })();

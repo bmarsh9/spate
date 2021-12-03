@@ -2,6 +2,7 @@ from flask import current_app
 import docker
 import json
 from datetime import datetime
+import uuid
 
 class WorkflowManager():
     def __init__(self, workflow_id):
@@ -21,8 +22,15 @@ class WorkflowManager():
                 return container
         return None
 
+    def generate_uuid(self,length=None):
+        id = uuid.uuid4().hex
+        if length:
+            id = id[:length]
+        return id
+
     def add_in_progress_result(self):
-        result = current_app.Result(workflow_id=self.workflow_id,status="in progress",date_added=datetime.utcnow())
+        result = current_app.Result(name=self.generate_uuid(length=10),workflow_id=self.workflow_id,
+            status="in progress",date_added=datetime.utcnow())
         current_app.db_session.add(result)
         current_app.db_session.commit()
         return result
@@ -48,12 +56,14 @@ class WorkflowManager():
             if result.status != "complete":
                 response = {
                     "id":result.id,
+                    "name":result.name,
                     "status":result.status,
                     "date_requested":str(result.date_added),
                 }
             else:
                 response = {
                     "id":result.id,
+                    "name":result.name,
                     "return_value":result.return_value,
                     "return_hash":result.return_hash,
                     "paths":result.paths,
@@ -66,6 +76,8 @@ class WorkflowManager():
                 }
         else:
             response = {
+                "id":result.id,
+                "name":result.name,
                 "callback_url":"/api/v1/workflows/{}/results/{}".format(self.workflow_id,result.id),
                 "status":"in progress",
             }

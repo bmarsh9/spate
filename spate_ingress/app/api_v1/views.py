@@ -3,15 +3,18 @@ from app.utils.decorators import token_required
 from . import api
 from app.utils.workflow_manager import WorkflowManager
 from app.utils.misc import request_to_json
+import logging
 
 @api.route('/health', methods=['GET'])
 def get_health():
     return jsonify({
-        "message":"ok",
+        "status":"ok",
+        "message":current_app.config["APP_NAME"],
         "version":current_app.config["VERSION"],
         "routes":[
             {"endpoint":"/api/v1/workflows/<int:workflow_id>/results/<int:result_id>","desc":"view results of execution"},
             {"endpoint":"/workflows/<int:workflow_id>/actions/run","desc":"execute workflow via API route"},
+            {"endpoint":"/intake/<str:form_name>","desc":"execute workflow via Form route"},
         ]
     })
 
@@ -53,6 +56,7 @@ def run_workflow(workflow_id):
             request=request_to_json(request))
         code = 200
     except Exception as e:
+        logging.error("An error occurred upon submission of the API trigger:{}. Error:{}".format(workflow.name,str(e)))
         results = str(e)
         code = 500
     return jsonify({"response":results}),code
@@ -70,26 +74,29 @@ def submit_intake(name):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
-    # result returns the ID of the submitted Result or 0 (failed)
+    # result returns the name of the submitted Result or 0 (failed)
     try:
         result = WorkflowManager(workflow.id).run(workflow.name,
             request=request_to_json(request),subtype="form")
-        request_id = result.id
+        request_id = result.name
         code = 200
     except Exception as e:
-        result = str(e)
-        request_id = 0
+        logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
+        request_id = "0"
         code = 500
     redirect_url = "/intake/{}/done?request_id={}".format(form.name,request_id)
     return jsonify({"message":"ok","url":redirect_url}),code
 
-@api.route('/intake/<int:id>/status', methods=['GET'])
-def get_intake_status(id):
-    if id == 0:
-        return jsonify({"id":id,"complete":False,"status":"error","message":"Hmmm... looks like an error occurred. We are looking into it."})
-    request = current_app.db_session.query(current_app.Result).filter(current_app.Result.id == id).first()
-    if not request:
-        return jsonify({"message":"resource not found"}),404
-    if request.status != "complete":
-        return jsonify({"id":id,"complete":False,"status":request.status,"message":"[{}] Please wait...".format(request.status)})
-    return jsonify({"id":id,"complete":True,"status":request.status,"message":request.return_value})
+@api.route('/intake/<string:name>/status', methods=['GET'])
+def get_intake_status(name):
+    if str(name) == "0":
+        return jsonify({"complete":False,"status":"failed",
+            "message":"Hmmm... looks like an error occurred. We are looking into it."})
+    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == name).first()
+    if not result:
+        return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
+    if result.status != "complete":
+        return jsonify({"id":result.id,"name":result.name,"complete":False,
+            "status":result.status,"message":"[{}] Please wait...".format(result.status)})
+    return jsonify({"id":result.id,"name":result.name,"complete":True,
+        "status":result.status,"message":result.return_value})

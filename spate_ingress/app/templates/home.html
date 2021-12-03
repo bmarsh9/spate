@@ -8,6 +8,24 @@
 {%block content%}
   <div class="row row-cards">
     <div class="col-12">
+    {% for category,message in get_flashed_messages(with_categories=True)[:1] %}
+    {% if category == "message" %}
+      {% set category = "primary" %}
+    {% endif %}
+    <div class="alert alert-{{category}} alert-dismissible" role="alert">
+      <div class="d-flex">
+        <div>
+          <i class="ti ti-bell-ringing icon"></i>
+        </div>
+        <div>
+          <div style="margin-left:10px" class="text-muted">{{message}}</div>
+        </div>
+      </div>
+      <a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+    {% endfor %}
+    </div>
+    <div class="col-12">
         <div class="card">
           <div class="card-body">
             <div class="empty">

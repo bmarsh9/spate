@@ -93,6 +93,7 @@ class AssocLocker(LogMixin,db.Model):
 class Result(db.Model, LogMixin):
     __tablename__ = 'results'
     id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String())
     status = db.Column(db.String(),default="not started")
     paths = db.Column(db.JSON(),default={})
     return_value = db.Column(db.String())
