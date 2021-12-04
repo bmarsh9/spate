@@ -353,19 +353,19 @@
             };
             if (response["needs_trigger"]) {
               notify_js("Workflow does not have a trigger! Please add one.", type = "warning",time=1000)
-            };
-            if (!response["has_return_value"]) {
-              notify_js("You have not configured a return path! Please select a path on your trigger.", type = "warning",time=1000)
-            };
-            if (response["needs_form"]) {
-              notify_js("Please attach a form to the Form Trigger!", type = "warning",time=1000)
-            };
-            if (response["refresh_required"]) {
-              notify_js("Workflow is not up to date. Please refresh it.", type = "warning",time=1000)
-              $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
-              //haaaaa
             } else {
-              $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
+              if (!response["has_return_value"]) {
+                notify_js("You have not configured a return path! Please select a path on your trigger.", type = "warning",time=1000)
+              };
+              if (response["needs_form"]) {
+                notify_js("Please attach a form to the Form Trigger!", type = "warning",time=1000)
+              };
+              if (response["refresh_required"]) {
+                notify_js("Workflow is not up to date. Please refresh it.", type = "warning",time=1000)
+                $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
+              } else {
+                $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
+              };
             };
           },
           error: function (request, status, error) {
