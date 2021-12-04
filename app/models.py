@@ -30,12 +30,19 @@ class IntakeForm(LogMixin,db.Model):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+class LockerAccess(LogMixin,db.Model):
+    __tablename__ = 'locker_access'
+    id = db.Column(db.Integer(), primary_key=True)
+    locker_id = db.Column(db.Integer(), db.ForeignKey('lockers.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
+
 class Locker(LogMixin,db.Model):
     __tablename__ = 'lockers'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(), unique=True)
     label = db.Column(db.String())
     config = db.Column(db.JSON(),default={})
+    users = db.relationship('User', secondary='locker_access',lazy='dynamic')
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
@@ -64,6 +71,21 @@ class Locker(LogMixin,db.Model):
                 db.session.commit()
         return True
 
+    def remove_from_all_users(self):
+        LockerAccess.query.filter(LockerAccess.locker_id == self.id).delete()
+        db.session.commit()
+        return True
+
+    def set_users_by_id(self,users):
+        self.remove_from_all_users()
+        for id in users:
+            found = User.query.get(id)
+            if found:
+                assoc = LockerAccess(locker_id=self.id,user_id=id)
+                db.session.add(assoc)
+                db.session.commit()
+        return True
+
     def get_workflows(self):
         workflows = []
         for assoc in AssocLocker.query.filter(AssocLocker.locker_id == self.id).all():
@@ -83,6 +105,16 @@ class Locker(LogMixin,db.Model):
             else:
                 workflows[workflow] = False
         return workflows
+
+    def can_user_access(self,id):
+        user = User.query.get(id)
+        if not user:
+            return False
+        if user.has_role("admin"):
+            return True
+        if user.has_locker(self.id):
+            return True
+        return False
 
 class AssocLocker(LogMixin,db.Model):
     __tablename__ = 'assoc_lockers'
@@ -1461,6 +1493,9 @@ class User(LogMixin,db.Model, UserMixin):
     def generate_invite_token(email,expiration = 600):
         s = Serializer(current_app.config['SECRET_KEY'], expires_in = expiration)
         return s.dumps({ 'email': email }).decode('utf-8')
+
+    def has_locker(self,id):
+        return LockerAccess.query.filter(LockerAccess.locker_id == id).filter(LockerAccess.user_id == self.id).first()
 
     def pretty_roles(self):
         data = []

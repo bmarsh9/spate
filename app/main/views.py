@@ -159,8 +159,16 @@ def lockers():
 @login_required
 def view_locker(id):
     locker = Locker.query.get(id)
+    if not locker:
+        flash("Locker does not exist","warning")
+        return redirect(url_for("main.lockers"))
+    if not locker.can_user_access(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.lockers"))
     workflows = locker.get_workflows_ex()
-    return render_template("view_locker.html",locker=locker,workflows=workflows)
+    users = User.query.filter(User.is_active == True).all()
+    return render_template("view_locker.html",locker=locker,
+        workflows=workflows,users=users)
 
 @main.route('/lockers/add', methods=['GET','POST'])
 @login_required
@@ -176,6 +184,12 @@ def add_locker():
 @login_required
 def edit_locker_attributes(id):
     locker = Locker.query.get(id)
+    if not locker:
+        flash("Locker does not exist","warning")
+        return redirect(url_for("main.lockers"))
+    if not locker.can_user_access(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.lockers"))
     attr_set = parse_locker_creation(request.form)
     config = {}
     for pair in attr_set:
@@ -185,10 +199,32 @@ def edit_locker_attributes(id):
     flash("Edited locker attributes")
     return redirect(url_for("main.view_locker",id=id))
 
+@main.route('/lockers/<int:id>/access', methods=['POST'])
+@login_required
+def edit_locker_access(id):
+    locker = Locker.query.get(id)
+    if not locker:
+        flash("Locker does not exist","warning")
+        return redirect(url_for("main.lockers"))
+    if not locker.can_user_access(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.lockers"))
+    users = request.form.getlist('users[]')
+    locker.set_users_by_id(users)
+    db.session.commit()
+    flash("Edited locker access")
+    return redirect(url_for("main.view_locker",id=id))
+
 @main.route('/lockers/<int:id>/settings', methods=['POST'])
 @login_required
 def edit_locker_settings(id):
     locker = Locker.query.get(id)
+    if not locker:
+        flash("Locker does not exist","warning")
+        return redirect(url_for("main.lockers"))
+    if not locker.can_user_access(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.lockers"))
     workflows = request.form.getlist('workflows[]')
     locker.set_workflows_by_name(workflows)
     locker.label = request.form.get("label")

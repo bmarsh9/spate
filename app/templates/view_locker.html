@@ -65,7 +65,7 @@
         </div>
     </div>
   </div>
-  <div class="row row-cards">
+  <div class="row row-cards mb-3">
     <div class="col-12">
         <div class="card">
           <div class="card-header">
@@ -121,6 +121,35 @@
                 </form>
               </div>
             </div>
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">User Access</h3>
+          </div>
+          <div class="card-body">
+            <form method="POST" action="{{url_for("main.edit_locker_access",id=locker.id)}}">
+                <div class="form-group mb-3 ">
+                  <div>
+                    <select name="users[]" data-placeholder="Search for Users..." class="chosen-select form-control" multiple>
+                    {% for user in users %}
+                      {%if user.has_locker(locker.id)%}
+                      <option value="{{user.id}}" selected>{{user.email}}</option>
+                      {%else%}
+                      <option value="{{user.id}}">{{user.email}}</option>
+                      {%endif%}
+                    {% endfor %}
+                    </select>
+                  </div>
+                </div>
+                <div class="form-footer">
+                  <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+              </form>
           </div>
         </div>
     </div>

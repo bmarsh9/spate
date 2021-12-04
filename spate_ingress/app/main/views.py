@@ -25,4 +25,5 @@ def intake_complete(name):
     if request_id == False:
         flash("Request ID was not found","danger")
         return redirect(url_for("main.home"))
-    return render_template("complete_form.html",request_id=request_id)
+    return render_template("complete_form.html",request_id=request_id,
+        form=form)
