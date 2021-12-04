@@ -60,9 +60,11 @@ $(document).on('click','.workflow_refresh', function(){
     url: "/api/v1/workflows/"+get_workflow_id()+"/actions/refresh",
     type: "GET",
     success: function (response) {
+        $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
         notify_js("Refreshed workflow", type = "primary",time=1000)
     },
     error: function (request, status, error) {
+        $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
         notify_js("Error occurred", type = "warning",time=1000)
     }
   });
