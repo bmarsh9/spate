@@ -708,7 +708,7 @@ class Operator(db.Model, LogMixin):
         if self.form_id:
             intake = IntakeForm.query.get(self.form_id)
             if intake:
-                return "/intake/{}".format(intake.name)
+                return "/workflows/{}/intake/{}".format(self.workflow_id,intake.name)
         return None
 
     def last_executed_humanized(self):

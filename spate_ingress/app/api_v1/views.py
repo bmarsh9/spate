@@ -61,19 +61,19 @@ def run_workflow(workflow_id):
         code = 500
     return jsonify({"response":results}),code
 
-@api.route('/intake/<string:name>', methods=['POST'])
-def submit_intake(name):
-    form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
-    if not form:
-        return jsonify({"message":"form not found"}),404
-    operator = current_app.db_session.query(current_app.Operator).filter(current_app.Operator.form_id == form.id).first()
-    if not operator:
-        return jsonify({"message":"trigger  not found"}),404
-    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == operator.workflow_id).first()
+@api.route('/workflows/<int:workflow_id>/intake/<string:name>', methods=['POST'])
+def submit_intake(workflow_id,name):
+    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
+    form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
+    if not form:
+        return jsonify({"message":"form not found"}),404
+    trigger = current_app.db_session.query(current_app.Operator).filter(current_app.Operator.form_id == form.id).filter(current_app.Operator.workflow_id == workflow_id).first()
+    if not trigger:
+        return jsonify({"message":"trigger not found"}),404
     # result returns the name of the submitted Result or 0 (failed)
     try:
         result = WorkflowManager(workflow.id).run(workflow.name,
@@ -84,7 +84,7 @@ def submit_intake(name):
         logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
         request_id = "0"
         code = 500
-    redirect_url = "/intake/{}/done?request_id={}".format(form.name,request_id)
+    redirect_url = "/workflows/{}/intake/{}/done?request_id={}".format(workflow.id,form.name,request_id)
     return jsonify({"message":"ok","url":redirect_url}),code
 
 @api.route('/intake/<string:name>/status', methods=['GET'])
