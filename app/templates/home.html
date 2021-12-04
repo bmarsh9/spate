@@ -122,6 +122,7 @@
             <div class="row">
               <div class="col-2">
                 <button class="btn reset"  id="reset_zoom"><i class="ti ti-arrows-diagonal"></i></button>
+                <button class="btn"  id="reset"><i class="ti ti-refresh"></i><small class="ml-2">Reload</small></button>
               </div>
               <div class="col-10 text-end">
                 {%set trigger = workflow.get_trigger()%}
@@ -134,8 +135,7 @@
                 {%endif%}
                 <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}" class="btn"><i class="ti ti-report-analytics"></i><small class="ml-2">Results</small></a>
                 <button class="btn workflow_settings"><i class="ti ti-tools"></i><small class="ml-2">Settings</small></button>
-                <button class="btn workflow_refresh"><i class="ti ti-refresh"></i><small class="ml-2">Refresh</small></button>
-                <!--<button class="btn workflow_run"><i class="ti ti-run"></i><small class="ml-2">Run</small></button>-->
+                <span id="refresh_button"><button class="btn workflow_refresh">{%if workflow.refresh_required%}<span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span>{%else%}<i class="ti ti-checks text-green"></i>{%endif%}<small class="ml-2">Refresh</small></button></span>
               </div>
             </div>
           </section>
@@ -339,24 +339,47 @@
 {% block extrajs %}
   <script>
     $(document).ready(function() {
-      loadFlowchart("#example",{{workflow.id}})
-    });
-  </script>
-  <script>
-  {%if not workflow.enabled%}
-    notify_js("Workflow is disabled! Enable it under Settings at the bottom of this page.",type="warning")
-  {%endif%}
-  {%if not workflow.has_return_value()%}
-    notify_js("You have not configured a return path! Please select a path on your trigger.",type="warning")
-  {%endif%}
+      function load() {
+        loadFlowchart("#example",{{workflow.id}})
+      };
+      function getMeta() {
+        $.ajax({
+          url: "/api/v1/workflows/{{workflow.id}}/meta",
+          type: "GET",
+          contentType: "application/json; charset=utf-8",
+          success: function (response) {
+            if (!response["enabled"]) {
+              notify_js("Workflow is disabled! Enable it under Settings at the bottom of this page.", type = "warning",time=1000)
+            };
+            if (response["needs_trigger"]) {
+              notify_js("Workflow does not have a trigger! Please add one.", type = "warning",time=1000)
+            };
+            if (!response["has_return_value"]) {
+              notify_js("You have not configured a return path! Please select a path on your trigger.", type = "warning",time=1000)
+            };
+            if (response["needs_form"]) {
+              notify_js("Please attach a form to the Form Trigger!", type = "warning",time=1000)
+            };
+            if (response["refresh_required"]) {
+              notify_js("Workflow is not up to date. Please refresh it.", type = "warning",time=1000)
+              $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
+              //haaaaa
+            } else {
+              $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
+            };
+          },
+          error: function (request, status, error) {
+            notify_js("Error grabbing Workflow metadata", type = "warning",time=1000)
+          }
+        });
+      };
+      load()
+      getMeta()
 
-  {%set trigger = workflow.get_trigger()%}
-  {%if not trigger%}
-    notify_js("Workflow does not have a trigger!",type="warning")
-  {%else%}
-    {%if trigger.subtype == "form" and not trigger.form_id%}
-      notify_js("Please attach a form to the Form Trigger!",type="warning")
-    {%endif%}
-  {%endif%}
+      $(document).on('click','#reset', function(){
+        load()
+        getMeta()
+      });
+    });
   </script>
 {% endblock %}

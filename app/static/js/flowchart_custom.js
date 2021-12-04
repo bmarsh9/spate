@@ -485,6 +485,9 @@ function showEvent(txt) {
 
 function loadFlowchart(selector, workflowId) {
 
+  // clear the flowchart
+  $("#chart_container").html('<div class="flowchart-example-container" id="example"></div>')
+
   var $flowchart = $(selector);
   var $container = $flowchart.parent();
 
@@ -686,8 +689,11 @@ function loadFlowchart(selector, workflowId) {
         }
       });
       setInitialZoom()
-    } //end ajax success callback
-
+    }, //end ajax success callback
+    error: function (request, status, error) {
+      notify_js("Failed to load the flowchart!", type = "danger",time=1000)
+      return false;
+    }
   }); // end ajax get load workflow data
 
   $flowchart.parent().siblings('.delete_selected_button').click(function () {
@@ -730,6 +736,7 @@ function loadFlowchart(selector, workflowId) {
     url: "/api/v1/workflows/"+get_workflow_id()+"/sidebar",
     type: "GET",
     success: function (response) {
+      resetSidebar()
       fillSidebar(response)
       initSidebar($flowchart,$container)
     }

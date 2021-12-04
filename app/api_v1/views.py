@@ -62,6 +62,14 @@ def get_workflow(id):
     data = workflow.to_workflow()
     return jsonify(data)
 
+@api.route('/workflows/<int:id>/meta', methods=['GET'])
+@login_required
+def get_workflow_meta(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        return jsonify({"message":"workflow not found"}),404
+    return jsonify(workflow.as_meta())
+
 @api.route('/workflows/<int:id>/actions/refresh', methods=['GET'])
 @login_required
 def refresh_workflow(id):
@@ -71,6 +79,8 @@ def refresh_workflow(id):
     if not workflow.user_can_write(current_user.id):
         return jsonify({"message":"access denied"}),403
     results = workflow.setup_workflow()
+    workflow.refresh_required = False
+    db.session.commit()
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/config', methods=['GET'])
@@ -115,6 +125,7 @@ def update_config_for_workflow(id):
     workflow.imports = data["imports"]
     workflow.enabled = data["enabled"]
     workflow.log_level = data["log_level"]
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"message":"ok"})
 
@@ -137,6 +148,8 @@ def add_operator_for_workflow(id):
             return jsonify({"message":"one trigger per workflow"}),400
     add_output = operator.outputs.count()
     new_operator = Operator.add(workflow.id,operator.id,type=operator.type,top=data["top"],left=data["left"],add_output=add_output)
+    workflow.refresh_required = True
+    db.session.commit()
     return jsonify(new_operator.template())
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/position', methods=['PUT'])
@@ -168,6 +181,8 @@ def delete_operator_for_workflow(id, operator_name):
     if not operator:
         return jsonify({"message":"operator not found"}),404
     operator.remove()
+    workflow.refresh_required = True
+    db.session.commit()
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/meta', methods=['GET'])
@@ -223,6 +238,7 @@ def update_code_for_operator(id,operator_name):
         return jsonify({"message":"operator not found"}),404
     data = request.get_json()
     operator.code = data["code"]
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"message":"ok"})
 
@@ -265,6 +281,7 @@ def update_config_for_operator(id,operator_name):
         operator.run_every = data.get("runevery")
     if data.get("form"):
         operator.form_id = data.get("form")
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"config":operator.form_html()})
 
@@ -310,6 +327,7 @@ def update_config_for_link(id,link_name):
     link.description = data["description"]
     link.enabled = data["enabled"]
     link.imports = data["imports"]
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"config":link.form_html()})
 
@@ -326,6 +344,7 @@ def update_code_for_link(id,link_name):
         return jsonify({"message":"link not found"}),404
     data = request.get_json()
     link.code = data["code"]
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"message":"ok"})
 
@@ -372,6 +391,7 @@ def add_link(id):
     if not output:
         return jsonify({"message":"output not found"}),404
     result = output.add_link(data["to_operator"],data["to_connector"])
+    workflow.refresh_required = True
     return jsonify(result)
 
 @api.route('/workflows/<int:id>/links/<string:link_name>', methods=['DELETE'])
@@ -386,6 +406,7 @@ def delete_link(id, link_name):
     if not link:
         return jsonify({"message":"link not found"}),404
     db.session.delete(link)
+    workflow.refresh_required = True
     db.session.commit()
     return jsonify({"message":"ok"})
 

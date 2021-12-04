@@ -174,6 +174,7 @@ class Workflow(db.Model, LogMixin):
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=False)
+    refresh_required = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
     imports = db.Column(db.String())
     log_level = db.Column(db.String(),default="info")
@@ -183,6 +184,27 @@ class Workflow(db.Model, LogMixin):
     results = db.relationship('Result', backref='workflow', lazy='dynamic')
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def as_meta(self):
+        needs_trigger = False
+        needs_form = False
+
+        trigger = self.get_trigger()
+        if not trigger:
+            needs_trigger = True
+        else:
+            if trigger.subtype == "form" and not trigger.form_id:
+                needs_form = True
+        return {
+            "id":self.id,
+            "name":self.name,
+            "label":self.label,
+            "enabled":self.enabled,
+            "has_return_value":self.has_return_value(),
+            "needs_trigger":needs_trigger,
+            "needs_form":needs_form,
+            "refresh_required":self.refresh_required,
+        }
 
     @staticmethod
     def add(**kwargs):
