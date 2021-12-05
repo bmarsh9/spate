@@ -18,8 +18,7 @@ class Config:
     SQLALCHEMY_RECORD_QUERIES = True
     BASE_DIR = basedir
 
-#    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
-    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db12:db12@localhost/db12")
+    SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
 
     SHARED_TOKEN = os.environ.get("SHARED_TOKEN","changeme")
 

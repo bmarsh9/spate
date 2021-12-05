@@ -512,7 +512,7 @@ class Workflow(db.Model, LogMixin):
 
     def get_sidebar(self, search_term=None):
         data = []
-        _query = Operator.query.filter(Operator.official == True).order_by(Operator.id.desc())
+        _query = Operator.query.filter(or_(Operator.official == True,Operator.public == True)).order_by(Operator.id.desc())
         if search_term:
             search = "%{}%".format(search_term)
             _query = _query.filter(Operator.label.ilike(search))
