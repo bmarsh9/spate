@@ -10,7 +10,7 @@
         <form class="card card-md" method="POST">
           {{form.hidden_tag()}}
           <div class="card-body">
-            <h2 class="card-title text-center mb-4">Create new account</h2>
+            <div class="mb-4 text-center"><img src="{{ url_for('static', filename='img/spate_full.PNG') }}" height="35" alt=""></div>
             <div class="mb-3">
               <label class="form-label">Email address</label>
               <input type="email" name="email" id="email" class="form-control materail_input" placeholder="{{ _('Email') }}" required>
