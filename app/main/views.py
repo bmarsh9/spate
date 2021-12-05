@@ -61,6 +61,10 @@ def create_form():
 def edit_form(name):
     form = IntakeForm.query.filter(IntakeForm.name == name).first()
     if not form:
+        flash("Form not found","warning")
+        return redirect(url_for("main.forms"))
+    if not current_user.has_role("admin") and not current_user.id == form.user_id:
+        flash("You do not have access to this resource","warning")
         return redirect(url_for("main.forms"))
     return render_template("forms/edit_form.html",form=form)
 #--------------- Workflow ----------------------
@@ -86,6 +90,7 @@ def view_workflow(id):
 @login_required
 def add_workflow():
     new_workflow = Workflow().add()
+    new_workflow.set_user(current_user.id,permission_level=2)
     flash("Added workflow")
     return redirect(url_for("main.view_workflow",id=new_workflow.id))
 
@@ -177,6 +182,7 @@ def add_locker():
     new_locker = Locker(name=name,label=name)
     db.session.add(new_locker)
     db.session.commit()
+    new_locker.set_users_by_id([current_user.id])
     flash("Added locker")
     return redirect(url_for("main.view_locker",id=new_locker.id))
 

@@ -442,7 +442,7 @@ def get_input_code(id,input_name):
 def add_form():
     data = request.get_json()
     form = IntakeForm(name=generate_uuid(length=10),label=data["label"],
-        description=data["description"],data=data["form"])
+        description=data["description"],data=data["form"],user_id=current_user.id)
     db.session.add(form)
     db.session.commit()
     return jsonify({"message":"ok"})
@@ -454,6 +454,8 @@ def edit_form(name):
     form = IntakeForm.query.filter(IntakeForm.name == name).first()
     if not form:
         return jsonify({"message":"form not found"}),404
+    if not current_user.has_role("admin") and not current_user.id == form.user_id:
+        return jsonify({"message":"access denied"}),403
     form.label = data["label"]
     form.description = data["description"]
     form.data = data["form"]

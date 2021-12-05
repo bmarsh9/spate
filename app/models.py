@@ -26,6 +26,7 @@ class IntakeForm(LogMixin,db.Model):
     label = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
+    user_id = db.Column(db.Integer(), db.ForeignKey('users.id', ondelete='CASCADE'))
     data = db.Column(db.JSON(),default={})
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
