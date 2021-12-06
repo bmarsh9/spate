@@ -44,14 +44,29 @@ Spate currently supports "API", "FORM", and "CRON" Triggers. A trigger is "how" 
 Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. 
 
 ### Getting Started
+
+You can get started by either building the images locally or running the already built ones. I recommend option #1.
+
+1.) Pull from docker hub
 + Make sure docker is installed (ubuntu works fine)
 + Clone the repo
++ Create base image with: `cd docker_image && docker build -t base-python . && cd ..`
++ Start the containers: `docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
++ Visit `https://your-ip:8443`. Email is `admin@example.com` and password is `admin`
++ Check the [Health of your deployment](#service-status)
++ See the following "Setting Up Your First Workflow" section for your first Workflow
+
+2.) Build locally and run
++ Make sure docker is installed (ubuntu works fine)
++ Clone the repo. Change the `image`reference in the `docker-compose.yml` file to point to the local images that you will build (basically remove the `bmarsh13/` prefix)
 + Build the images with: `cp tools/build_all.sh $PWD && bash build_all.sh && rm build_all.sh`
 + Create base image with: `cd docker_image && docker build -t base-python . && cd ..`
 + Start the containers: `docker-compose up -d postgres_db && sleep 10 && docker-compose up -d spate_ui && docker-compose up -d spate_poller spate_cron spate_ingress`
 + Visit `https://your-ip:8443`. Email is `admin@example.com` and password is `admin`
 + Check the [Health of your deployment](#service-status)
 + See the following "Setting Up Your First Workflow" section for your first Workflow
+
+
 
 ### Setting Up Your First Workflow
 
