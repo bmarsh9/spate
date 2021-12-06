@@ -9,7 +9,7 @@ services:
 
   spate_ui:
     container_name: spate-ui
-    image: spate-ui
+    image: bmarsh13/spate-ui
     depends_on:
       - postgres_db
     networks:
@@ -29,7 +29,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
     container_name: spate-ingress
-    image: spate-ingress
+    image: bmarsh13/spate-ingress
     depends_on:
       - postgres_db
     networks:
@@ -44,7 +44,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_cron:
     container_name: spate-cron
-    image: spate-cron
+    image: bmarsh13/spate-cron
     depends_on:
       - postgres_db
     networks:
@@ -57,7 +57,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_poller:
     container_name: spate-poller
-    image: spate-poller
+    image: bmarsh13/spate-poller
     depends_on:
       - postgres_db
     networks:
@@ -71,7 +71,6 @@ services:
   postgres_db:
     container_name: postgres_db
     image: postgres
-    #image: postgres_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-db1}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-db1}
