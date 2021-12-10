@@ -6,7 +6,9 @@ Easily create and run Workflows          |
 :-------------------------:|
 ![](images/spate_dash2.PNG)  |
 
-<video src="https://github.com/bmarsh9/spate/blob/1c085a289bba668864bfd05a8ff108384505db09/video/Spate - Form.mp4"/>
+
+https://user-images.githubusercontent.com/26391921/145500806-ee2332b6-52d6-43aa-93b7-6530d66dbcf5.mp4
+
 
 ### Table of Contents
 1. [What is Spate?](#what-is-spate)
