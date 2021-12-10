@@ -5,8 +5,29 @@
 {{ macro.filehelper(select=True) }}
 {% endblock %}
 
-{%block contentHeader_pretitle%}<a href="{{url_for("main.users")}}">Users</a>{%endblock%}
-{%block contentHeader_title%}Manage {{user.email}}{%endblock%}
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.users")}}">Users</a>
+      </div>
+      <h2 class="page-title">
+        Manage {{user.email}}
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.change_password",id=user.id)}}" class="btn btn-primary">
+            Change Password
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
 
 {%block content%}
   <div class="row row-cards">

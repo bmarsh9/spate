@@ -12,6 +12,28 @@ def users():
     users = User.query.all()
     return render_template('users.html',users=users)
 
+@main.route('/users/<int:id>/password', methods=['GET','POST'])
+@login_required
+def change_password(id):
+    user = User.query.get(id)
+    if not user:
+        flash("User does not exist!")
+        return redirect(url_for("main.users"))
+    if not current_user.has_role("admin") and not current_user == user:
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.users"))
+    if request.method == "POST":
+        new_password = request.form["password"]
+        repeat_password = request.form["password2"]
+        if new_password != repeat_password:
+            flash("Passwords do not match! Please try again","warning")
+            return redirect(url_for("main.change_password",id=id))
+        user.set_password(new_password)
+        db.session.commit()
+        flash("Successfully changed password of:{}".format(user.email))
+        return redirect(url_for("main.users"))
+    return render_template('change_password.html',user=user)
+
 @main.route('/admin/users/<int:id>', methods=['GET','POST'])
 @login_required
 def view_user(id):
