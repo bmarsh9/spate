@@ -10,7 +10,7 @@ from app.utils.docker_manager import DockerManager
 @main.route('/', methods=['GET'])
 @login_required
 def home():
-    return redirect(url_for("main.workflows"))
+    return render_template("dashboard.html")
 
 @main.route('/docs', methods=['GET'])
 @login_required
