@@ -74,3 +74,42 @@ def get_TableSchema(table,column=None,is_date=False,is_int=False,is_str=False,is
             return False
         raise Exception("Column not found")
     return data
+
+def generate_form_from_code(code):
+    """
+    generates HTML form based on comments in the Operator/Link code
+
+    e.g. url = None ##input:type=text:placeholder=enter email:name=email:label=testing
+    """
+    input_dictionary = {
+        "text":"<input type='text' class='form-control' {}>",
+        "number":"<input type='number' class='form-control' {}>",
+        "date":"<input type='text' class='form-control' data-mask='00/00/0000' data-mask-visible='true' autocomplete='off' {}>",
+        "checkbox":"<input type='checkbox' class='form-check-input ml-2' {}>"
+    }
+
+    content = ""
+
+    for line in code.split("\n"):
+        if line:
+            line = line.strip()
+            if "##input" in line:
+                available_params = line.split("##input")[-1:]
+                if available_params:
+
+                    param_dict = {}
+                    for param in [x.split("=") for x in available_params[0].split(":") if "=" in x]:
+                        param_dict[param[0]] = param[1]
+
+                    type = param_dict.get("type")
+                    input_type = input_dictionary.get(type)
+                    if input_type:
+                        param_dict.pop("type",None)
+                        input_addons = ""
+                        if param_dict:
+                            for key,value in param_dict.items():
+                                input_addons+="{}='{}' ".format(key,value)
+                        input = input_type.format(input_addons)
+                        content+="<div class='mb-3'><label class='form-label subheader'>{}</label>{}</div>".format(param_dict.get("label","Add Label"),input)
+    return content
+

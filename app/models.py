@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy import func,and_,or_
 from app.utils.mixin_models import LogMixin
 from flask_login import UserMixin
-from app.utils.misc import generate_uuid
+from app.utils.misc import generate_uuid,generate_form_from_code
 from app.utils.code_template import *
 from flask import current_app
 from networkx.readwrite import json_graph
@@ -722,108 +722,154 @@ class Operator(db.Model, LogMixin):
         return "_".join(self.label.split("_")[:-1])
 
     def get_code(self):
-        return "#general imports\n{}\n#operator imports\n{}\n\n{}\n\n{}\n\n{}".format(self.workflow.imports or "",self.imports or "",default_store_code(),default_locker_code(),self.code)
+        return "#general imports\n{}\n#operator imports\n{}\n\n{}\n\n{}\n\n{}".format(self.workflow.imports or "",
+            self.imports or "",default_store_code(),default_locker_code(),self.code)
+
+    def get_html_form_for_code(self):
+        custom_html_form = generate_form_from_code(self.code)
+        if not custom_html_form:
+            custom_html_form = "There are no custom variables defined!"
+        operator_variables_html = """
+            <div class="card mb-2">
+              <div class="card-header">
+                <h3 class="card-title">Operator Variables</h3>
+              </div>
+              <div class="card-body">
+                {}
+              </div>
+            </div>
+        """.format(custom_html_form)
+        return operator_variables_html
+
+    def get_additional_input_for_api_trigger(self):
+        sync_html = ""
+        for sync in ["synchronous","asynchronous"]:
+            select = ""
+            if self.synchronous and sync == "synchronous":
+                select = "selected"
+            elif not self.synchronous and sync == "asynchronous":
+                select = "selected"
+            sync_html+='<option value="{}" {}>{}</option>'.format(sync,select,sync)
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Synchronous/Async Return</label>
+              <div class="col">
+                <select id="synchronous_{}" class="form-select">{}</select>
+                <small class="form-hint">Synchronous will wait for the return path to complete. Async will provide a callback URL.</small>
+              </div>
+            </div>""".format(self.name,sync_html)
+        return template
+
+    def get_additional_input_for_cron_trigger(self):
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Cron Schedule</label>
+              <div class="col">
+                <input type="number" id="runevery_{}" class="form-control" value="{}" placeholder="Enter minutes">
+                <small class="form-hint">Configure how often you want this workflow to execute (in minutes)</small>
+              </div>
+            </div>""".format(self.name,self.run_every)
+        return template
+
+    def get_additional_input_for_form_trigger(self):
+        template = ""
+        form_options = ""
+        for form in IntakeForm.query.all():
+            select = ""
+            if self.form_id == form.id:
+                select = "selected"
+            form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
+            template = """
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Form</label>
+                  <div class="col">
+                    <select class="form-select" id="form_{}">
+                      <option value="">Select an Form</option>
+                      {}
+                    </select>
+                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+                  </div>
+                </div>""".format(self.name,form_options)
+        return template
+
+    def get_return_path_input(self):
+        path_items = ""
+        for path in self.workflow.path_tree(operator_id=self.id,identify_by="label").get("paths",[]):
+            list_item = ""
+            for path_name,functions in path.items():
+                function_count = len(functions)
+                for enum,function in enumerate(functions,1):
+                    color = "cyan"
+                    name = function["name"]
+                    if "__" in name:
+                        if name.startswith("Operator"):
+                            name = "(O) {}".format(function["name"].split("__")[1])
+                        else:
+                            name = "(L) {}".format(function["name"].split("__")[1])
+                            color = "green"
+                    if enum == function_count:
+                        color = "red"
+                    list_item += "<li class='breadcrumb-item'><span class='badge bg-{}-lt'>{}</span></li>".format(color,name)
+            checked = ""
+            if self.return_path == path_name:
+                checked = "checked"
+            template = """
+              <label class="form-selectgroup-item flex-fill">
+                <input type="radio" name="form-payment" value="{}" class="form-selectgroup-input" {}>
+                <div class="form-selectgroup-label d-flex align-items-center p-3">
+                  <div class="me-3">
+                    <span class="form-selectgroup-check"></span>
+                  </div>
+                  <div><ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">{}</ol></div>
+                </div>
+              </label>
+            """.format(path_name,checked,list_item)
+            path_items += template
+        return_section = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Select path for return value</label>
+              <div class="col">
+                  <div id="path_{}" class="form-selectgroup form-selectgroup-boxes d-flex flex-column">
+                    {}
+                  </div>
+                  <small class="form-hint">Choose a path for the return value</small>
+              </div>
+            </div>
+        """.format(self.name,path_items)
+        return return_section
 
     def form_html(self):
         return_section = ""
-        sync_template = ""
-        if self.type == "trigger":
-            path_items = ""
-            if self.subtype == "api":
-                sync_html = ""
-                for sync in ["synchronous","asynchronous"]:
-                    select = ""
-                    if self.synchronous and sync == "synchronous":
-                        select = "selected"
-                    elif not self.synchronous and sync == "asynchronous":
-                        select = "selected"
-                    sync_html+='<option value="{}" {}>{}</option>'.format(sync,select,sync)
-                sync_template = """
-                    <div class="form-group mb-3 row">
-                      <label class="form-label col-3 col-form-label">Synchronous/Async Return</label>
-                      <div class="col">
-                        <select id="synchronous_{}" class="form-select">{}</select>
-                        <small class="form-hint">Synchronous will wait for the return path to complete. Async will provide a callback URL.</small>
-                      </div>
-                    </div>""".format(self.name,sync_html)
-            elif self.subtype == "cron":
-                sync_template = """
-                    <div class="form-group mb-3 row">
-                      <label class="form-label col-3 col-form-label">Cron Schedule</label>
-                      <div class="col">
-                        <input type="number" id="runevery_{}" class="form-control" value="{}" placeholder="Enter minutes">
-                        <small class="form-hint">Configure how often you want this workflow to execute (in minutes)</small>
-                      </div>
-                    </div>""".format(self.name,self.run_every)
-            elif self.subtype == "form":
-                form_options = ""
-                for form in IntakeForm.query.all():
-                    select = ""
-                    if self.form_id == form.id:
-                        select = "selected"
-                    form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-                sync_template = """
-                    <div class="form-group mb-3 row">
-                      <label class="form-label col-3 col-form-label">Form</label>
-                      <div class="col">
-                        <select class="form-select" id="form_{}">
-                          <option value="">Select an Form</option>
-                          {}
-                        </select>
-                        <small class="form-hint">Select which form you want end users to see for your Workflow</small>
-                      </div>
-                    </div>""".format(self.name,form_options)
-
-            for path in self.workflow.path_tree(operator_id=self.id,identify_by="label").get("paths",[]):
-                list_item = ""
-                for path_name,functions in path.items():
-                    function_count = len(functions)
-                    for enum,function in enumerate(functions,1):
-                        color = "cyan"
-                        name = function["name"]
-                        if "__" in name:
-                            if name.startswith("Operator"):
-                                name = "(O) {}".format(function["name"].split("__")[1])
-                            else:
-                                name = "(L) {}".format(function["name"].split("__")[1])
-                                color = "green"
-                        if enum == function_count:
-                            color = "red"
-                        list_item += "<li class='breadcrumb-item'><span class='badge bg-{}-lt'>{}</span></li>".format(color,name)
-                checked = ""
-                if self.return_path == path_name:
-                    checked = "checked"
-                template = """
-                  <label class="form-selectgroup-item flex-fill">
-                    <input type="radio" name="form-payment" value="{}" class="form-selectgroup-input" {}>
-                    <div class="form-selectgroup-label d-flex align-items-center p-3">
-                      <div class="me-3">
-                        <span class="form-selectgroup-check"></span>
-                      </div>
-                      <div><ol class="breadcrumb breadcrumb-arrows" aria-label="breadcrumbs">{}</ol></div>
-                    </div>
-                  </label>
-                """.format(path_name,checked,list_item)
-                path_items += template
-            return_section = """
-                <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Path for Return Value</label>
-                  <div class="col">
-                      <div id="path_{}" class="form-selectgroup form-selectgroup-boxes d-flex flex-column">
-                        {}
-                      </div>
-                      <small class="form-hint">Choose a path for the return value</small>
-                  </div>
-                </div>
-                {}
-            """.format(self.name,path_items,sync_template)
+        addit_input_template = ""
+        operator_variables_html = ""
         checked = ""
+
         if self.enabled:
             checked = "checked"
+
+        # get custom variables
+        operator_variables_html = self.get_html_form_for_code()
+
+        # add input for different triggers
+        if self.type == "trigger":
+            if self.subtype == "api":
+                addit_input_template = self.get_additional_input_for_api_trigger()
+
+            elif self.subtype == "cron":
+                addit_input_template = self.get_additional_input_for_cron_trigger()
+
+            elif self.subtype == "form":
+                addit_input_template = self.get_additional_input_for_form_trigger()
+
+            return_section = self.get_return_path_input()
+
+#haaaaaaaaaa
+
         template = """
+          {}
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Output Configuration</h3>
+              <h3 class="card-title">Settings</h3>
             </div>
             <div class="card-body">
               <form>
@@ -867,10 +913,13 @@ class Operator(db.Model, LogMixin):
                   </div>
                 </div>
                 {}
+                {}
               </form>
             </div>
           </div>
-        """.format(self.name,self.name,self.label,self.name,self.description,self.name,checked,self.name,self.imports or "",return_section)
+        """.format(operator_variables_html,self.name,self.name,
+            self.label,self.name,self.description,self.name,checked,
+            self.name,self.imports or "",return_section,addit_input_template)
         return template
 
     def create_file(self,path,content=""):
@@ -928,7 +977,6 @@ class Operator(db.Model, LogMixin):
         input_count = self.inputs.count()
         output_count = self.outputs.count()
         if self.official:
-            #icon = """<span class="text-yellow mr-1"><svg xmlns="http://www.w3.org/2000/svg" class="icon icon-filled" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873z"></path></svg></span>"""
             icon = """<i data-bs-toggle="tooltip" data-bs-placement="top" title="Official Operator" class='ti ti-circle-check icon text-success mr-1'></i>"""
         else:
             icon = """<span class="text-red mr-1"><i class="ti ti-alert-triangle icon"></i></span>"""
@@ -1132,7 +1180,7 @@ class Input(db.Model, LogMixin):
         template = """
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Input Configuration</h3>
+              <h3 class="card-title">Input Settings</h3>
             </div>
             <div class="card-body">
               <form>
@@ -1351,7 +1399,8 @@ class OutputLink(LogMixin,db.Model):
         return True
 
     def get_code(self):
-        return "#general imports\n{}\n#operator imports\n{}\n\n{}\n\n{}\n\n{}".format(self.output().operator.workflow.imports or "",self.imports or "",default_store_code(),default_locker_code(),self.code)
+        return "#general imports\n{}\n#operator imports\n{}\n\n{}\n\n{}\n\n{}".format(self.output().operator.workflow.imports or "",
+            self.imports or "",default_store_code(),default_locker_code(),self.code)
 
     def get_output_operator(self):
         output = Output.query.get(self.output_id)
@@ -1391,7 +1440,7 @@ class OutputLink(LogMixin,db.Model):
         template = """
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Output Configuration</h3>
+              <h3 class="card-title">Link Settings</h3>
             </div>
             <div class="card-body">
               <form>
