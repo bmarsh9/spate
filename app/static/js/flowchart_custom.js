@@ -139,13 +139,11 @@ function splitOnUnderScore(value) {
 }
 
 function resetModalCodeArea() {
-  $("#savedAlert").empty();
   $("#code-editor-wrapper").empty();
   $("#code-editor-wrapper").html('<div id="code-editor"></div>');
 }
 
 function resetInputColors() {
-  $("#savedAlert").empty();
   $(".inputCodeIcon").addClass("text-secondary")
   $(".inputSettingsIcon").addClass("text-secondary")
   $(".inputHeader").addClass("text-secondary")
@@ -155,7 +153,6 @@ function resetInputColors() {
 }
 
 function resetOutputColors() {
-  $("#savedAlert").empty();
   $(".outputCodeIcon").addClass("text-secondary")
   $(".outputSettingsIcon").addClass("text-secondary")
   $(".outputHeader").addClass("text-secondary")
@@ -165,7 +162,6 @@ function resetOutputColors() {
 }
 
 function resetOperatorButtonColor() {
-  $("#savedAlert").empty();
   $(".modalOperatorButton").removeClass("btn-primary")
   $(".modalOperatorButton").html("Show Operator Logic")
   $("#operatorHeaderLogic").css("border-top","3px solid #e6e8e9")
@@ -310,11 +306,11 @@ function saveOperatorCode(operatorName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      $("#savedAlert").html('<div class="alert alert-success alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-check mr-2 icon text-success"></i></div><div><h4 class="alert-title">Saved Logic</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Saved successfully",type="primary")
       return true;
     },
     error: function (request, status, error) {
-      $("#savedAlert").html('<div class="alert alert-danger alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-alert-triangle mr-2 icon text-danger"></i></div><div><h4 class="alert-title">Uh oh.. something went wrong. Logic may not be saved!</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
       return false;
     }
   });
@@ -337,11 +333,11 @@ function saveOperatorSettings(operatorName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      $("#savedAlert").html('<div class="alert alert-success alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-check mr-2 icon text-success"></i></div><div><h4 class="alert-title">Saved Settings</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Saved successfully",type="primary")
       return true;
     },
     error: function (request, status, error) {
-      $("#savedAlert").html('<div class="alert alert-danger alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-alert-triangle mr-2 icon text-danger"></i></div><div><h4 class="alert-title">Uh oh.. something went wrong. Settings may not be saved!</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
       return false;
     }
   });
@@ -358,11 +354,11 @@ function saveLinkCode(linkName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      $("#savedAlert").html('<div class="alert alert-success alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-check mr-2 icon text-success"></i></div><div><h4 class="alert-title">Saved Link Code</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Saved successfully",type="primary")
       return true;
     },
     error: function (request, status, error) {
-      $("#savedAlert").html('<div class="alert alert-danger alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-alert-triangle mr-2 icon text-danger"></i></div><div><h4 class="alert-title">Uh oh.. something went wrong. Logic may not be saved!</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
       return false;
     }
   });
@@ -381,11 +377,11 @@ function saveLinkSettings(linkName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      $("#savedAlert").html('<div class="alert alert-success alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-check mr-2 icon text-success"></i></div><div><h4 class="alert-title">Saved Link Settings</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Saved successfully",type="primary")
       return true;
     },
     error: function (request, status, error) {
-      $("#savedAlert").html('<div class="alert alert-danger alert-dismissible" role="alert"><div class="d-flex"><div><i class="ti ti-alert-triangle mr-2 icon text-danger"></i></div><div><h4 class="alert-title">Uh oh.. something went wrong. Logic may not be saved!</h4></div></div><a class="btn-close" data-bs-dismiss="alert" aria-label="close"></a></div>')
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
       return false;
     }
   });
