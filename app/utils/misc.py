@@ -75,6 +75,18 @@ def get_TableSchema(table,column=None,is_date=False,is_int=False,is_str=False,is
         raise Exception("Column not found")
     return data
 
+def parse_locker_key_from_input(data):
+    if "locker" in data:
+        try:
+            r = data.split("##input")[0].split(",")[-1:][0]
+            r = r.replace('"',"")
+            r = r.replace("'","")
+            r = r.replace(")","")
+            return r.strip()
+        except:
+            pass
+    return None
+
 def generate_form_from_code(code):
     """
     generates HTML form based on comments in the Operator/Link code
@@ -92,6 +104,10 @@ def generate_form_from_code(code):
         if line:
             line = line.strip()
             if "##input" in line:
+                locker_attr = parse_locker_key_from_input(line)
+                # look up value in locker and add it to the content
+                #locker_attr = parse_locker_key_from_input(line)
+
                 available_params = line.split("##input")[-1:]
                 if available_params:
                     param_dict = {}

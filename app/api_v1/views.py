@@ -267,6 +267,15 @@ def update_config_for_operator(id,operator_name):
     if not operator:
         return jsonify({"message":"operator not found"}),404
     data = request.get_json()
+
+    # add variables to locker
+    locker = workflow.get_default_locker()
+    custom_vars = data["custom_variables"]
+    if custom_vars:
+        for key,value in custom_vars.items():
+            locker.add_key(key,value)
+
+#haaaaaaaa
     operator.label = data["label"]
     operator.description = data["description"]
     operator.enabled = data["enabled"]

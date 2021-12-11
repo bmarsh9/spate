@@ -2,7 +2,7 @@ from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy import func,and_,or_
 from app.utils.mixin_models import LogMixin
 from flask_login import UserMixin
-from app.utils.misc import generate_uuid,generate_form_from_code
+from app.utils.misc import generate_uuid
 from app.utils.code_template import *
 from flask import current_app
 from networkx.readwrite import json_graph
@@ -54,6 +54,15 @@ class Locker(LogMixin,db.Model):
             return locker_exists
         return False
 
+    @staticmethod
+    def add(name=None):
+        if not name:
+            name = "Locker_{}".format(generate_uuid(length=10))
+        new_locker = Locker(name=name,label=name)
+        db.session.add(new_locker)
+        db.session.commit()
+        return new_locker
+
     def as_dict(self):
         return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
@@ -64,6 +73,8 @@ class Locker(LogMixin,db.Model):
 
     def set_workflows_by_name(self,workflows):
         self.remove_from_all_workflows()
+        if not isinstance(workflows,list):
+            workflows = [workflows]
         for name in workflows:
             found = Workflow.find_by_name(name)
             if found:
@@ -79,6 +90,8 @@ class Locker(LogMixin,db.Model):
 
     def set_users_by_id(self,users):
         self.remove_from_all_users()
+        if not isinstance(users,list):
+            users = [users]
         for id in users:
             found = User.query.get(id)
             if found:
@@ -94,6 +107,11 @@ class Locker(LogMixin,db.Model):
             if workflow:
                 workflows.append(workflow)
         return workflows
+
+    def add_key(self,key,value):
+        self.config = {**self.config,**{key:value}}
+        db.session.commit()
+        return True
 
     def get_workflows_ex(self):
         '''used for select for showing workflows uses the locker'''
@@ -209,7 +227,8 @@ class Workflow(db.Model, LogMixin):
 
     @staticmethod
     def add(**kwargs):
-        name = "Workflow_{}".format(generate_uuid(length=10))
+        uuid = generate_uuid(length=10)
+        name = "Workflow_{}".format(uuid)
         if not kwargs.get("imports"):
             kwargs["imports"] = "import logging,os,sys,json,random"
         kwargs["name"] = name
@@ -218,6 +237,10 @@ class Workflow(db.Model, LogMixin):
         workflow = Workflow(**kwargs)
         db.session.add(workflow)
         db.session.commit()
+        # add default locker
+        locker_name = "Locker_{}".format(uuid)
+        locker = Locker.add(name=locker_name)
+        locker.set_workflows_by_name(name)
         return workflow
 
     @staticmethod
@@ -226,6 +249,19 @@ class Workflow(db.Model, LogMixin):
         if workflow_exists:
             return workflow_exists
         return False
+
+    def create_default_locker(self):
+        name = "Locker_{}".format(self.name.split("_")[1])
+        locker = Locker.add(name=name)
+        locker.set_workflows_by_name(self.name)
+        return locker
+
+    def get_default_locker(self,create=False):
+        name = "Locker_{}".format(self.name.split("_")[1])
+        locker = Locker.query.filter(func.lower(Locker.name) == func.lower(name)).first()
+        if not locker and create:
+            locker = self.create_default_locker()
+        return locker
 
     def has_return_value(self):
         has_return = False
@@ -401,6 +437,8 @@ class Workflow(db.Model, LogMixin):
         data = {}
         for locker in self.lockers.all():
             data[locker.name] = locker.config
+        # add default locker
+        data["default"] = self.get_default_locker(create=True).config
         return data
 
     def to_config_file(self):
@@ -637,6 +675,7 @@ class Workflow(db.Model, LogMixin):
                 path_name = self.create_hash(temp_path)
             else:
                 path_name = self.create_hash(path)
+            #TODO add enabled:true key/value
             result["paths"].append({path_name:[{'name':i} for i in path if i]})
         return result
 
@@ -725,8 +764,59 @@ class Operator(db.Model, LogMixin):
         return "#general imports\n{}\n#operator imports\n{}\n\n{}\n\n{}\n\n{}".format(self.workflow.imports or "",
             self.imports or "",default_store_code(),default_locker_code(),self.code)
 
+    def parse_locker_key_from_input(self,data):
+        if "locker" in data:
+            try:
+                r = data.split("##input")[0].split(",")[-1:][0]
+                r = r.replace('"',"")
+                r = r.replace("'","")
+                r = r.replace(")","")
+                return r.strip()
+            except:
+                pass
+        return None
+
+    def generate_form_from_code(self):
+        """
+        generates HTML form based on comments in the Operator/Link code
+
+        e.g. url = None ##input:type=text:placeholder=enter email:name=email:label=testing
+        """
+        input_dictionary = {
+            "text":"<input value='{}' type='text' class='form-control' {}>",
+            "number":"<input value='{}' type='number' class='form-control' {}>",
+            "date":"<input value='{}' type='date' class='form-control' data-mask='00/00/0000' data-mask-visible='true' autocomplete='off' {}>",
+            "checkbox":"<input type='checkbox' class='form-check-input ml-2' {}>" #TODO figure out how to set bool
+        }
+        locker = self.workflow.get_default_locker(create=True)
+#haaaaaaaaa
+        content = ""
+        for line in self.code.split("\n"):
+            if line:
+                line = line.strip()
+                if "##input" in line:
+                    locker_attr = self.parse_locker_key_from_input(line)
+                    # look up value in locker and add it to the content
+                    locker_value = locker.config.get(locker_attr)
+                    available_params = line.split("##input")[-1:]
+                    if available_params:
+                        param_dict = {}
+                        for param in [x.split("=") for x in available_params[0].split(":") if "=" in x]:
+                            param_dict[param[0]] = param[1]
+                        type = param_dict.get("type")
+                        input_type = input_dictionary.get(type)
+                        if input_type:
+                            param_dict.pop("type",None)
+                            input_addons = ""
+                            if param_dict:
+                                for key,value in param_dict.items():
+                                    input_addons+="{}='{}' ".format(key,value)
+                            input = input_type.format(locker_value,input_addons)
+                            content+="<div class='mb-3'><label class='form-label subheader'>{}</label>{}</div>".format(param_dict.get("label","Add Label"),input)
+        return content
+
     def get_html_form_for_code(self):
-        custom_html_form = generate_form_from_code(self.code)
+        custom_html_form = self.generate_form_from_code()
         if not custom_html_form:
             custom_html_form = "There are no custom variables defined!"
         operator_variables_html = """
@@ -734,11 +824,11 @@ class Operator(db.Model, LogMixin):
               <div class="card-header">
                 <h3 class="card-title">Operator Variables</h3>
               </div>
-              <div class="card-body">
+              <div class="card-body" id="{}-vars">
                 {}
               </div>
             </div>
-        """.format(custom_html_form)
+        """.format(self.name,custom_html_form)
         return operator_variables_html
 
     def get_additional_input_for_api_trigger(self):
@@ -1005,6 +1095,9 @@ class Operator(db.Model, LogMixin):
             icon = "urgent"
         elif self.type == "misc":
             icon = "tool"
+        active = '<span class="badge bg-green-lt">active</span>'
+        if not self.enabled:
+            active = '<span class="badge bg-red-lt">inactive</span>'
         template = {
             "properties": {
               "name":self.name,
@@ -1012,13 +1105,13 @@ class Operator(db.Model, LogMixin):
               "type":self.type,
               "title": '''<div class="row justify-content-between">
                   <div class="col"><h4>{}</h4></div><div class="col text-end"><i class="ti ti-{} icon"></i></div></div>'''.format(self.label,icon),
-              "footer": '''<div class="subheader ignore-op-click card-footer"><div class="row"><div class="col-10 ignore-op-click"><span class="badge bg-green-lt">active</span></div>
+              "footer": '''<div class="subheader ignore-op-click card-footer"><div class="row"><div class="col-10 ignore-op-click">{}</div>
                   <div class="col-2 ignore-op-click text-end"><div class="nav-item dropdown">
                   <a href="#" class="p-0 ml-2 ignore-op-click" data-bs-toggle="dropdown" aria-label="Open operator menu" aria-expanded="false">
                   <i class="ti ti-dots-vertical icon"></i></a><div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow bg-dark text-white" data-bs-popper="none">
                   <span class="dropdown-header">Quick Actions</span><a href="#" id="{}" class="dropdown-item h6 edit_operator">
                   <i class="ti ti-code mr-2"></i>Edit</a><a href="#" id="{}" class="dropdown-item h6 delete_operator ignore-op-click">
-                  <i class="ti ti-trash mr-2"></i>Delete</a></div></div></div></div>'''.format(self.name,self.name),
+                  <i class="ti ti-trash mr-2"></i>Delete</a></div></div></div></div>'''.format(active,self.name,self.name),
             }
         }
         template["properties"]["inputs"] = self.format_inputs()["inputs"]

@@ -178,10 +178,7 @@ def view_locker(id):
 @main.route('/lockers/add', methods=['GET','POST'])
 @login_required
 def add_locker():
-    name = "Locker_{}".format(generate_uuid(length=7))
-    new_locker = Locker(name=name,label=name)
-    db.session.add(new_locker)
-    db.session.commit()
+    new_locker = Locker.add()
     new_locker.set_users_by_id([current_user.id])
     flash("Added locker")
     return redirect(url_for("main.view_locker",id=new_locker.id))

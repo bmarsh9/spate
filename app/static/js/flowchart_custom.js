@@ -51,9 +51,11 @@ function get_workflow_id() {
 // Events
 $(document).on('click','.workflow_endpoints', function(){
   $("#workflow-endpoints").modal("show");
+  $(".modal-title").html("Workflow Endpoint")
 });
 $(document).on('click','.workflow_form_endpoints', function(){
   $("#workflow-form-endpoints").modal("show");
+  $(".modal-title").html("Workflow Endpoint")
 });
 $(document).on('click','.workflow_refresh', function(){
   $.ajax({
@@ -66,21 +68,6 @@ $(document).on('click','.workflow_refresh', function(){
     error: function (request, status, error) {
         $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
         notify_js("Error occurred", type = "warning",time=1000)
-    }
-  });
-});
-$(document).on('click','.workflow_run', function(){
-  $.ajax({
-    url: "/api/v1/workflows/"+get_workflow_id()+"/actions/run",
-    type: "GET",
-    success: function (response) {
-      console.log(response)
-      $("#workflow-run").html(response["results"])
-      $(".modal-title").html("Workflow Results")
-      $("#workflow-modal-run").modal("show");
-    },
-    error: function (request, status, error) {
-      notify_js("Error occurred", type = "warning",time=1000)
     }
   });
 });
@@ -317,6 +304,12 @@ function saveOperatorCode(operatorName) {
 }
 
 function saveOperatorSettings(operatorName) {
+  //get custom variables
+  var custom_vars = {};
+  $("#"+operatorName+"-vars :input").each(function(e){
+    custom_vars[this.name] = this.value
+  });
+
   $.ajax({
     url: "/api/v1/workflows/"+get_workflow_id()+"/operators/"+operatorName+"/config",
     type: "PUT",
@@ -329,6 +322,7 @@ function saveOperatorSettings(operatorName) {
       "synchronous":$("#synchronous_"+operatorName).val(),
       "runevery":$("#runevery_"+operatorName).val(),
       "form":$("#form_"+operatorName).val(),
+      "custom_variables":custom_vars
     }),
     contentType: "application/json; charset=utf-8",
     dataType: "json",
