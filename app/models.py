@@ -786,17 +786,15 @@ class Operator(db.Model, LogMixin):
             "text":"<input value='{}' type='text' class='form-control' {}>",
             "number":"<input value='{}' type='number' class='form-control' {}>",
             "date":"<input value='{}' type='date' class='form-control' data-mask='00/00/0000' data-mask-visible='true' autocomplete='off' {}>",
-            "checkbox":"<input type='checkbox' class='form-check-input ml-2' {}>" #TODO figure out how to set bool
+            "checkbox":"<input type='checkbox' class='form-check-input ml-2' {}>"
         }
         locker = self.workflow.get_default_locker(create=True)
-#haaaaaaaaa
         content = ""
         for line in self.code.split("\n"):
             if line:
                 line = line.strip()
                 if "##input" in line:
                     locker_attr = self.parse_locker_key_from_input(line)
-                    # look up value in locker and add it to the content
                     locker_value = locker.config.get(locker_attr)
                     available_params = line.split("##input")[-1:]
                     if available_params:
@@ -810,8 +808,14 @@ class Operator(db.Model, LogMixin):
                             input_addons = ""
                             if param_dict:
                                 for key,value in param_dict.items():
-                                    input_addons+="{}='{}' ".format(key,value)
-                            input = input_type.format(locker_value,input_addons)
+                                    if key not in ["checked","value"]:
+                                        input_addons+="{}='{}' ".format(key,value)
+                            if type != "checkbox":
+                                input = input_type.format(locker_value,input_addons)
+                            else:
+                                if locker_value == True:
+                                    input_addons+=" checked=true"
+                                input = input_type.format(input_addons)
                             content+="<div class='mb-3'><label class='form-label subheader'>{}</label>{}</div>".format(param_dict.get("label","Add Label"),input)
         return content
 
@@ -821,7 +825,7 @@ class Operator(db.Model, LogMixin):
             custom_html_form = "There are no custom variables defined!"
         operator_variables_html = """
             <div class="card mb-2">
-              <div class="card-header">
+              <div class="card-header bg-light">
                 <h3 class="card-title">Operator Variables</h3>
               </div>
               <div class="card-body" id="{}-vars">
@@ -956,7 +960,7 @@ class Operator(db.Model, LogMixin):
         template = """
           {}
           <div class="card">
-            <div class="card-header">
+            <div class="card-header bg-light">
               <h3 class="card-title">Settings</h3>
             </div>
             <div class="card-body">
@@ -1525,7 +1529,7 @@ class OutputLink(LogMixin,db.Model):
             checked = "checked"
         template = """
           <div class="card">
-            <div class="card-header">
+            <div class="card-header bg-light">
               <h3 class="card-title">Link Settings</h3>
             </div>
             <div class="card-body">

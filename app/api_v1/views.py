@@ -274,8 +274,6 @@ def update_config_for_operator(id,operator_name):
     if custom_vars:
         for key,value in custom_vars.items():
             locker.add_key(key,value)
-
-#haaaaaaaa
     operator.label = data["label"]
     operator.description = data["description"]
     operator.enabled = data["enabled"]

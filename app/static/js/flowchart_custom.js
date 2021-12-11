@@ -266,6 +266,7 @@ function clickLinkOutputSettings(name) {
 
 function clickOperatorSettings(operatorName) {
   resetModalColors()
+  $("#operatorHeaderLogic").css("border-top","3px solid #206bc4")
   $.ajax({
     url: "/api/v1/workflows/"+get_workflow_id()+"/operators/" + operatorName + "/config",
     type: "GET",
@@ -307,7 +308,11 @@ function saveOperatorSettings(operatorName) {
   //get custom variables
   var custom_vars = {};
   $("#"+operatorName+"-vars :input").each(function(e){
-    custom_vars[this.name] = this.value
+    if (this.type === "checkbox"){
+      custom_vars[this.name] = $(this).is(":checked")
+    } else {
+      custom_vars[this.name] = this.value
+    };
   });
 
   $.ajax({
@@ -383,7 +388,10 @@ function saveLinkSettings(linkName) {
 
 function loadOperatorModal(operatorName) {
   resetModalColors()
-  loadEditor(operatorName)
+  $("#operatorButtonView").html('<a href="#" onclick=loadEditor("'+operatorName+'") class="btn btn-sm btn-primary mr-2 modalOperatorButton">Reload Logic<i class="ti ti-refresh ml-2"></i></a><a href="#" onclick=clickOperatorSettings("'+operatorName+'") class="btn btn-sm bg-yellow-lt">Settings<i class="ti ti-tools ml-2"></i></a>');
+  $("#operatorHeaderLogic").css("border-top","3px solid #206bc4")
+  clickOperatorSettings(operatorName)
+  //loadEditor(operatorName)
   loadInputs(operatorName)
   loadOutputs(operatorName)
 }

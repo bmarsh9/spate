@@ -7,4 +7,3 @@ app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 
 def test():
     with app.app_context():
-        pass
