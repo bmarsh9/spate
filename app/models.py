@@ -863,8 +863,6 @@ class Operator(db.Model, LogMixin):
 
             return_section = self.get_return_path_input()
 
-#haaaaaaaaaa
-
         template = """
           {}
           <div class="card">
@@ -929,15 +927,9 @@ class Operator(db.Model, LogMixin):
 
     def create_code_folder(self,dir):
         self.create_file(os.path.join(dir,"__init__.py"))
-        #self.create_inputs_file(dir)
         self.create_main_file(dir)
         self.create_outputs_file(dir)
         return True
-
-    def create_inputs_file(self,dir):
-        #TODO get import code
-        file_path = os.path.join(dir,"inputs.py")
-        return self.create_file(file_path,"#get inputs code but just testing")
 
     def create_main_file(self,dir):
         file_path = os.path.join(dir,"operator.py")
@@ -992,7 +984,8 @@ class Operator(db.Model, LogMixin):
                 </div>
               </div>
             </div>
-        """.format(self.type,self.id,input_count,output_count,icon,self.label.capitalize(),self.description.capitalize())
+        """.format(self.type,self.id,input_count,output_count,icon,
+            self.label.capitalize(),self.description.capitalize())
         return data
 
     def to_json(self):
@@ -1097,7 +1090,6 @@ class Operator(db.Model, LogMixin):
         return True
 
     def add_link(self,to_operator_name,from_output_name,to_input_name):
-#TODO
         '''
           "link_1": {
             "fromOperator": 'operator1',
@@ -1290,7 +1282,8 @@ class Output(db.Model, LogMixin):
                 <p style="font-size:10px" class="text-muted mb-0">Connected to <span class="text-green font-weight-bold">{}</span></p>
               </div>
               <div class="hr-text mb-3 mt-3"><i class="ti ti-activity"></i></div>
-            """.format(connector.name,connector.name,connector.label or connector.name,connector.name,connector.name,connector.name,connector.name,connector.input().operator.label)
+            """.format(connector.name,connector.name,connector.label or connector.name,
+                connector.name,connector.name,connector.name,connector.name,connector.input().operator.label)
             data += template
         return data
 
@@ -1486,7 +1479,8 @@ class OutputLink(LogMixin,db.Model):
               </form>
             </div>
           </div>
-        """.format(self.name,self.name,self.label,self.name,self.description,self.name,checked,self.name,self.imports or "")
+        """.format(self.name,self.name,self.label,self.name,self.description,
+            self.name,checked,self.name,self.imports or "")
         return template
 
 class AssocTag(LogMixin,db.Model):
@@ -1735,4 +1729,3 @@ class Logs(db.Model):
 @login.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
