@@ -8,8 +8,8 @@ services:
   #    - web_nw
 
   spate_ui:
-    image: bmarsh13/spate-ui:1.0.0
-    image: spate-ui
+    container_name: spate-ui
+    image: bmarsh13/spate-ui:1.0.1
     depends_on:
       - postgres_db
     networks:
@@ -25,11 +25,12 @@ services:
       - SETUP_DB=yes
       - POSTGRES_DB=${POSTGRES_DB:-db1}
       - DOC_LINK=https://bmarsh9.github.io/spate/
+      - VERSION=1.0.1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
     container_name: spate-ingress
-    image: bmarsh13/spate-ingress:1.0.0
+    image: bmarsh13/spate-ingress:1.0.1
     depends_on:
       - postgres_db
     networks:
@@ -40,6 +41,7 @@ services:
     restart: unless-stopped
     environment:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
+      - VERSION=1.0.1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_cron:
