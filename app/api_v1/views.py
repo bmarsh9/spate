@@ -5,6 +5,7 @@ from app.utils.misc import request_to_json
 from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
 from app.utils.misc import generate_uuid
+import arrow
 
 @api.route('/health', methods=['GET'])
 def get_health():
@@ -469,3 +470,40 @@ def edit_form(name):
     form.enabled = data["enabled"]
     db.session.commit()
     return jsonify({"message":"ok"})
+
+#----------------------------------------GRAPH-----------------------------------------
+@api.route("/graphs/workflow-results", methods=["GET"])
+@login_required
+def graph_get_workflow_results():
+    span_of_days = [(0,7),(7,14),(14,21),(21,28),(28,35)]
+    now = arrow.utcnow()
+    categories = []
+    data = {"not started":[],"in progress":[],"complete":[],"failed":[]}
+    for span in span_of_days:
+        start,end = span
+        categories.append("{}-{} days ago".format(start,end))
+        for status in ["not started","in progress","complete","failed"]:
+            count = Result.query.filter(Result.date_added < now.shift(days=-start).datetime).filter(Result.date_added > now.shift(days=-end).datetime).filter(Result.status == status).count()
+            data[status].append(count)
+    series = []
+    for key,value in data.items():
+        series.append({"name":key.upper(),"data":value})
+    return jsonify({"categories":categories,"series":series})
+
+@api.route("/graphs/workflow-triggers", methods=["GET"])
+@login_required
+def graph_get_workflow_triggers():
+    series = []
+    labels = ["API","CRON","FORM"]
+    for label in labels:
+        series.append(Operator.query.filter(Operator.official == False).filter(Operator.subtype == label.lower()).count())
+    return jsonify({"labels":labels,"series":series})
+
+@api.route("/graphs/events", methods=["GET"])
+@login_required
+def graph_get_events():
+    data = {"data":[]}
+    now = arrow.utcnow()
+    for log in Logs.query.filter(Logs.date_added > now.shift(days=-14).datetime).all():
+        data["data"].append([log.id,log.log_type,log.message,log.date_added])
+    return jsonify(data)

@@ -56,6 +56,7 @@ def login():
         if user is None or not user.check_password(form.password.data):
             flash(_l('Invalid email or password'), 'info')
             return redirect(next_page or url_for('auth.login'))
+        Logs.add_log("{} logged in".format(user.email),log_type="info",namespace="events")
         login_user(user)
         return redirect(next_page or url_for('main.home'))
     return render_template('auth/login.html', form=form)

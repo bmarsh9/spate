@@ -1791,7 +1791,8 @@ class Logs(db.Model):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
-    def add_log(self,message,log_type="info",namespace="general",meta={}):
+    @staticmethod
+    def add_log(message,log_type="info",namespace="general",meta={}):
         if log_type.lower() not in ["info","warning","error","critical"]:
             return False
         msg = Logs(namespace=namespace.lower(),message=message,
@@ -1800,7 +1801,8 @@ class Logs(db.Model):
         db.session.commit()
         return True
 
-    def get_logs(self,log_type=None,limit=100,as_query=False,span=None,as_count=False,paginate=False,page=1,namespace="general",meta={}):
+    @staticmethod
+    def get_logs(log_type=None,limit=100,as_query=False,span=None,as_count=False,paginate=False,page=1,namespace="general",meta={}):
         '''
         get_logs(log_type='error',namespace="my_namespace",meta={"key":"value":"key2":"value2"})
         '''
