@@ -92,6 +92,7 @@ def add_workflow():
     new_workflow = Workflow().add()
     new_workflow.set_user(current_user.id,permission_level=2)
     flash("Added workflow")
+    Logs.add_log("{} added a new workflow".format(current_user.email),namespace="events")
     return redirect(url_for("main.view_workflow",id=new_workflow.id))
 
 @main.route('/workflows/<int:id>/access', methods=['GET'])
@@ -181,6 +182,7 @@ def add_locker():
     new_locker = Locker.add()
     new_locker.set_users_by_id([current_user.id])
     flash("Added locker")
+    Logs.add_log("{} added a new locker".format(current_user.email),namespace="events")
     return redirect(url_for("main.view_locker",id=new_locker.id))
 
 @main.route('/lockers/<int:id>/attributes', methods=['POST'])
@@ -200,6 +202,8 @@ def edit_locker_attributes(id):
     locker.config = config
     db.session.commit()
     flash("Edited locker attributes")
+    Logs.add_log("{} updated the attributes of locker:{}".format(current_user.email,
+        locker.name),namespace="events")
     return redirect(url_for("main.view_locker",id=id))
 
 @main.route('/lockers/<int:id>/access', methods=['POST'])
@@ -216,6 +220,8 @@ def edit_locker_access(id):
     locker.set_users_by_id(users)
     db.session.commit()
     flash("Edited locker access")
+    Logs.add_log("{} updated the access to locker:{}".format(current_user.email,
+        locker.name),namespace="events")
     return redirect(url_for("main.view_locker",id=id))
 
 @main.route('/lockers/<int:id>/settings', methods=['POST'])
@@ -233,4 +239,6 @@ def edit_locker_settings(id):
     locker.label = request.form.get("label")
     db.session.commit()
     flash("Edited locker settings")
+    Logs.add_log("{} updated the settings of locker:{}".format(current_user.email,
+        locker.name),namespace="events")
     return redirect(url_for("main.view_locker",id=id))

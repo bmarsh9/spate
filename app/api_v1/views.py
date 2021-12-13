@@ -19,6 +19,8 @@ def update_operator_official(id):
         return jsonify({"message":"operator not found"}),404
     operator.official = not operator.official
     db.session.commit()
+    Logs.add_log("{} updated operator:{} official attribute:{}".format(current_user.email,
+        operator.name,operator.official),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/operators/<int:id>/public', methods=['PUT'])
@@ -29,6 +31,8 @@ def update_operator_public(id):
         return jsonify({"message":"operator not found"}),404
     operator.public = not operator.public
     db.session.commit()
+    Logs.add_log("{} updated operator:{} public attribute:{}".format(current_user.email,
+        operator.name,operator.public),namespace="events")
     return jsonify({"message":"ok"})
 
 #----------------------------------------WORKFLOW-----------------------------------------
@@ -78,6 +82,8 @@ def refresh_workflow(id):
     results = workflow.setup_workflow()
     workflow.refresh_required = False
     db.session.commit()
+    Logs.add_log("{} refreshed workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/config', methods=['GET'])
@@ -124,6 +130,8 @@ def update_config_for_workflow(id):
     workflow.log_level = data["log_level"]
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} updated config of workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/operators', methods=['POST'])
@@ -147,6 +155,8 @@ def add_operator_for_workflow(id):
     new_operator = Operator.add(workflow.id,operator.id,type=operator.type,top=data["top"],left=data["left"],add_output=add_output)
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} added operator to workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify(new_operator.template())
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/position', methods=['PUT'])
@@ -180,6 +190,8 @@ def delete_operator_for_workflow(id, operator_name):
     operator.remove()
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} deleted operator from workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/meta', methods=['GET'])
@@ -237,6 +249,8 @@ def update_code_for_operator(id,operator_name):
     operator.code = data["code"]
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} updated code of operator:{}".format(current_user.email,
+        operator.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/config', methods=['GET'])
@@ -287,6 +301,8 @@ def update_config_for_operator(id,operator_name):
         operator.form_id = data.get("form")
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} updated config of operator:{}".format(current_user.email,
+        operator.name),namespace="events")
     return jsonify({"config":operator.form_html()})
 
 @api.route('/workflows/<int:id>/links/<string:link_name>/code', methods=['GET'])
@@ -333,6 +349,8 @@ def update_config_for_link(id,link_name):
     link.imports = data["imports"]
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} updated config of link:{}".format(current_user.email,
+        link.name),namespace="events")
     return jsonify({"config":link.form_html()})
 
 @api.route('/workflows/<int:id>/links/<string:link_name>/code', methods=['PUT'])
@@ -350,6 +368,8 @@ def update_code_for_link(id,link_name):
     link.code = data["code"]
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} updated code of link:{}".format(current_user.email,
+        link.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/outputs', methods=['GET'])
@@ -396,6 +416,8 @@ def add_link(id):
         return jsonify({"message":"output not found"}),404
     result = output.add_link(data["to_operator"],data["to_connector"])
     workflow.refresh_required = True
+    Logs.add_log("{} added link to workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify(result)
 
 @api.route('/workflows/<int:id>/links/<string:link_name>', methods=['DELETE'])
@@ -412,6 +434,8 @@ def delete_link(id, link_name):
     db.session.delete(link)
     workflow.refresh_required = True
     db.session.commit()
+    Logs.add_log("{} deleted link from workflow:{}".format(current_user.email,
+        workflow.name),namespace="events")
     return jsonify({"message":"ok"})
 
 @api.route('/workflows/<int:id>/inputs/<string:input_name>/config', methods=['GET'])
@@ -465,6 +489,8 @@ def edit_form(name):
     form.data = data["form"]
     form.enabled = data["enabled"]
     db.session.commit()
+    Logs.add_log("{} edited form:{}".format(current_user.email,
+        form.name),namespace="events")
     return jsonify({"message":"ok"})
 
 #----------------------------------------GRAPH-----------------------------------------
@@ -500,6 +526,6 @@ def graph_get_workflow_triggers():
 def graph_get_events():
     data = {"data":[]}
     now = arrow.utcnow()
-    for log in Logs.query.filter(Logs.date_added > now.shift(days=-14).datetime).all():
+    for log in Logs.query.filter(Logs.date_added > now.shift(days=-7).datetime).order_by(Logs.id.desc()).all():
         data["data"].append([log.id,log.log_type,log.message,log.date_added])
     return jsonify(data)

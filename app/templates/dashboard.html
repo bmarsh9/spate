@@ -179,7 +179,8 @@ $(document).ready(function() {
       });
       // datatables
       $('#example').DataTable( {
-        "ajax": "{{url_for("api.graph_get_events")}}"
+        "ajax": "{{url_for("api.graph_get_events")}}",
+        "order": [[ 0, "desc" ]] 
       } );
       $.notify({message:'<i class="ti ti-wifi icon text-primary"></i><a class="ml-2" href="{{url_for("main.status")}}">Check your deployment health</a>'},{placement:{from:"bottom",align:"right"}});
 } );

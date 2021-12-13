@@ -4,7 +4,7 @@ from . import main
 from app.models import *
 from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
-from app.models import Role,User
+from app.models import Role,User,Logs
 
 @main.route('/admin/users', methods=['GET'])
 @login_required
@@ -31,6 +31,7 @@ def change_password(id):
         user.set_password(new_password)
         db.session.commit()
         flash("Successfully changed password of:{}".format(user.email))
+        Logs.add_log("{} changed password of {}".format(current_user.email,user.email),namespace="events")
         return redirect(url_for("main.users"))
     return render_template('change_password.html',user=user)
 
@@ -58,6 +59,7 @@ def view_user(id):
             user.is_active = False
         db.session.commit()
         flash("Updated user")
+        Logs.add_log("{} updated the settings of user:{}".format(current_user.email,user.email),namespace="events")
     roles = user.get_roles_for_form()
     return render_template('view_user.html',user=user,roles=roles)
 
@@ -70,6 +72,7 @@ def add_user():
         token = User().generate_invite_token(email)
         token = "{}{}?token={}".format(request.host_url,"register",token)
         flash("Provide the following link to the user.")
+        Logs.add_log("{} invited {} to the platform".format(current_user.email,email),namespace="events")
     return render_template('add_user.html',token=token)
 
 @main.route('/workflows/<int:id>/read-access', methods=['POST'])
@@ -88,6 +91,7 @@ def edit_workflow_read_access(id):
         workflow.set_user(user_id,permission_level=1)
     db.session.commit()
     flash("Updated access to the workflow")
+    Logs.add_log("{} updated read-access to workflow:{}".format(current_user.email,workflow.name),namespace="events")
     return redirect(url_for("main.workflow_access",id=id))
 
 @main.route('/workflows/<int:id>/write-access', methods=['POST'])
@@ -107,4 +111,5 @@ def edit_workflow_write_access(id):
         workflow.set_user(user_id,permission_level=2)
     db.session.commit()
     flash("Updated access to the workflow")
+    Logs.add_log("{} updated write-access to workflow:{}".format(current_user.email,workflow.name),namespace="events")
     return redirect(url_for("main.workflow_access",id=id))

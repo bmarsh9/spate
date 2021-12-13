@@ -56,7 +56,7 @@ def login():
         if user is None or not user.check_password(form.password.data):
             flash(_l('Invalid email or password'), 'info')
             return redirect(next_page or url_for('auth.login'))
-        Logs.add_log("{} logged in".format(user.email),log_type="info",namespace="events")
+        Logs.add_log("{} logged in".format(user.email),namespace="events")
         login_user(user)
         return redirect(next_page or url_for('main.home'))
     return render_template('auth/login.html', form=form)
@@ -113,6 +113,7 @@ def reset_password():
                     token=token)
             )
             flash("Email sent, check your mail now!", "info")
+            Logs.add_log("{} requested a password reset".format(user.email),namespace="events")
             return redirect(url_for('auth.login'))
         flash("This email not registered", "info")
     return render_template('auth/reset_password_req.html', form=form)
@@ -128,5 +129,6 @@ def reset_password_token(token):
             user.set_password(form.password.data)
             db.session.commit()
             flash("Password changed!", "success")
+            Logs.add_log("{} reset their password".format(user.email),namespace="events")
             return redirect(url_for('auth.login'))
     return render_template('auth/reset_password.html', form=form)
