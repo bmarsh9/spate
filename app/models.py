@@ -1068,7 +1068,7 @@ class Operator(db.Model, LogMixin):
         if self.official:
             icon = """<i data-bs-toggle="tooltip" data-bs-placement="top" title="Official Operator" class='ti ti-circle-check icon text-success mr-1'></i>"""
         else:
-            icon = """<span class="text-red mr-1"><i class="ti ti-alert-triangle icon"></i></span>"""
+            icon = """<span class="text-red mr-1"><i data-bs-toggle="tooltip" data-bs-placement="top" title="Shared Operator" class="ti ti-alert-triangle icon"></i></span>"""
         data = """
             <div type="{}" id="operator_{}" style="border-color:transparent" class="blockelem draggable_operator card card-body d-block mb-2" data-nb-inputs="{}" data-nb-outputs="{}">
               <div class="row">
