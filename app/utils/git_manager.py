@@ -72,6 +72,10 @@ class GitManager():
                               git_sync_date=arrow.utcnow().datetime,git_stored=True)
                             db.session.add(operator)
                             db.session.commit()
+                            # add input/output
+                            operator.add_output()
+                            if object.get("type","action") != "trigger":
+                                operator.add_input()
 
                         elif not operator.git_stored:
                             current_app.logger.info("Duplicate name that is not git sourced".format(name))
