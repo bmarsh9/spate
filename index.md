@@ -17,9 +17,11 @@ https://user-images.githubusercontent.com/26391921/145500806-ee2332b6-52d6-43aa-
 4. [Getting Started](#getting-started)
 5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
 6. [Setting Up a Form Workflow](#setting-up-a-form-workflow)
-7. [FAQ](#faq)
-8. [Development](#development)
-9. [Todo](#todo)
+7. [Tips](#tips)
+8. [FAQ](#faq)
+9. [Disclaimer](#disclaimer)
+10. [Development](#development)
+11. [Todo](#todo)
 
 
 ### What is Spate?
@@ -119,6 +121,30 @@ We are going to show you how to set up a form based workflow using a FORM trigge
 #### 8.) Add dummy data to the form and click "Submit". After submission, your workflow will execute and in a few seconds, the page will update. Notice that your message appears in the response.
 <img src="images/spate_form_6.PNG" alt="" class="inline"/>
 
+### Tips  
+```
+# Get value from locker(s). Lockers are added to Workflows and typically hold sensitive values
+my_value = locker(kwargs["config"],"your_locker_name","your_key")
+
+# If trigger is a API endpoint, access the incoming request attributes
+request = kwargs["request"]
+
+# Get value from store. This allows you to get data between Operators and Links within your Workflow
+my_value = get_store("your_key")
+
+# Put value into store. This allows you to share data between Operators and Links within your Workflow
+put_store("your_key","your_value")
+
+# Log debug messages
+logging.info("message")
+logging.debug("message")
+logging.warning("message")
+logging.critical("message")
+
+# Create UI form for Operator variables
+my_var = locker(kwargs["config"],"default","my_var") ##input:type=number:name=my_var:label=Please enter a number
+```
+
 ### FAQ
 
 ##### What are the different docker images?
@@ -160,6 +186,9 @@ I would say the best way is to check the "Status" page on the Spate-ui container
 
 ##### Is there a timeout on the workflow?
 There is a default 30 second timeout for each execution. So if the code within the Operator or Link takes longer than 30 seconds to complete, the specific path will stop executing. 
+
+### Disclaimer  
+Spate should not be used with users that you do not trust. For example, you should not set up Spate and allow anyone in the world to connect and run workflows. It would be pretty easy for an attacker to obtain shell access to your servers by running a workflow.
 
 ### Development
 
