@@ -13,9 +13,9 @@ View Results           |  Create Workflows
 #### Help
 
 ##### Clean docker  
-docker system prune -a  
-docker volume prune
+`docker system prune -a`  
+`docker volume prune`
 
 ##### Build and push  
-docker build -t <hub-user>/<repo-name>[:<tag>]  
-docker tag <existing-image> <hub-user>/<repo-name>[:<tag>]
+`docker build -t <hub-user>/<repo-name>[:<tag>]`  
+`docker tag <existing-image> <hub-user>/<repo-name>[:<tag>]`
