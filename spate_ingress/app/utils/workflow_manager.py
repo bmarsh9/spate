@@ -78,7 +78,7 @@ class WorkflowManager():
             response = {
                 "id":result.id,
                 "name":result.name,
-                "callback_url":"/api/v1/workflows/{}/results/{}".format(self.workflow_id,result.id),
+                "callback_url":"/api/v1/results/{}".format(result.name),
                 "status":"in progress",
             }
         return response

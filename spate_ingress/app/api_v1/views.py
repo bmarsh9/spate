@@ -12,26 +12,24 @@ def get_health():
         "message":current_app.config["APP_NAME"],
         "version":current_app.config["VERSION"],
         "routes":[
-            {"endpoint":"/api/v1/workflows/<int:workflow_id>/results/<int:result_id>","desc":"view results of execution"},
-            {"endpoint":"/workflows/<int:workflow_id>/actions/run","desc":"execute workflow via API route"},
-            {"endpoint":"/intake/<str:form_name>","desc":"execute workflow via Form route"},
+            {"endpoint":"/api/v1/results/<string:result_uuid>","desc":"view results of execution"},
+            {"endpoint":"/api/v1/endpoints/<string:workflow_uuid>","desc":"execute workflow via API route"},
+            {"endpoint":"/intake/<string:form_name>","desc":"execute workflow via Form route"},
         ]
     })
 
-@api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
+@api.route('/results/<string:result_name>', methods=['GET'])
 @token_required
-def workflow_endpoint(workflow_id,result_id):
-    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
-    if not workflow:
-        return jsonify({"message":"workflow not found"}),404
-    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.id == result_id).first()
+def get_result_status(result_name):
+    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == result_name).first()
     if not result:
         return jsonify({"message":"result does not exist"}),404
     if result.status != "complete":
-        return jsonify({"message":"result is not finished",
+        return jsonify({"message":"execution is not complete",
             "complete":False,"status":result.status})
     template = {
         "id":result.id,
+        "name":result.name,
         "return_value":result.return_value,
         "return_hash":result.return_hash,
         "paths":result.paths,
@@ -44,9 +42,9 @@ def workflow_endpoint(workflow_id,result_id):
     }
     return jsonify(template)
 
-@api.route('/workflows/<int:workflow_id>/actions/run', methods=['GET'])
-def run_workflow(workflow_id):
-    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
+@api.route('/endpoints/<string:workflow_uuid>', methods=['GET'])
+def execute_api_workflow(workflow_uuid):
+    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.uuid == workflow_uuid).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:

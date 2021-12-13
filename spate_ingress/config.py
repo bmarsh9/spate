@@ -21,6 +21,7 @@ class Config:
     SQLALCHEMY_DATABASE_URL = os.environ.get("SQLALCHEMY_DATABASE_URL","postgresql://db1:db1@postgres_db/db1")
 
     SHARED_TOKEN = os.environ.get("SHARED_TOKEN","changeme")
+    ENFORCE_TOKEN_FOR_RESULTS = os.environ.get("ENFORCE_TOKEN_FOR_RESULTS",False)
 
     @staticmethod
     def init_app(app):

@@ -190,6 +190,7 @@ class Result(db.Model, LogMixin):
 class Workflow(db.Model, LogMixin):
     __tablename__ = 'workflows'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=False)
@@ -216,6 +217,7 @@ class Workflow(db.Model, LogMixin):
                 needs_form = True
         return {
             "id":self.id,
+            "uuid":self.uuid,
             "name":self.name,
             "label":self.label,
             "enabled":self.enabled,
@@ -234,6 +236,7 @@ class Workflow(db.Model, LogMixin):
         kwargs["name"] = name
         if "label" not in kwargs:
             kwargs["label"] = name
+        kwargs["uuid"] = uuid
         workflow = Workflow(**kwargs)
         db.session.add(workflow)
         db.session.commit()

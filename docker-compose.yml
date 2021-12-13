@@ -30,7 +30,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
     container_name: spate-ingress
-    image: bmarsh13/spate-ingress:1.0.0
+    image: spate-ingress
+#    image: bmarsh13/spate-ingress:1.0.0
     depends_on:
       - postgres_db
     networks:
