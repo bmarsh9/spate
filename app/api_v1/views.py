@@ -1,10 +1,11 @@
 from flask import jsonify, request, current_app
 from . import api
 from app.models import *
-from app.utils.misc import request_to_json
 from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
 from app.utils.misc import generate_uuid
+from app.utils.misc import request_to_json
+from app.utils.git_manager import GitManager
 import arrow
 
 @api.route('/health', methods=['GET'])
@@ -35,6 +36,11 @@ def update_operator_public(id):
         operator.name,operator.public),namespace="events")
     return jsonify({"message":"ok"})
 
+@api.route('/operators/git/sync', methods=['GET'])
+@roles_required("admin")
+def sync_operators_from_git():
+    result = GitManager().sync()
+    return jsonify({"success":result})
 #----------------------------------------WORKFLOW-----------------------------------------
 @api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
 @login_required
@@ -245,6 +251,8 @@ def update_code_for_operator(id,operator_name):
     operator = Operator.find_by_name(operator_name)
     if not operator:
         return jsonify({"message":"operator not found"}),404
+    if operator.git_stored:
+        return jsonify({"message":"operator code is synced from git. Please update the code within Git."}),400
     data = request.get_json()
     operator.code = data["code"]
     workflow.refresh_required = True

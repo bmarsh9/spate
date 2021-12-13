@@ -33,6 +33,9 @@ class Config:
     if not os.path.exists(WORKFLOW_MOUNT_DIRECTORY):
         os.mkdir(WORKFLOW_MOUNT_DIRECTORY)
 
+    GIT_SYNC_REPO = os.environ.get("GIT_SYNC_REPO",None)
+    GIT_SYNC_DIRECTORY = os.environ.get("GIT_SYNC_DIRECTORY","operators")
+
     # network that hosts the postgres_db container (used for local dev)
     POSTGRES_NW = os.environ.get("POSTGRES_NW","spate_db_nw")
     LOCAL_DB = os.environ.get("LOCAL_DB",True)

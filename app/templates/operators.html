@@ -17,6 +17,15 @@
         View Operators
       </h2>
     </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <button id="sync" class="btn btn-primary">
+            Sync
+          </button>
+        </span>
+      </div>
+    </div>
   </div>
 </div>
 {%endblock%}
@@ -81,6 +90,18 @@
         type: "PUT",
         success: function (response) {
           location.reload();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
+    $('#sync').click(function(){
+      $.ajax({
+        url: "{{url_for("api.sync_operators_from_git")}}",
+        type: "GET",
+        success: function (response) {
+          notify_js("Synced from Git", time=1000)
         },
         error: function (request, status, error) {
           notify_js("Error occurred", type = "warning",time=1000)

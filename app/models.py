@@ -691,6 +691,10 @@ class Operator(db.Model, LogMixin):
     subtype = db.Column(db.String())
     description = db.Column(db.String())
     imports = db.Column(db.String())
+    git_stored = db.Column(db.Boolean, default=False)
+    hash = db.Column(db.String())
+    git_url = db.Column(db.String())
+    git_sync_date = db.Column(db.DateTime)
     synchronous = db.Column(db.Boolean, default=False)
     enabled = db.Column(db.Boolean, default=True)
     active = db.Column(db.Boolean, default=True)
@@ -718,7 +722,7 @@ class Operator(db.Model, LogMixin):
 
     @staticmethod
     def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,
-        code={},official=False,description="Default Description",add_output=True,subtype=None):
+        code={},official=False,description="Default Description",add_output=True,subtype=None,**kwargs):
         '''operator_id is the existing operator that we want to clone'''
         if operator_id:
             existing_op = Operator.query.get(operator_id)
