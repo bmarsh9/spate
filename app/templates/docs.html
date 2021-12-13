@@ -20,10 +20,10 @@
     <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Information</h3>
+            <h3 class="card-title">General Information</h3>
           </div>
           <div class="card-body">
-            <pre><code>
+            <pre style="white-space:pre-line"><code>
             # What are Operators?
             Operators are the "square-ish" boxes that you drop into your Workflow. You link Operators together so that the output of one Operator flows into the next one. A singular path within the larger Workflow is called a Path. You add/edit the code on the Operator to handle the event.
 
@@ -47,10 +47,10 @@
     <div class="col-12">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Helpful Commands for your Workflow</h3>
+            <h3 class="card-title">Tips for your Workflow</h3>
           </div>
           <div class="card-body">
-            <pre><code>
+            <pre style="white-space:pre-line"><code>
               # Get value from locker(s). Lockers are added to Workflows and typically hold sensitive values
               my_value = locker(kwargs["config"],"your_locker_name","your_key")
 
@@ -68,6 +68,10 @@
               logging.debug("message")
               logging.warning("message")
               logging.critical("message")
+
+              # Create UI form for Operator variables
+              my_var = locker(kwargs["config"],"default","my_var") ##input:type=number:name=my_var:label=Please enter a number
+
             </code></pre>
           </div>
         </div>

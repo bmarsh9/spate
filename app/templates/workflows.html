@@ -95,6 +95,9 @@
 <script>
   $(document).ready(function() {
     $('#example').DataTable({"pageLength":50,"order": [[ 0, "desc" ]]});
+    {%if not workflows%}
+      notify_js("Create an workflow to get started!", type = "primary",time=1000)
+    {%endif%}
   } );
 </script>
 {% endblock %}

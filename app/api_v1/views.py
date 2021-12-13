@@ -11,10 +11,6 @@ import arrow
 def get_health():
     return jsonify({"message":"ok"})
 
-@api.route('/service/status', methods=['GET'])
-def get_service_status():
-    return jsonify({"message":"ok"})
-
 @api.route('/operators/<int:id>/official', methods=['PUT'])
 @roles_required("admin")
 def update_operator_official(id):
