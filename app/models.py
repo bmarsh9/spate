@@ -721,7 +721,7 @@ class Operator(db.Model, LogMixin):
         return False
 
     @staticmethod
-    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,
+    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,imports="",
         code={},official=False,description="Default Description",add_output=True,subtype=None,**kwargs):
         '''operator_id is the existing operator that we want to clone'''
         if operator_id:
@@ -733,6 +733,7 @@ class Operator(db.Model, LogMixin):
                 subtype = existing_op.subtype
                 label = "(Copy) {}".format(existing_op.label)
                 description = "(Copy) {}".format(existing_op.description)
+                imports = existing_op.imports
         if not code:
             code = default_op_code()
         name = "Operator_{}".format(generate_uuid(length=10))
@@ -740,7 +741,8 @@ class Operator(db.Model, LogMixin):
             label = name
         operator = Operator(name=name,label=label,type=type,
             code=code,top=top,left=left,workflow_id=workflow_id,
-            description=description,official=official,subtype=subtype)
+            description=description,official=official,subtype=subtype,
+            imports=imports)
         db.session.add(operator)
         db.session.commit()
 
@@ -802,7 +804,7 @@ class Operator(db.Model, LogMixin):
                 line = line.strip()
                 if "##input" in line:
                     locker_attr = self.parse_locker_key_from_input(line)
-                    locker_value = locker.config.get(locker_attr)
+                    locker_value = locker.config.get(locker_attr,'')
                     available_params = line.split("##input")[-1:]
                     if available_params:
                         param_dict = {}

@@ -60,7 +60,7 @@
                     <td class="subheader">{{result.date_added}}</td>
                     <td>{%if result.status != "complete"%}<span class="badge bg-gray-lt">never</span>{%else%}{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}{%endif%}</td>
                     <td><span class="badge bg-blue-lt">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></td>
-                    <td class="subheader">{{result.return_value}}</td>
+                    <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{result.return_value}}</div></td>
                     <td class="text-center">
                       <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}"><i class="ti ti-report-analytics"></i></a>
                     </td>

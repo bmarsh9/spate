@@ -300,7 +300,9 @@ def update_config_for_operator(id,operator_name):
     custom_vars = data["custom_variables"]
     if custom_vars:
         for key,value in custom_vars.items():
-            locker.add_key(key,value)
+            if str(value) != "None":
+                print(key,value)
+                locker.add_key(key,value)
     operator.label = data["label"]
     operator.description = data["description"]
     operator.enabled = data["enabled"]

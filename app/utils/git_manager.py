@@ -66,7 +66,7 @@ class GitManager():
                             operator = Operator(name=name,label=object.get("label","default"),type=object.get("type","action"),
                               code=code,top=1000,left=1000,workflow_id=object.get("workflow_id",1),
                               description=object.get("description","default"),official=object.get("official",True),
-                              git_url=file.download_url,hash=file.sha,
+                              git_url=file.download_url,hash=file.sha,imports=object.get("imports",""),
                               git_sync_date=arrow.utcnow().datetime,git_stored=True)
                             db.session.add(operator)
                             db.session.commit()
