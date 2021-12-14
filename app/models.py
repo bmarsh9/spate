@@ -722,7 +722,7 @@ class Operator(db.Model, LogMixin):
         return False
 
     @staticmethod
-    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,imports="",
+    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,imports="",documentation="",
         code={},official=False,description="Default Description",add_output=True,subtype=None,**kwargs):
         '''operator_id is the existing operator that we want to clone'''
         if operator_id:
@@ -735,6 +735,7 @@ class Operator(db.Model, LogMixin):
                 label = "(Copy) {}".format(existing_op.label)
                 description = "(Copy) {}".format(existing_op.description)
                 imports = existing_op.imports
+                documentation = existing_op.documentation
         if not code:
             code = default_op_code()
         name = "Operator_{}".format(generate_uuid(length=10))
@@ -743,7 +744,7 @@ class Operator(db.Model, LogMixin):
         operator = Operator(name=name,label=label,type=type,
             code=code,top=top,left=left,workflow_id=workflow_id,
             description=description,official=official,subtype=subtype,
-            imports=imports)
+            imports=imports,documentation=documentation)
         db.session.add(operator)
         db.session.commit()
 
