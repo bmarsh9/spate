@@ -64,7 +64,7 @@ class GitManager():
                         if not operator:
                             current_app.logger.info("Adding new operator:{}".format(name))
                             operator = Operator(name=name,label=object.get("label","default"),type=object.get("type","action"),
-                              code=code,top=1000,left=1000,workflow_id=object.get("workflow_id",1),
+                              code=code,top=1000,left=1000,workflow_id=object.get("workflow_id",1),documentation=object.get("documentation",True),
                               description=object.get("description","default"),official=object.get("official",True),
                               git_url=file.download_url,hash=file.sha,imports=object.get("imports",""),
                               git_sync_date=arrow.utcnow().datetime,git_stored=True)
@@ -82,6 +82,11 @@ class GitManager():
                             operator.code = code
                             operator.hash = file.sha
                             operator.git_sync_date = arrow.utcnow().datetime
+                            operator.label = object.get("label")
+                            operator.description = object.get("description")
+                            operator.imports = object.get("imports")
+                            operator.documentation = object.get("documentation")
+                            db.session.commit()
         except github.RateLimitExceededException as e:
             current_app.logger.error(e)
             return False

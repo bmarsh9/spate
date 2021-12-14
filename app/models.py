@@ -690,6 +690,7 @@ class Operator(db.Model, LogMixin):
     type = db.Column(db.String(),nullable=False,default="action")
     subtype = db.Column(db.String())
     description = db.Column(db.String())
+    documentation = db.Column(db.String())
     imports = db.Column(db.String())
     git_stored = db.Column(db.Boolean, default=False)
     hash = db.Column(db.String())
@@ -721,7 +722,7 @@ class Operator(db.Model, LogMixin):
         return False
 
     @staticmethod
-    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,imports="",
+    def add(workflow_id,operator_id=None,type="action",label=None,top=1000,left=1000,imports="",documentation="",
         code={},official=False,description="Default Description",add_output=True,subtype=None,**kwargs):
         '''operator_id is the existing operator that we want to clone'''
         if operator_id:
@@ -734,6 +735,7 @@ class Operator(db.Model, LogMixin):
                 label = "(Copy) {}".format(existing_op.label)
                 description = "(Copy) {}".format(existing_op.description)
                 imports = existing_op.imports
+                documentation = existing_op.documentation
         if not code:
             code = default_op_code()
         name = "Operator_{}".format(generate_uuid(length=10))
@@ -742,7 +744,7 @@ class Operator(db.Model, LogMixin):
         operator = Operator(name=name,label=label,type=type,
             code=code,top=top,left=left,workflow_id=workflow_id,
             description=description,official=official,subtype=subtype,
-            imports=imports)
+            imports=imports,documentation=documentation)
         db.session.add(operator)
         db.session.commit()
 
@@ -966,7 +968,17 @@ class Operator(db.Model, LogMixin):
 
             return_section = self.get_return_path_input()
 
+        docs = ""
+        if self.documentation:
+            docs = """
+            <div class="card mb-2 bg-blue-lt">
+              <div class="card-body">
+                  <p>Please see documentation <a href="{}">here</a> for configuration details</p>
+              </div>
+            </div>
+            """.format(self.documentation)
         template = """
+          {}
           {}
           <div class="card">
             <div class="card-header bg-light">
@@ -1018,7 +1030,7 @@ class Operator(db.Model, LogMixin):
               </form>
             </div>
           </div>
-        """.format(operator_variables_html,self.name,self.name,
+        """.format(docs,operator_variables_html,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
             self.name,self.imports or "",return_section,addit_input_template)
         return template
@@ -1692,7 +1704,7 @@ class User(LogMixin,db.Model, UserMixin):
     def has_roles(self,roles):
         if not roles:
             return False
-        if not isinstance(roles,list):
+        if not isinstance(roles,list) and not isinstance(roles,tuple):
             roles = [roles]
         my_roles = self.pretty_roles()
         for role in roles:

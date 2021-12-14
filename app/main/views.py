@@ -3,7 +3,7 @@ from flask import render_template, redirect, url_for, abort, flash, request, \
 from . import main
 from app.models import *
 from flask_login import login_required,current_user
-from app.utils.decorators import roles_required
+from app.utils.decorators import roles_required,roles_accepted
 from app.utils.misc import parse_locker_creation,generate_uuid
 from app.utils.docker_manager import DockerManager
 
@@ -87,7 +87,7 @@ def view_workflow(id):
     return render_template("home.html",workflow=workflow)
 
 @main.route('/workflows/add', methods=['GET','POST'])
-@login_required
+@roles_accepted('user','admin')
 def add_workflow():
     new_workflow = Workflow().add()
     new_workflow.set_user(current_user.id,permission_level=2)
