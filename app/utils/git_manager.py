@@ -32,10 +32,8 @@ class GitManager():
         '''
         lines = code.strip().split("\n")
         if lines[0].strip() != "def code(input, **kwargs):":
-            current_app.logger.warning("invalid start line for code")
             return False
         if lines[-1].strip() != "return input":
-            current_app.logger.warning("invalid end line for code")
             return False
         return True
 
@@ -49,7 +47,7 @@ class GitManager():
             file_map = repo.get_contents(os.path.join(current_app.config["GIT_SYNC_DIRECTORY"],"manifest.json"))
 
             if not file_map:
-                raise ValueError("{} was not found".format(file_map))
+                raise ValueError("Manifest file was not found:{}".format(os.path.join(current_app.config["GIT_SYNC_DIRECTORY"],"manifest.json")))
             manifest_file = json.loads(file_map.decoded_content.decode("utf-8"))
 
             for object in manifest_file:
@@ -76,16 +74,14 @@ class GitManager():
                             operator.add_output()
                             if object.get("type","action") != "trigger":
                                 operator.add_input()
-
+                            Logs.add_log("Added an new operator from Github:{}".format(object["file_name"]),namespace="events")
                         elif not operator.git_stored:
-                            current_app.logger.info("Duplicate name that is not git sourced".format(name))
+                            current_app.logger.info("Duplicate name for an operator not synced with Github. Skipping.".format(name))
                         elif operator.hash != file.sha:
-                            current_app.logger.info("Hash has changed. Updating the code:{}".format(name))
+                            current_app.logger.info("File has been updated. Updating the code:{}".format(object["file_name"]))
                             operator.code = code
                             operator.hash = file.sha
                             operator.git_sync_date = arrow.utcnow().datetime
-                        else:
-                            current_app.logger.info("Nothing has changed for the code:{}".format(name))
         except github.RateLimitExceededException as e:
             current_app.logger.error(e)
             return False

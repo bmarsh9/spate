@@ -41,7 +41,7 @@ def status():
 @main.route('/admin/operators', methods=['GET'])
 @roles_required("admin")
 def operators():
-    operators = Operator.query.all()
+    operators = Operator.query.order_by(Operator.id.desc()).all()
     return render_template('operators.html',operators=operators)
 
 #--------------- Form ----------------------

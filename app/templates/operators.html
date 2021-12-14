@@ -20,9 +20,15 @@
     <div class="col-auto ms-auto">
       <div class="btn-list">
         <span class="d-none d-sm-inline">
-          <button id="sync" class="btn btn-primary">
-            Sync
+          {%if config["GIT_SYNC_REPO"]%}
+          <button id="sync" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Sync code from {{config["GIT_SYNC_REPO"]}}">
+            <i class="ti ti-rotate-2 mr-2"></i>Sync with Github
           </button>
+          {%else%}
+          <button class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="GIT_SYNC_REPO env variable not set">
+            <i class="ti ti-shadow-off mr-2"></i>Sync not enabled
+          </button>
+          {%endif%}
         </span>
       </div>
     </div>
@@ -45,8 +51,10 @@
                     <th>Name</th>
                     <th>Label</th>
                     <th>Workflow</th>
-                    <th>Official</th>
-                    <th>Public</th>
+                    <th>Git</th>
+                    <th class="w-1">Official</th>
+                    <th class="w-1">Public</th>
+                    <th class="w-1">Code</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -55,8 +63,10 @@
                     <td class="subheader">{{operator.name}}</td>
                     <td class="subheader">{{operator.label}}</td>
                     <td class="subheader">{{operator.workflow.label}}</td>
+                    <td class="subheader">{%if operator.git_stored%}<span class="badge bg-green-lt">True</span>{%else%}<span class="badge bg-blue-lt">False</span>{%endif%}</td>
                     <td class="text-center">{%if operator.official%}<button id="{{operator.id}}" class="btn btn-sm btn-primary official">Yes</button>{%else%}<button id="{{operator.id}}" class="btn btn-sm btn-secondary official">No</button>{%endif%}</td>
                     <td class="text-center">{%if operator.public%}<button id="{{operator.id}}" class="btn btn-sm btn-warning public">Yes</button>{%else%}<button id="{{operator.id}}" class="btn btn-sm btn-success public">No</button>{%endif%}</td>
+                    <td class="text-center"><button id="{{operator.id}}" class="btn btn-sm code">Code</button></td>
                   </tr>
                   {%endfor%}
                 </tbody>
@@ -66,12 +76,29 @@
         </div>
     </div>
   </div>
+  <div class="modal modal-blur fade" id="operator-code" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Operator Code</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <pre><code id="modal-code"></code></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {%endblock%}
 
 {%block extrajs%}
 <script>
   $(document).ready(function() {
-    $('#example').DataTable({"pageLength":100,"order": [[ 0, "desc" ]]});
+    $('#example').DataTable({"pageLength":25});
     $(".official").click(function() {
       $.ajax({
         url: "/api/v1/operators/"+this.id+"/official",
@@ -108,7 +135,19 @@
         }
       });
     });
+    $('.code').click(function(){
+      $.ajax({
+        url: "/api/v1/operators/"+$(this).attr('id')+"/code",
+        type: "GET",
+        success: function (response) {
+          $("#operator-code").modal("show");
+          $("#modal-code").html(response["code"])
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
   });
 </script>
 {% endblock %}
-

@@ -240,6 +240,14 @@ def get_code_for_operator(id,operator_name):
         return jsonify({"message":"operator not found"}),404
     return jsonify({"code":operator.code})
 
+@api.route('/operators/<int:operator_id>/code', methods=['GET'])
+@login_required
+def get_code_for_operator_2(operator_id):
+    operator = Operator.query.get(operator_id)
+    if not operator:
+        return jsonify({"message":"operator not found"}),404
+    return jsonify({"code":operator.code})
+
 @api.route('/workflows/<int:id>/operators/<string:operator_name>/code', methods=['PUT'])
 @login_required
 def update_code_for_operator(id,operator_name):
