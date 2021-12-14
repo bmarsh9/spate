@@ -1,5 +1,6 @@
 # Spate Documentation
 
+#### Join the discord: https://discord.gg/9unhWAqadg
 #### Get started in 1 minute!
 
 Easily create and run Workflows          |  
