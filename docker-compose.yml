@@ -9,7 +9,7 @@ services:
 
   spate_ui:
     container_name: spate-ui
-    image: spate-ui
+    image: bmarsh13/spate-ui:1.0.3
     depends_on:
       - postgres_db
     networks:
