@@ -1704,7 +1704,7 @@ class User(LogMixin,db.Model, UserMixin):
     def has_roles(self,roles):
         if not roles:
             return False
-        if not isinstance(roles,list):
+        if not isinstance(roles,list) and not isinstance(roles,tuple):
             roles = [roles]
         my_roles = self.pretty_roles()
         for role in roles:
