@@ -690,6 +690,7 @@ class Operator(db.Model, LogMixin):
     type = db.Column(db.String(),nullable=False,default="action")
     subtype = db.Column(db.String())
     description = db.Column(db.String())
+    documentation = db.Column(db.String())
     imports = db.Column(db.String())
     git_stored = db.Column(db.Boolean, default=False)
     hash = db.Column(db.String())
@@ -966,7 +967,17 @@ class Operator(db.Model, LogMixin):
 
             return_section = self.get_return_path_input()
 
+        docs = ""
+        if self.documentation:
+            docs = """
+            <div class="card mb-2 bg-blue-lt">
+              <div class="card-body">
+                  <p>Please see documentation <a href="{}">here</a> for configuration details</p>
+              </div>
+            </div>
+            """.format(self.documentation)
         template = """
+          {}
           {}
           <div class="card">
             <div class="card-header bg-light">
@@ -1018,7 +1029,7 @@ class Operator(db.Model, LogMixin):
               </form>
             </div>
           </div>
-        """.format(operator_variables_html,self.name,self.name,
+        """.format(docs,operator_variables_html,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
             self.name,self.imports or "",return_section,addit_input_template)
         return template
