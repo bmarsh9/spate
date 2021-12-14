@@ -51,7 +51,7 @@ class GitManager():
             manifest_file = json.loads(file_map.decoded_content.decode("utf-8"))
 
             for object in manifest_file:
-                if object.get("file_name"):
+                if object.get("file_name") and object.get("enabled",True):
                     file = repo.get_contents(os.path.join(current_app.config["GIT_SYNC_DIRECTORY"],object["file_name"]))
                     code = file.decoded_content.decode("utf-8")
                     if not self.validate_name(object.get("uuid")):
