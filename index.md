@@ -47,7 +47,7 @@ Spate is built on Flask (e.g. python framework) and leverages containerization (
 
 Spate currently supports "API", "FORM", and "CRON" Triggers. A trigger is "how" the Workflow is executed. For example, if your Workflow contains the "API" trigger, then users can visit a API endpoint to start the Workflow. "FORM" trigger shows a custom UI-based form. The "CRON" trigger executes every X minutes and runs your Workflow. These three triggers will support the majority of your Workflows.
 
-Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. 
+Users can add Operators to your Workflow and also edit the code. Everything is in "python" code. So if you understand Python, you can easily update/edit/add new Operators for your business process. Official operators can be viewed [here](https://github.com/bmarsh9/spate-operators)
 
 ### Getting Started
 
@@ -159,7 +159,7 @@ There are 5 custom docker images and the 6th is a postgresql image (which may no
 Each Workflow will have its own docker container. When you create a new Workflow, Spate starts a container with the Workflow name. When your workflow is executed (either through API or the Cron trigger) the code from the workflow is executed within the docker container. 
 
 ##### What are Operators and Links?
-Operators are the small blocks you see in the workflow. They can contain code and are the building blocks of your workflow. Links just connect the operators together and can also contain code. If the code within the Operator or Link returns False (e.g. return False), the path in the workflow will stop execution. Any other value and the path will continue. Typically I recommend keeping the code within the Operator very specific and include logic within the Link code. For example, if you are a making a network request to a API endpoint, include that code within your Operator and processing the success/error within the Link. 
+Operators are the small blocks you see in the workflow. They can contain code and are the building blocks of your workflow. Links just connect the operators together and can also contain code. If the code within the Operator or Link returns False (e.g. return False), the path in the workflow will stop execution. Any other value and the path will continue. Typically I recommend keeping the code within the Operator very specific and include logic within the Link code. For example, if you are a making a network request to a API endpoint, include that code within your Operator and processing the success/error within the Link. Official operators can be viewed [here](https://github.com/bmarsh9/spate-operators)
 
 ##### What are Triggers and Actions?
 Triggers and Actions are a type of Operator. Triggers will initiate the workflow and Spate currently supports "API", "Cron" and "Form" triggers. If your workflow has a API trigger, Spate sets up a API endpoint and if you hit that endpoint (with curl or your browser for example), the workflow will execute. The Form trigger presents a UI based form that you can build and collect input from the end user. Upon submission, your workflow runs. If your workflow has a Cron trigger, it will execute your workflow every X minutes (this is configurable). On the other hand, Actions are Operators that code building blocks. For example, you might create a Operator that "Adds a row to Google Sheets" and you can save it and reuse it elsewhere. 
