@@ -139,21 +139,21 @@ class WorkflowRunner():
                     return getattr(module,function_name)(event,config=self.config,request=self.request)
             else:
                 return getattr(module,function_name)(event,config=self.config,request=self.request)
-        except AttributeError:
+        except AttributeError as e:
             self.failed = True
-            self.result["logs"].append(self.log("error","AttributeError - Failed to execute module:{}".format(module_name)))
+            self.result["logs"].append(self.log("error","AttributeError - Failed to execute module:{}. Error:{}".format(str(e),module_name)))
             return False
-        except ModuleNotFoundError:
+        except ModuleNotFoundError as e:
             self.failed = True
-            self.result["logs"].append(self.log("error","ModuleNotFoundError - Module not found:{}".format(module_name)))
+            self.result["logs"].append(self.log("error","ModuleNotFoundError - Module not found:{}. Error:{}".format(str(e),module_name)))
             return False
         except NameError as e:
             self.failed = True
-            self.result["logs"].append(self.log("error","NameError - Missing import:{} on module:{}".format(e,module_name)))
+            self.result["logs"].append(self.log("error","NameError:{} on module:{}".format(str(e),module_name)))
             return False
         except Exception as e:
             self.failed = True
-            self.result["logs"].append(self.log("error","Exception:{} on {}".format(e,module_name)))
+            self.result["logs"].append(self.log("error","Exception:{} on {}".format(str(e),module_name)))
             return False
         return False
 
