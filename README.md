@@ -20,3 +20,7 @@ View Results           |  Create Workflows
 `docker build -t <hub-user>/<repo-name>[:<tag>]`  
 `docker tag <existing-image> <hub-user>/<repo-name>[:<tag>]`  
 `docker push <hub-user>/<repo-name>:<tag>`
+
+##### Git  
+`git branch <branch>`  
+`git checkout <branch>`  

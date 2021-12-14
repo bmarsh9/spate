@@ -82,6 +82,10 @@ class GitManager():
                             operator.code = code
                             operator.hash = file.sha
                             operator.git_sync_date = arrow.utcnow().datetime
+                            operator.label = object.get("label")
+                            operator.description = object.get("description")
+                            operator.imports = object.get("imports")
+                            db.session.commit()
         except github.RateLimitExceededException as e:
             current_app.logger.error(e)
             return False
