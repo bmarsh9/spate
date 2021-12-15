@@ -1635,6 +1635,7 @@ class User(LogMixin,db.Model, UserMixin):
     username = db.Column(db.String(100), unique=True)
     email_confirmed_at = db.Column(db.DateTime())
     password = db.Column(db.String(255), nullable=False, server_default='')
+    last_password_change = db.Column(db.DateTime())
     first_name = db.Column(db.String(100), nullable=False, server_default='')
     last_name = db.Column(db.String(100), nullable=False, server_default='')
     roles = db.relationship('Role', secondary='user_roles')
@@ -1741,6 +1742,7 @@ class User(LogMixin,db.Model, UserMixin):
 
     def set_password(self, password):
         self.password = generate_password_hash(password, method='sha256')
+        self.last_password_change = str(datetime.utcnow())
 
     def check_password(self, password):
         return check_password_hash(self.password, password)

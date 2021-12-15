@@ -183,6 +183,11 @@ $(document).ready(function() {
         "order": [[ 0, "desc" ]] 
       } );
       $.notify({message:'<i class="ti ti-wifi icon text-primary"></i><a class="ml-2" href="{{url_for("main.status")}}">Check your deployment health</a>'},{placement:{from:"bottom",align:"right"}});
+      {%if config["DEFAULT_EMAIL"] == current_user.email%}
+        {%if not current_user.last_password_change%}
+        $.notify({message:'<i class="ti ti-alert-triangle icon text-warning"></i><a class="ml-2" href="{{url_for("main.change_password",id=current_user.id)}}">Please change your default password</a>'},{placement:{from:"bottom",align:"right"}});
+        {%endif%}
+      {%endif%}
 } );
 </script>
 {%endblock%}
