@@ -1,0 +1,92 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "helpers/src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        Github Logs
+      </div>
+      <h2 class="page-title">
+        Github Logs
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          {%if config["GIT_SYNC_REPO"]%}
+          <button id="sync" class="btn btn-primary" data-bs-toggle="tooltip" data-bs-placement="top" title="Sync code from {{config["GIT_SYNC_REPO"]}}">
+            <i class="ti ti-rotate-2 mr-2"></i>Sync with Github
+          </button>
+          {%else%}
+          <button class="btn btn-secondary" data-bs-toggle="tooltip" data-bs-placement="top" title="GIT_SYNC_REPO env variable not set">
+            <i class="ti ti-shadow-off mr-2"></i>Sync not enabled
+          </button>
+          {%endif%}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Logs</h3>
+          </div>
+          <div class="card-body">
+              <table class="table table-vcenter table-bordered" id="example" style="width:100%">
+                <thead>
+                  <tr>
+                    <th class="w-1">ID</th>
+                    <th class="w-1">Label</th>
+                    <th>Message</th>
+                    <th class="w-1">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {%for log in logs%}
+                  <tr>
+                    <td class="subheader">{{log.id}}</td>
+                    <td class="subheader text-center">{%if log.log_type == "info"%}<span class="badge bg-blue-lt">info</span>{%elif log.log_type == "warning"%}<span class="badge bg-yellow-lt">warning</span>{%else%}<span class="badge bg-red-lt">{{log.log_type}}</span>{%endif%}</td>
+                    <td class="subheader">{{log.message}}</td>
+                    <td class="subheader text-center">{{log.date_added}}</td>
+                  </tr>
+                  {%endfor%}
+                </tbody>
+              </table>
+
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('#example').DataTable({"pageLength":50,"order": [[ 0, "desc" ]]});
+    $('#sync').click(function(){
+      $.ajax({
+        url: "{{url_for("api.sync_operators_from_git")}}",
+        type: "GET",
+        success: function (response) {
+          notify_js("Synced with Github. See logs", time=1000)
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred. See logs", type = "warning",time=1000)
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

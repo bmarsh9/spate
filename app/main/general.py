@@ -113,3 +113,9 @@ def edit_workflow_write_access(id):
     flash("Updated access to the workflow")
     Logs.add_log("{} updated write-access to workflow:{}".format(current_user.email,workflow.name),namespace="events")
     return redirect(url_for("main.workflow_access",id=id))
+
+@main.route('/admin/github-logs', methods=['GET'])
+@roles_required("admin")
+def view_github_logs():
+    logs = Logs.query.filter(Logs.namespace == "github_sync").all()
+    return render_template("github_logs.html",logs=logs)

@@ -50,7 +50,7 @@ def roles_accepted(*role_names):
             # User must have the required roles
             # NB: roles_required would call has_roles(*role_names): ('A', 'B') --> ('A', 'B')
             # But: roles_accepted must call has_roles(role_names):  ('A', 'B') --< (('A', 'B'),)
-            if not current_user.has_roles(role_names):
+            if not current_user.has_role(role_names):
                 if enc_token:
                     return jsonify({"message":"forbidden"}),403
                 # Redirect to the unauthorized page
