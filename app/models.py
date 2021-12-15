@@ -1692,9 +1692,10 @@ class User(LogMixin,db.Model, UserMixin):
         return "admin" in self.pretty_roles()
 
     def has_role(self,roles):
+        '''checks if user has any of the listed roles'''
         if not roles:
             return False
-        if not isinstance(roles,list):
+        if not isinstance(roles,list) and not isinstance(roles,tuple):
             roles = [roles]
         my_roles = self.pretty_roles()
         for role in roles:
@@ -1703,6 +1704,7 @@ class User(LogMixin,db.Model, UserMixin):
         return False
 
     def has_roles(self,roles):
+        '''checks if user has all of the listed roles'''
         if not roles:
             return False
         if not isinstance(roles,list) and not isinstance(roles,tuple):
