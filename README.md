@@ -3,6 +3,7 @@
 </p>
 
 Discord: https://discord.gg/9unhWAqadg
+Official Integrations: https://github.com/bmarsh9/spate-operators
 
 ### [Read the documentation to get started](https://bmarsh9.github.io/spate/)
 
