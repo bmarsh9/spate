@@ -9,7 +9,7 @@ services:
 
   spate_ui:
     container_name: spate-ui
-    image: bmarsh13/spate-ui:1.0.4
+    image: bmarsh13/spate-ui:1.0.5
     depends_on:
       - postgres_db
     networks:
@@ -26,7 +26,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-db1}
       - DOC_LINK=https://bmarsh9.github.io/spate/
       - GIT_SYNC_REPO=bmarsh9/spate-operators
-      - VERSION=1.0.4
+      - VERSION=1.0.5
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
