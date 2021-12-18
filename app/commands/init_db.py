@@ -44,5 +44,7 @@ def create_default_workflow():
     Operator.add(workflow.id,type="trigger",label="Sensor",description="Periodically runs and will trigger your workflow",official=True,subtype="cron")
     Operator.add(workflow.id,type="trigger",label="Form",description="Creates a UI form that will trigger your workflow",official=True,subtype="form")
     Operator.add(workflow.id,type="action",label="Basic Operator",description="Basic Operator that allows you to input your own code",official=True)
+
+    Operator.add(workflow.id,type="misc",label="User Input",description="Collect user input before proceeding",official=True,subtype="input")
     #Operator.add(workflow.id,type="misc",label="Return Value",description="Returns the output value of a single path inside your workflow",official=True,add_output=False)
     return True

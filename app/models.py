@@ -19,6 +19,27 @@ import json
 import inspect
 import os
 
+class WorkflowExecution(LogMixin,db.Model):
+    __tablename__ = 'workflow_executions'
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(),nullable=False)
+    data = db.Column(db.JSON(),default={})
+    hash = db.Column(db.String())
+    status = db.Column(db.String(),default="paused") #paused,waiting,responded,complete
+    response = db.Column(db.String())
+    result_id = db.Column(db.Integer(), db.ForeignKey('results.id', ondelete='CASCADE'))
+    workflow_id = db.Column(db.Integer(), db.ForeignKey('workflows.id', ondelete='CASCADE'))
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    # operator is added that pauses execution
+    # saves the full map (all the trees) with the results
+    # sends notification and updates status
+
+    # when the api endpoint is hit, it saves the response
+
+    # background job resumes the job and saves to the results table
+
 class IntakeForm(LogMixin,db.Model):
     __tablename__ = 'intake_forms'
     id = db.Column(db.Integer, primary_key=True)
@@ -669,18 +690,34 @@ class Workflow(db.Model, LogMixin):
                 for path in set:
                     paths.append(path)
         #get first path since there is only one
-        #paths = [i[0] for i in paths if i]
         trigger = self.get_trigger()
         result = {"return_path":trigger.return_path or "","paths":[]}
         for path in paths:
-            if identify_by != "name":
-                temp_path = self.labels_to_names(path)
-                path_name = self.create_hash(temp_path)
-            else:
-                path_name = self.create_hash(path)
-            #TODO add enabled:true key/value
-            result["paths"].append({path_name:[{'name':i} for i in path if i]})
+            result["paths"].append(self.path_to_dictionary(path))
         return result
+
+    def path_to_dictionary(self,path):
+        data = []
+        paths = []
+#haaaaaa
+        for step in path:
+            name = step.split("__")[0]
+            paths.append(name)
+            if step.startswith("Operator"):
+                pause = False
+                op = Operator.find_by_name(name)
+                if op.subtype == "user_input":
+                    pause = True
+                temp = {"id":op.id,"name":name,"label":op.label,"enabled":op.enabled,"type":"operator","pause":pause}
+            elif step.startswith("Link"):
+                link = OutputLink.find_by_name(name)
+                temp = {"id":link.id,"name":name,"label":link.label,"enabled":link.enabled,"type":"link","pause":False}
+            elif step.startswith("Workflow"):
+                wf = Workflow.find_by_name(name)
+                temp = {"id":wf.id,"name":name,"label":wf.label,"enabled":wf.enabled,"type":"workflow","pause":False}
+            data.append(temp)
+        path_hash = self.create_hash(paths)
+        return {path_hash:data}
 
 class Operator(db.Model, LogMixin):
     __tablename__ = 'operators'
@@ -744,7 +781,7 @@ class Operator(db.Model, LogMixin):
         operator = Operator(name=name,label=label,type=type,
             code=code,top=top,left=left,workflow_id=workflow_id,
             description=description,official=official,subtype=subtype,
-            imports=imports,documentation=documentation)
+            imports=imports,documentation=documentation,**kwargs)
         db.session.add(operator)
         db.session.commit()
 
@@ -897,6 +934,27 @@ class Operator(db.Model, LogMixin):
                 </div>""".format(self.name,form_options)
         return template
 
+    def get_additional_input_for_input_trigger(self):
+        template = ""
+        form_options = ""
+        for form in IntakeForm.query.all():
+            select = ""
+            if self.form_id == form.id:
+                select = "selected"
+            form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
+            template = """
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
+                  <div class="col">
+                    <select class="form-select" id="form_{}">
+                      <option value="">Select an Form</option>
+                      {}
+                    </select>
+                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+                  </div>
+                </div>""".format(self.name,form_options)
+        return template
+
     def get_return_path_input(self):
         path_items = ""
         for path in self.workflow.path_tree(operator_id=self.id,identify_by="label").get("paths",[]):
@@ -967,7 +1025,10 @@ class Operator(db.Model, LogMixin):
                 addit_input_template = self.get_additional_input_for_form_trigger()
 
             return_section = self.get_return_path_input()
-
+        # collect user input
+        user_input = ""
+        if self.subtype == "input":
+            user_input = self.get_additional_input_for_input_trigger()
         docs = ""
         if self.documentation:
             docs = """
@@ -1027,12 +1088,13 @@ class Operator(db.Model, LogMixin):
                 </div>
                 {}
                 {}
+                {}
               </form>
             </div>
           </div>
         """.format(docs,operator_variables_html,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
-            self.name,self.imports or "",return_section,addit_input_template)
+            self.name,self.imports or "",return_section,addit_input_template,user_input)
         return template
 
     def create_file(self,path,content=""):

@@ -164,6 +164,11 @@ class WorkflowRunner():
             sha1.update(val)
         return sha1.hexdigest()
 
+    def wait_for_user_input(self,data):
+        # add data to the WorkflowExecutions table
+        print(data)
+        return True
+
     def execute(self):
         hash_tree = {}
         self.result["logs"].append(self.log("info","Successfully parsed {} workflow paths. Got {}".format(self.config.get("WORKFLOW_NAME","UNKNOWN"),len(self.path_map))))
@@ -174,10 +179,20 @@ class WorkflowRunner():
                 temp["logs"].append(self.log("info","Starting workflow execution path:{}. Total steps:{}".format(path_name,len(functions))))
                 temp["logs"].append(self.log("debug","Path direction: {}".format(functions)))
                 for previous_function, current_function in zip(functions, functions[1:]):
-                    current_step = functions[:functions.index(current_function)]
-                    hash = self.create_hash(current_step)
                     current_name = current_function["name"]
                     previous_name = previous_function["name"]
+                    # check if the block is enabled
+                    if not current_function["enabled"]:
+                        temp["logs"].append(self.log("debug","Current function: {} is not enabled. Stopping the execution of the path".format(current_name)))
+                        temp["execution"].append({"result":False,"function":current_name})
+                        temp["complete"] = False
+                        break
+                    # check if we need user input #haaaaaaaaa
+                    if current_function["user_input"]:
+                        self.wait_for_user_input(self.result)
+                        return False
+                    current_step = functions[:functions.index(current_function)]
+                    hash = self.create_hash(current_step)
                     temp["logs"].append(self.log("debug","Current function: {}. Previous function: {}".format(current_name,previous_name)))
                     if current_name.startswith("Operator"):
                         previous_result = hash_tree.get(hash)

@@ -12,6 +12,22 @@ import arrow
 def get_health():
     return jsonify({"message":"ok"})
 
+@api.route('/execution/<string:uuid>', methods=['POST'])
+def update_workflow_execution(uuid):
+    execution = WorkflowExecution.query.filter(WorkflowExecution.uuid == uuid).first()
+    if not execution:
+        return jsonify({"message":"not found"}),404
+    data = request.get_json()
+    response = data.get("response")
+    if not response:
+        return jsonify({"message":"<response> key is missing"}),400
+    execution.status = "responded"
+    execution.response = response
+    db.session.commit()
+
+    # resume execution
+    return jsonify({"message":"ok"})
+
 @api.route('/operators/<int:id>/official', methods=['PUT'])
 @roles_required("admin")
 def update_operator_official(id):
@@ -241,7 +257,7 @@ def get_code_for_operator(id,operator_name):
     return jsonify({"code":operator.code})
 
 @api.route('/operators/<int:operator_id>/code', methods=['GET'])
-@login_required
+@roles_required("admin")
 def get_code_for_operator_2(operator_id):
     operator = Operator.query.get(operator_id)
     if not operator:
