@@ -104,10 +104,10 @@
                                       <tr>
                                         <td><small class="subheader">{%if hash == result.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{hash}}</small></td>
                                         <td><span class="badge bg-dark">{{data["execution"]|length}}</span></td>
-                                        <td><span class="badge bg-dark">{{data["execution_time"]}}</span></td>
+                                        <td><span class="badge bg-dark">{{data.get("execution_time")}}</span></td>
                                         <td class="w-50">
                                           <div class="progress progress-xs">
-                                            <div class="progress-bar bg-primary" style="width: {%if result.execution_time%}{{(data["execution_time"]/result.execution_time)*100}}%{%endif%}"></div>
+                                            <div class="progress-bar bg-primary" style="width: {%if result.execution_time%}{{(data.get("execution_time",0)/result.execution_time)*100}}%{%endif%}"></div>
                                           </div>
                                         </td>
                                       </tr>

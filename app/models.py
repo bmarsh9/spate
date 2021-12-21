@@ -32,14 +32,6 @@ class WorkflowExecution(LogMixin,db.Model):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
-    # operator is added that pauses execution
-    # saves the full map (all the trees) with the results
-    # sends notification and updates status
-
-    # when the api endpoint is hit, it saves the response
-
-    # background job resumes the job and saves to the results table
-
 class IntakeForm(LogMixin,db.Model):
     __tablename__ = 'intake_forms'
     id = db.Column(db.Integer, primary_key=True)
@@ -387,7 +379,7 @@ class Workflow(db.Model, LogMixin):
         result = Result(workflow_id=self.id,status="in progress")
         db.session.add(result)
         db.session.commit()
-        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py {} '{}'".format(result.id,json.dumps(request)),
+        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --result_id {} --request '{}'".format(result.id,json.dumps(request)),
             output=output,detach=not trigger.synchronous,env=env)
         if trigger.synchronous:
             response = Result.query.get(result.id).as_dict()
@@ -396,6 +388,21 @@ class Workflow(db.Model, LogMixin):
                 "callback_url":"/api/v1/workflows/{}/results/{}".format(self.id,result.id),
                 "status":"in progress",
             }
+        return response
+
+    #TODO remove and place in api-ingress
+    def resume(self,resume_id):
+#haaaaaaaaaaa
+        trigger = self.get_trigger()
+        if not trigger:
+            return False
+        dm = DockerManager()
+        id = dm.find_container_by_workflow_name(self.name).short_id
+        result = Result(workflow_id=self.id,status="in progress")
+        db.session.add(result)
+        db.session.commit()
+        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --result_id {} --resume_id {}".format(result.id,resume_id),
+            output="log",detach=not trigger.synchronous,env={})
         return response
 
     def setup_workflow(self,refresh=True,restart=False):
@@ -699,14 +706,13 @@ class Workflow(db.Model, LogMixin):
     def path_to_dictionary(self,path):
         data = []
         paths = []
-#haaaaaa
         for step in path:
             name = step.split("__")[0]
             paths.append(name)
             if step.startswith("Operator"):
                 pause = False
                 op = Operator.find_by_name(name)
-                if op.subtype == "user_input":
+                if op.subtype == "input":
                     pause = True
                 temp = {"id":op.id,"name":name,"label":op.label,"enabled":op.enabled,"type":"operator","pause":pause}
             elif step.startswith("Link"):
@@ -715,7 +721,10 @@ class Workflow(db.Model, LogMixin):
             elif step.startswith("Workflow"):
                 wf = Workflow.find_by_name(name)
                 temp = {"id":wf.id,"name":name,"label":wf.label,"enabled":wf.enabled,"type":"workflow","pause":False}
-            data.append(temp)
+            else:
+                temp = {}
+            if temp:
+                data.append(temp)
         path_hash = self.create_hash(paths)
         return {path_hash:data}
 

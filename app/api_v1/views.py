@@ -25,6 +25,9 @@ def update_workflow_execution(uuid):
     execution.response = response
     db.session.commit()
 
+    workflow = Workflow.query.get(execution.workflow_id)
+    workflow.resume(execution.id)
+
     # resume execution
     return jsonify({"message":"ok"})
 
