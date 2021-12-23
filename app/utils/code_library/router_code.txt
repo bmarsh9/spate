@@ -54,6 +54,8 @@ class WorkflowRunner():
             self.failed = True
         self.execution = self.get_execution_object()
         self.execution_results = self.get_results_for_execution()
+        # scrub database connection from kwargs
+        if "SQLALCHEMY_DATABASE_URL" in self.config: del self.config["SQLALCHEMY_DATABASE_URL"]
 
     def start(self):
         paths = []
