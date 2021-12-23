@@ -109,9 +109,9 @@ def workflow_access(id):
     return render_template('workflow_access.html',users=users,workflow=workflow,
         read_users=read_users,write_users=write_users)
 
-@main.route('/workflows/<int:workflow_id>/results', methods=['GET'])
+@main.route('/workflows/<int:workflow_id>/executions', methods=['GET'])
 @login_required
-def workflow_results(workflow_id):
+def workflow_executions(workflow_id):
     workflow = Workflow.query.get(workflow_id)
     if not workflow:
         flash("Workflow does not exist","warning")
@@ -119,12 +119,12 @@ def workflow_results(workflow_id):
     if not workflow.user_can_read(current_user.id):
         flash("You do not have access to this resource","warning")
         return redirect(url_for("main.home"))
-    results = workflow.results.order_by(Result.id.desc()).all()
-    return render_template("workflow_results.html",workflow=workflow,results=results)
+    executions = workflow.executions.order_by(Execution.id.desc()).all()
+    return render_template("workflow_executions.html",workflow=workflow,executions=executions)
 
-@main.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
+@main.route('/workflows/<int:workflow_id>/executions/<int:execution_id>', methods=['GET'])
 @login_required
-def view_results_of_workflow(workflow_id,result_id):
+def view_executions_of_workflow(workflow_id,execution_id):
     workflow = Workflow.query.get(workflow_id)
     if not workflow:
         flash("Workflow does not exist","warning")
@@ -132,15 +132,15 @@ def view_results_of_workflow(workflow_id,result_id):
     if not workflow.user_can_read(current_user.id):
         flash("You do not have access to this resource","warning")
         return redirect(url_for("main.home"))
-    result = workflow.results.filter(Result.id == result_id).first()
-    if not result:
+    execution = workflow.executions.filter(Execution.id == execution_id).first()
+    if not execution:
         flash("Resource does not exist")
         return redirect(url_for("main.workflows"))
-    return render_template("view_results.html",workflow=workflow,result=result)
+    return render_template("view_executions.html",workflow=workflow,execution=execution)
 
-@main.route('/workflows/<int:workflow_id>/results/<int:result_id>/paths', methods=['GET'])
+@main.route('/workflows/<int:workflow_id>/executions/<int:execution_id>/paths', methods=['GET'])
 @login_required
-def view_paths_of_workflow(workflow_id,result_id):
+def view_paths_of_workflow(workflow_id,execution_id):
     workflow = Workflow.query.get(workflow_id)
     if not workflow:
         flash("Workflow does not exist","warning")
@@ -148,11 +148,11 @@ def view_paths_of_workflow(workflow_id,result_id):
     if not workflow.user_can_read(current_user.id):
         flash("You do not have access to this resource","warning")
         return redirect(url_for("main.home"))
-    result = workflow.results.filter(Result.id == result_id).first()
-    if not result:
+    execution = workflow.executions.filter(Execution.id == execution_id).first()
+    if not execution:
         flash("Resource does not exist")
         return redirect(url_for("main.workflows"))
-    return render_template("view_paths.html",workflow=workflow,result=result)
+    return render_template("view_paths.html",workflow=workflow,execution=execution)
 
 #--------------- Locker ----------------------
 @main.route('/lockers', methods=['GET'])

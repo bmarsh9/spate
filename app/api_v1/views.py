@@ -61,21 +61,21 @@ def sync_operators_from_git():
     result = GitManager().sync()
     return jsonify({"success":result})
 #----------------------------------------WORKFLOW-----------------------------------------
-@api.route('/workflows/<int:workflow_id>/results/<int:result_id>', methods=['GET'])
+@api.route('/workflows/<int:workflow_id>/executions/<int:execution_id>', methods=['GET'])
 @login_required
-def workflow_endpoint(workflow_id,result_id):
+def workflow_endpoint(workflow_id,execution_id):
     workflow = Workflow.query.get(workflow_id)
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
     if not workflow.user_can_read(current_user.id):
         return jsonify({"message":"access denied"}),403
-    result = Result.query.get(result_id)
-    if not result:
-        return jsonify({"message":"result does not exist"}),404
-    if result.status != "complete":
-        return jsonify({"message":"result is not finished",
-            "complete":False,"status":result.status})
-    return jsonify(result.as_dict())
+    execution = Execution.query.get(execution_id)
+    if not execution:
+        return jsonify({"message":"execution does not exist"}),404
+    #if execution.status != "complete":
+    #    return jsonify({"message":"execution is not finished",
+    #        "complete":False,"status":execution.status})
+    return jsonify(execution.as_dict())
 
 @api.route('/workflows/<int:id>', methods=['GET'])
 @login_required
@@ -530,9 +530,9 @@ def edit_form(name):
     return jsonify({"message":"ok"})
 
 #----------------------------------------GRAPH-----------------------------------------
-@api.route("/graphs/workflow-results", methods=["GET"])
+@api.route("/graphs/workflow-executions", methods=["GET"])
 @login_required
-def graph_get_workflow_results():
+def graph_get_workflow_executions():
     span_of_days = [(0,7),(7,14),(14,21),(21,28),(28,35)]
     now = arrow.utcnow()
     categories = []
@@ -541,7 +541,7 @@ def graph_get_workflow_results():
         start,end = span
         categories.append("{}-{} days ago".format(start,end))
         for status in ["not started","in progress","complete","failed"]:
-            count = Result.query.filter(Result.date_added < now.shift(days=-start).datetime).filter(Result.date_added > now.shift(days=-end).datetime).filter(Result.status == status).count()
+            count = Execution.query.filter(Execution.date_added < now.shift(days=-start).datetime).filter(Execution.date_added > now.shift(days=-end).datetime).filter(Execution.status == status).count()
             data[status].append(count)
     series = []
     for key,value in data.items():

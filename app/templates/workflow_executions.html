@@ -14,7 +14,7 @@
         <a href="{{url_for("main.workflows")}}">workflows</a>
       </div>
       <h2 class="page-title">
-        Workflow Results
+        Workflow Executions
       </h2>
     </div>
     <div class="col-auto ms-auto">
@@ -52,17 +52,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  {%for result in results%}
-                  {%set finished = result.finished()%}
+                  {%for execution in executions%}
+                  {%set finished = execution.finished()%}
                   <tr>
-                    <td class="subheader">{{result.id}}</td>
-                    <td><span class="badge {%if result.is_complete()%}bg-green-lt{%elif result.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{result.status}}</span></td>
-                    <td class="subheader">{{result.date_added}}</td>
-                    <td>{%if result.status != "complete"%}<span class="badge bg-gray-lt">never</span>{%else%}{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}{%endif%}</td>
-                    <td><span class="badge bg-blue-lt">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></td>
-                    <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{result.return_value}}</div></td>
+                    <td class="subheader">{{execution.id}}</td>
+                    <td><span class="badge {%if execution.is_complete()%}bg-green-lt{%elif execution.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{execution.status}}</span></td>
+                    <td class="subheader">{{execution.date_added}}</td>
+                    <td>{%if execution.status != "complete"%}<span class="badge bg-gray-lt">never</span>{%else%}{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}{%endif%}</td>
+                    <td><span class="badge bg-blue-lt">{%if execution.paths%}{{execution.paths|length}}{%else%}0{%endif%}</span></td>
+                    <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{execution.return_value}}</div></td>
                     <td class="text-center">
-                      <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}"><i class="ti ti-report-analytics"></i></a>
+                      <a href="{{url_for("main.view_executions_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}"><i class="ti ti-report-analytics"></i></a>
                     </td>
                   </tr>
                   {%endfor%}

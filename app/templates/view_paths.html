@@ -5,10 +5,10 @@
   <div class="row align-items-center">
     <div class="col">
       <div class="page-pretitle">
-        <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}">{{workflow.name}} - {{result.id}}</a>
+        <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}">{{workflow.name}} - {{execution.id}}</a>
       </div>
       <h2 class="page-title">
-        Workflow Results
+        Workflow Executions
       </h2>
     </div>
     <div class="col-auto ms-auto">
@@ -19,7 +19,7 @@
           </a>
         </span>
         <span class="d-none d-sm-inline">
-          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,result_id=result.id)}}" class="btn btn-primary">
+          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,execution_id=execution.id)}}" class="btn btn-primary">
             View Endpoint
           </a>
         </span>
@@ -34,13 +34,13 @@
               <div class="d-none d-lg-block col-lg-2">
                 <ul class="nav nav-pills nav-vertical">
                   <li class="nav-item">
-                    <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                    <a href="{{url_for("main.view_executions_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
                       Overview
                       <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
                     </a>
                   </li>
                   <li class="nav-item active bg-blue-lt">
-                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
                       Paths
                       <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
                     </a>
@@ -53,23 +53,23 @@
                     <div class="markdown">
                       <div>
                         <div class="mb-3">
-                          <h1 class="m-0">Results from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></h1>
+                          <h1 class="m-0">executions from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{%if execution.paths%}{{execution.paths|length}}{%else%}0{%endif%}</span></h1>
                           <div class="row mt-3">
-                          {%if result.paths%}
-                          {%for path in result.paths%}
+                          {%if execution.paths%}
+                          {%for path in execution.paths%}
                             {%for hash,data in path.items()%}
                             <div class="accordion mt-2" id="accordion{{hash}}">
                               <div class="accordion-item">
                                 <h2 class="accordion-header" id="heading{{hash}}">
                                   <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{hash}}" aria-expanded="true" aria-controls="collapse{{hash}}">
-                                    {%if data["status"] == "complete"%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{data["status"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == result.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{hash}}
+                                    {%if data["status"] == "complete"%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{data["status"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == execution.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{hash}}
                                   </button>
                                 </h2>
                                 <div id="collapse{{hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{hash}}">
                                   <div class="accordion-body">
                                     <div class="row">
-                                      <h4>Result<small class="ml-2"> (Execution took {{data["execution_time"]}} seconds)</small></h4>
-                                      <pre>{{data["result"]}}</pre>
+                                      <h4>execution<small class="ml-2"> (Execution took {{data["execution_time"]}} seconds)</small></h4>
+                                      <pre>{{data["execution"]}}</pre>
                                     </div>
                                     <div class="row mb-3">
                                       <h4>Path</h4>
@@ -80,7 +80,7 @@
                                       </ol>
                                     </div>
                                     <div class="row">
-                                      <h4>Execution Path Results</h4>
+                                      <h4>Execution Path executions</h4>
                                       <pre>{%for exec in data["execution"]%}{{exec}}<br>{%endfor%}</pre>
                                     </div>
                                     <div class="row">

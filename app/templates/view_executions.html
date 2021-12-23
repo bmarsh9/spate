@@ -5,10 +5,10 @@
   <div class="row align-items-center">
     <div class="col">
       <div class="page-pretitle">
-        <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}">{{workflow.name}} - {{result.id}}</a>
+        <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}">{{workflow.name}} - {{execution.id}}</a>
       </div>
       <h2 class="page-title">
-        Workflow Results
+        Workflow Executions
       </h2>
     </div>
     <div class="col-auto ms-auto">
@@ -19,7 +19,7 @@
           </a>
         </span>
         <span class="d-none d-sm-inline">
-          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,result_id=result.id)}}" class="btn btn-primary">
+          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,execution_id=execution.id)}}" class="btn btn-primary">
             View Endpoint
           </a>
         </span>
@@ -34,13 +34,13 @@
               <div class="d-none d-lg-block col-lg-2">
                 <ul class="nav nav-pills nav-vertical">
                   <li class="nav-item active bg-blue-lt">
-                    <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                    <a href="{{url_for("main.view_executions_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
                       Overview
                       <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
                     </a>
                   </li>
                   <li class="nav-item">
-                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
+                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
                       Paths
                       <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
                     </a>
@@ -53,7 +53,7 @@
                     <div class="markdown">
                       <div>
                         <div class="mb-3">
-                          <h1 class="m-0">Overview {%if result.is_complete()%}<span class="badge bg-blue-lt ml-2">{{result.status}}</span>{%else%}<span class="badge bg-yellow-lt ml-2">{{result.status}}</span>{%endif%}</h1>
+                          <h1 class="m-0">Overview {%if execution.is_complete()%}<span class="badge bg-blue-lt ml-2">{{execution.status}}</span>{%else%}<span class="badge bg-yellow-lt ml-2">{{execution.status}}</span>{%endif%}</h1>
                           <div class="row mt-4">
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
@@ -62,10 +62,10 @@
                                   </div>
                                   <div class="card-body">
                                     <pre style="white-space:nowrap">
-                                    Workflow Name: {{result.workflow.name}}<br>
-                                    Workflow Label: {{result.workflow.label}}<br>
-                                    Type: {{result.trigger_type()}}<br>
-                                    Start Time: {{result.date_added}}<br>
+                                    Workflow Name: {{execution.workflow.name}}<br>
+                                    Workflow Label: {{execution.workflow.label}}<br>
+                                    Type: {{execution.trigger_type()}}<br>
+                                    Start Time: {{execution.date_added}}<br>
                                     </pre>
                                   </div>
                                 </div>
@@ -78,7 +78,7 @@
                                     <h3 class="card-title">Return Value</h3>
                                   </div>
                                   <div class="card-body">
-                                    <pre>{{result.return_value}}</pre>
+                                    <pre>{{execution.return_value}}</pre>
                                   </div>
                                 </div>
                               </div>
@@ -87,7 +87,7 @@
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
                                   <div class="card-header">
-                                    <h3 class="card-title">Execution Time ({{result.execution_time}} s)</h3>
+                                    <h3 class="card-title">Execution Time ({{execution.execution_time}} s)</h3>
                                   </div>
                                   <table class="table card-table table-vcenter">
                                     <thead>
@@ -98,16 +98,16 @@
                                       </tr>
                                     </thead>
                                     <tbody>
-                                      {%if result.paths%}
-                                      {%for path in result.paths%}
+                                      {%if execution.paths%}
+                                      {%for path in execution.paths%}
                                       {%for hash,data in path.items()%}
                                       <tr>
-                                        <td><small class="subheader">{%if hash == result.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{hash}}</small></td>
+                                        <td><small class="subheader">{%if hash == execution.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{hash}}</small></td>
                                         <td><span class="badge bg-dark">{{data["execution"]|length}}</span></td>
                                         <td><span class="badge bg-dark">{{data.get("execution_time")}}</span></td>
                                         <td class="w-50">
                                           <div class="progress progress-xs">
-                                            <div class="progress-bar bg-primary" style="width: {%if result.execution_time%}{{(data.get("execution_time",0)/result.execution_time)*100}}%{%endif%}"></div>
+                                            <div class="progress-bar bg-primary" style="width: {%if execution.execution_time%}{{(data.get("execution_time",0)/execution.execution_time)*100}}%{%endif%}"></div>
                                           </div>
                                         </td>
                                       </tr>
@@ -126,7 +126,7 @@
                                     <h3 class="card-title">Log</h3>
                                   </div>
                                   <div class="card-body">
-                                    <pre>{%if result.log%}{%for log in result.log.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
+                                    <pre>{%if execution.log%}{%for log in execution.log.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
                                   </div>
                                 </div>
                               </div>
@@ -138,7 +138,7 @@
                                     <h3 class="card-title">Debug Log (from workflow)</h3>
                                   </div>
                                   <div class="card-body">
-                                    <pre>{%if result.user_messages%}{%for log in result.user_messages.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
+                                    <pre>{%if execution.user_messages%}{%for log in execution.user_messages.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
                                   </div>
                                 </div>
                               </div>
