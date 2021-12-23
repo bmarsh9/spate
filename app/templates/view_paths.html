@@ -54,17 +54,33 @@
               <h1 class="m-0">Executions from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{{execution.paths.count()}}</span></h1>
               <div class="row mt-3">
                 {%for path in execution.paths.all()%}
+                {%set paused_hash = path.get_paused_hash()%}
                 <div class="accordion mt-2" id="accordion{{path.hash}}">
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="heading{{path.hash}}">
-                      <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{path.hash}}" aria-expanded="true" aria-contro
-                        ls="collapse{{path.hash}}">
-                      {%if path.complete == True%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{path.status()}}</span><span class=
+                      <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{path.hash}}" aria-expanded="true" aria-controls="collapse{{path.hash}}">
+                      {%if path.complete() == True%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{path.status()}}</span><span class=
                         "badge bg-dark mr-3">{{path.execution_time()}} s</span>{%if path.hash == execution.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{path.hash}}
                       </button>
                     </h2>
                     <div id="collapse{{path.hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{path.hash}}">
                       <div class="accordion-body">
+                        <div class="row mb-2">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Details</h5>
+                            </div>
+                            <div class="card-body">
+                              <pre style="white-space:nowrap">
+                              UUID: {{path.uuid}}<br>
+                              Hash: {{path.hash}}<br>
+                              {%if paused_hash%}
+                              Resume URL: /api/v1/executions/{{path.execution.id}}/steps/{{paused_hash}}
+                              {%endif%}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
                         <div class="row mb-2">
                           <div class="card">
                             <div class="card-header">
@@ -106,7 +122,7 @@
                               <tbody>
                                 {%for step in path.get_path_order()%}
                                 <tr>
-                                  <td class="subheader">({{step.id}}) - {{step.label}}</td>
+                                  <td class="subheader">({{step.id}}) - {{step.name}}</td>
                                   <td class="subheader">{{step.result}}</td>
                                   <td class="subheader">{%if step.complete%}<span class="badge bg-green-lt ms-auto">{{step.status}}</span>{%else%}<span class="badge bg-yellow-lt ms-auto">{{step.status}}</span>{%endif%}</td>
                                   <td class="subheader">{{step.execution_time}}</td>
@@ -127,7 +143,7 @@
                               <h5 class="card-title">Logs</h5>
                             </div>
                             <div class="card-body">
-                              <pre>{%for log in path.logs.split("\n")%}{{log}}<br>{%endfor%}</pre>
+                              <pre>{%for log in path.logs.split("\n")%}{{log}}<br>{%endfor%}{%for step in path.get_path_order()%}{%for step_log in step.logs.split("\n")%}{{step_log}}{%endfor%}<br>{%endfor%}</pre>
                             </div>
                           </div>
                         </div>

@@ -193,10 +193,20 @@ class Path(db.Model, LogMixin):
         step = self.steps.order_by(Step.id.desc()).first()
         return step.result
 
-    def status(self):
+    def get_paused_hash(self):
+        step = self.status(as_object=True)
+        if step.status == "paused":
+            return step.hash
+        return None
+#haaaaaa
+    def status(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
             if not step.complete:
+                if as_object:
+                    return step
                 return step.status
+        if as_object:
+            return self.steps.order_by(Step.id.desc()).first()
         return self.steps.order_by(Step.id.desc()).first().status
 
     def get_path_order(self):
@@ -245,18 +255,13 @@ class Execution(db.Model, LogMixin):
     def as_dict(self):
         template = {
             "id":self.id,
-            "return_value":self.return_value,
+            "return_value":self.get_return_value(),
             "return_hash":self.return_hash,
-            "paths":self.paths,
-            "logs":self.log.split("\n"),
             "debug":self.user_messages.split("\n"),
-            "complete":False,
-            "status":self.status,
-            "execution_time":self.execution_time,
+            "complete":self.complete(),
+            "execution_time":self.execution_time(),
             "date_requested":str(self.date_added),
         }
-        if self.is_complete():
-            template["complete"] = True
         return template
 
     def finished(self):
@@ -471,28 +476,25 @@ class Workflow(db.Model, LogMixin):
 
         execution = self.add_execution()
 
-        response = dm.exec_to_container(container_id,"python3 /app/workflow/tmp/router.py --result_id {} --request '{}'".format(execution.id,json.dumps(request)),
+        response = dm.exec_to_container(container_id,"python3 /app/workflow/tmp/router.py --execution_id {} --request '{}'".format(execution.id,json.dumps(request)),
             output=output,detach=not trigger.synchronous,env=env)
         if trigger.synchronous:
             response = ""
         else:
             response = {
-                "callback_url":"/api/v1/workflows/{}/results/{}".format(self.id,execution.id),
+                "callback_url":"/api/v1/workflows/{}/executions/{}".format(self.id,execution.id),
                 "status":"in progress",
             }
         return response
 
     #TODO remove and place in api-ingress
-    def resume(self,resume_id):
+    def resume(self,step,response):
         trigger = self.get_trigger()
         if not trigger:
             return False
         dm = DockerManager()
         id = dm.find_container_by_workflow_name(self.name).short_id
-        result = Result(workflow_id=self.id,status="in progress")
-        db.session.add(result)
-        db.session.commit()
-        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --result_id {} --resume_id {}".format(result.id,resume_id),
+        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response {}".format(step.execution_id,step.hash,response),
             output="log",detach=not trigger.synchronous,env={})
         return response
 
@@ -793,7 +795,6 @@ class Workflow(db.Model, LogMixin):
         data = []
         paths = []
         for step in path:
-#haaaaaa
             name = step.split("__")[0]
             paths.append(name)
             if step.startswith("Operator"):

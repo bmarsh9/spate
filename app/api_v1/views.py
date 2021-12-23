@@ -12,23 +12,20 @@ import arrow
 def get_health():
     return jsonify({"message":"ok"})
 
-@api.route('/execution/<string:uuid>', methods=['POST'])
-def update_workflow_execution(uuid):
-    execution = WorkflowExecution.query.filter(WorkflowExecution.uuid == uuid).first()
+@api.route('/executions/<int:id>/steps/<string:hash>', methods=['POST'])
+def resume_path_execution(id,hash):
+    execution = Execution.query.get(id)
     if not execution:
-        return jsonify({"message":"not found"}),404
+        return jsonify({"message":"execution not found"}),404
+    step = Step.query.filter(Step.hash == hash).filter(Step.execution_id == id).first()
+    if not step:
+        return jsonify({"message":"step not found"}),404
     data = request.get_json()
     response = data.get("response")
     if not response:
-        return jsonify({"message":"<response> key is missing"}),400
-    execution.status = "responded"
-    execution.response = response
-    db.session.commit()
-
+        return jsonify({"message":"<response> key is missing from the payload"}),400
     workflow = Workflow.query.get(execution.workflow_id)
-    workflow.resume(execution.id)
-
-    # resume execution
+    workflow.resume(step,response)
     return jsonify({"message":"ok"})
 
 @api.route('/operators/<int:id>/official', methods=['PUT'])
