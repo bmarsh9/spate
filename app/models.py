@@ -251,7 +251,7 @@ class Workflow(db.Model, LogMixin):
     uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
-#    base_image = db.Column(db.String())
+    base_image = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=False)
     refresh_required = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
@@ -494,7 +494,11 @@ class Workflow(db.Model, LogMixin):
             dict = {}
             if current_app.config["LOCAL_DB"]:
                 dict["network"] = current_app.config["POSTGRES_NW"]
-            dm.run_container(current_app.config["BASE_PYTHON_IMAGE"],labels={"workflow_name":self.name},name=self.name,**dict)
+            if self.base_image:
+                image_name = self.base_image
+            else:
+                image_name = current_app.config["BASE_PYTHON_IMAGE"]
+            dm.run_container(image_name,labels={"workflow_name":self.name},name=self.name,**dict)
             container = dm.get_container(self.name)
             dm.copy_to(container,workflow_dir,"/app/workflow")
         else:
