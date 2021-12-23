@@ -141,28 +141,45 @@ class AssocLocker(LogMixin,db.Model):
     locker_id = db.Column(db.Integer(), db.ForeignKey('lockers.id', ondelete='CASCADE'))
     workflow_id = db.Column(db.Integer(), db.ForeignKey('workflows.id', ondelete='CASCADE'))
 
+class PathSteps(db.Model):
+    __tablename__ = 'path_steps'
+    id = db.Column(db.Integer(), primary_key=True)
+    step_id = db.Column(db.Integer(), db.ForeignKey('steps.id', ondelete='CASCADE'))
+    path_id = db.Column(db.Integer(), db.ForeignKey('paths.id', ondelete='CASCADE'))
+
 class Step(db.Model, LogMixin):
     __tablename__ = 'steps'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
+    name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
+    hash = db.Column(db.String(),nullable=False)
+    status = db.Column(db.String(),default="waiting") #paused,waiting,responded,complete
     complete = db.Column(db.Boolean, default=False)
     result = db.Column(db.String())
-    path_id = db.Column(db.Integer, db.ForeignKey('paths.id'), nullable=False)
+    execution_time = db.Column(db.Integer(),default=0)
+    logs = db.Column(db.String(),default="")
+#haaaaaaa
     execution_id = db.Column(db.Integer, db.ForeignKey('executions.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    @staticmethod
+    def find_or_create_step(name,label,hash,execution_id):
+        step = Step.query.filter(Step.hash == hash).filter(Step.execution_id == execution_id).first()
+        if step:
+            return step
+        new_step = Step(name=name,label=label,hash=hash,execution_id=execution_id)
+        db.session.add(new_step)
+        db.session.commit()
+        return new_step
 
 class Path(db.Model, LogMixin):
     __tablename__ = 'paths'
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(),nullable=False)
-    status = db.Column(db.String(),default="waiting") #paused,waiting,responded,complete
-    complete = db.Column(db.Boolean, default=False)
-    hash = db.Column(db.String())
-    log = db.Column(db.String(),default="")
-    execution_time = db.Column(db.Integer(),default=0)
-    steps = db.relationship('Step', backref='path', lazy='dynamic')
+    hash = db.Column(db.String(),nullable=False)
+    logs = db.Column(db.String(),default="")
+    steps = db.relationship('Step', secondary='path_steps', lazy='dynamic')
     execution_id = db.Column(db.Integer, db.ForeignKey('executions.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
@@ -172,17 +189,20 @@ class Path(db.Model, LogMixin):
         if not step:
             return {}
         return step.result
-#haaaaaaaa
+
+    def complete(self):
+        step = self.steps.order_by(Step.id.desc()).first()
+        if step:
+            return step.complete
+        return False
 
 class Execution(db.Model, LogMixin):
     __tablename__ = 'executions'
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String())
-    status = db.Column(db.String(),default="in progress")
-    complete = db.Column(db.Boolean, default=False)
     return_hash = db.Column(db.String())
     user_messages = db.Column(db.String(),default="")
-    log = db.Column(db.String(),default="")
+    logs = db.Column(db.String(),default="")
     paths = db.relationship('Path', backref='execution', lazy='dynamic')
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
@@ -231,6 +251,7 @@ class Workflow(db.Model, LogMixin):
     uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
+#    base_image = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=False)
     refresh_required = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
@@ -243,20 +264,31 @@ class Workflow(db.Model, LogMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+    def create_hash_for_steps(self,values):
+        sha1 = hashlib.sha1()
+        for value in values:
+            val = str(value["name"]).encode('utf-8')
+            sha1.update(val)
+        return sha1.hexdigest()
+
     def add_execution(self):
         tree = self.path_tree()
+        # create execution object
         execution = Execution(uuid=generate_uuid(),return_hash=tree["return_path"],
             workflow_id=self.id)
         db.session.add(execution)
         db.session.flush()
+
+        # create all paths and associate them to the steps
         for path in tree["paths"]:
             for path_hash,steps in path.items():
-                new_path = Path(hash=path_hash,uuid=generate_uuid())
-                for step in steps:
-                    new_path.steps.append(Step(name=step["name"],label=step["label"],
-                        execution_id=execution.id))
-                execution.paths.append(new_path)
-        db.session.commit()
+                new_path = Path(hash=path_hash,uuid=generate_uuid(),execution_id=execution.id)
+                for previous_step, current_step in zip(steps, steps[1:]):
+                    step_hash = self.create_hash_for_steps(steps[:steps.index(current_step)])
+                    step = Step.find_or_create_step(current_step["name"],current_step["label"],step_hash,execution.id)
+                    new_path.steps.append(step)
+                db.session.add(new_path)
+                db.session.commit()
         return execution
 
     def as_meta(self):
@@ -738,6 +770,7 @@ class Workflow(db.Model, LogMixin):
         data = []
         paths = []
         for step in path:
+#haaaaaa
             name = step.split("__")[0]
             paths.append(name)
             if step.startswith("Operator"):
@@ -755,6 +788,7 @@ class Workflow(db.Model, LogMixin):
             else:
                 temp = {}
             if temp:
+                temp["hash"] = self.create_hash(path[:path.index(step)])
                 data.append(temp)
         path_hash = self.create_hash(paths)
         return {path_hash:data}
