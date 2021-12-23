@@ -201,7 +201,6 @@ class Path(db.Model, LogMixin):
 
     def get_path_order(self):
         return self.steps.order_by(Step.id.asc()).all()
-#haaaaaaa
 
     def complete(self):
         step = self.steps.order_by(Step.id.desc()).first()
