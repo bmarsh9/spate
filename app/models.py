@@ -153,12 +153,11 @@ class Step(db.Model, LogMixin):
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
     hash = db.Column(db.String(),nullable=False)
-    status = db.Column(db.String(),default="waiting") #paused,waiting,responded,complete
+    status = db.Column(db.String(),default="not started") #paused,no started,responded,complete
     complete = db.Column(db.Boolean, default=False)
     result = db.Column(db.String())
     execution_time = db.Column(db.Integer(),default=0)
     logs = db.Column(db.String(),default="")
-#haaaaaaa
     execution_id = db.Column(db.Integer, db.ForeignKey('executions.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
@@ -184,17 +183,29 @@ class Path(db.Model, LogMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
-    def get_result(self):
+    def execution_time(self):
+        time = 0
+        for step in self.steps.all():
+            time += step.execution_time
+        return time
+
+    def result(self):
         step = self.steps.order_by(Step.id.desc()).first()
-        if not step:
-            return {}
         return step.result
+
+    def status(self):
+        for step in self.steps.order_by(Step.id.asc()).all():
+            if not step.complete:
+                return step.status
+        return self.steps.order_by(Step.id.desc()).first().status
+
+    def get_path_order(self):
+        return self.steps.order_by(Step.id.asc()).all()
+#haaaaaaa
 
     def complete(self):
         step = self.steps.order_by(Step.id.desc()).first()
-        if step:
-            return step.complete
-        return False
+        return step.complete
 
 class Execution(db.Model, LogMixin):
     __tablename__ = 'executions'
@@ -212,16 +223,25 @@ class Execution(db.Model, LogMixin):
         path = self.paths.filter(Path.hash == self.return_hash).first()
         if not path:
             return {}
-        return path.get_result()
+        return path.result()
+
+    def execution_time(self):
+        time = 0
+        for path in self.paths.all():
+            time+= path.execution_time()
+        return time
+
+    def complete(self):
+        for path in self.paths.all():
+            if not path.complete():
+                return False
+        return True
 
     def trigger_type(self):
         trigger = self.workflow.get_trigger()
         if trigger:
             return trigger.subtype
         return "unknown"
-
-    def is_complete(self):
-        return self.status == "complete"
 
     def as_dict(self):
         template = {
@@ -429,12 +449,12 @@ class Workflow(db.Model, LogMixin):
         return False
 
     def last_executed(self):
-        latest_result = self.results.order_by(Result.id.desc()).first()
-        if not latest_result:
+        latest_execution = self.executions.order_by(Execution.id.desc()).first()
+        if not latest_execution:
             return "never"
-        if not latest_result.date_added:
+        if not latest_execution.date_added:
             return "unknown"
-        return arrow.get(latest_result.date_added).humanize()
+        return arrow.get(latest_execution.date_added).humanize()
 
     def create_file(self, path, content):
         with open(path, 'w') as f:

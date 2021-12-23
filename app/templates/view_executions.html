@@ -53,7 +53,7 @@
                     <div class="markdown">
                       <div>
                         <div class="mb-3">
-                          <h1 class="m-0">Overview {%if execution.is_complete()%}<span class="badge bg-blue-lt ml-2">{{execution.status}}</span>{%else%}<span class="badge bg-yellow-lt ml-2">{{execution.status}}</span>{%endif%}</h1>
+                          <h1 class="m-0">Overview {%if execution.complete()%}<span class="badge bg-blue-lt ml-2">Complete</span>{%else%}<span class="badge bg-yellow-lt ml-2">Not Complete</span>{%endif%}</h1>
                           <div class="row mt-4">
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
@@ -62,8 +62,9 @@
                                   </div>
                                   <div class="card-body">
                                     <pre style="white-space:nowrap">
-                                    Workflow Name: {{execution.workflow.name}}<br>
+                                    Workflow Name: {{execution.workflow.name}} (ID: {{execution.workflow.id}})<br>
                                     Workflow Label: {{execution.workflow.label}}<br>
+                                    Paths: {{execution.paths.count()}}<br>
                                     Type: {{execution.trigger_type()}}<br>
                                     Start Time: {{execution.date_added}}<br>
                                     </pre>
@@ -78,7 +79,7 @@
                                     <h3 class="card-title">Return Value</h3>
                                   </div>
                                   <div class="card-body">
-                                    <pre>{{execution.return_value}}</pre>
+                                    <pre>{{execution.get_return_value()}}</pre>
                                   </div>
                                 </div>
                               </div>
@@ -87,7 +88,7 @@
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
                                   <div class="card-header">
-                                    <h3 class="card-title">Execution Time ({{execution.execution_time}} s)</h3>
+                                    <h3 class="card-title">Execution Time ({{execution.execution_time()}} s)</h3>
                                   </div>
                                   <table class="table card-table table-vcenter">
                                     <thead>
@@ -97,23 +98,20 @@
                                         <th colspan="2">Time (s)</th>
                                       </tr>
                                     </thead>
-                                    <tbody>
-                                      {%if execution.paths%}
-                                      {%for path in execution.paths%}
-                                      {%for hash,data in path.items()%}
+                                    <tbody> <!--haaaaaaaa-->
+                                      {%for path in execution.paths.all()%}
+                                      {%set time = path.execution_time()%}
                                       <tr>
-                                        <td><small class="subheader">{%if hash == execution.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{hash}}</small></td>
-                                        <td><span class="badge bg-dark">{{data["execution"]|length}}</span></td>
-                                        <td><span class="badge bg-dark">{{data.get("execution_time")}}</span></td>
+                                        <td><small class="subheader">{%if path.hash == execution.return_hash%}<i class="ti ti-circle-check text-green mr-2"></i>{%endif%}{{path.hash}}</small></td>
+                                        <td><span class="badge bg-dark">{{path.steps.count()}}</span></td>
+                                        <td><span class="badge bg-dark">{{time}}</span></td>
                                         <td class="w-50">
                                           <div class="progress progress-xs">
-                                            <div class="progress-bar bg-primary" style="width: {%if execution.execution_time%}{{(data.get("execution_time",0)/execution.execution_time)*100}}%{%endif%}"></div>
+                                            <div class="progress-bar bg-primary" style="width: {%if time%}{{(time/execution.execution_time())*100}}%{%else%}1%{%endif%}"></div>
                                           </div>
                                         </td>
                                       </tr>
                                       {%endfor%}
-                                      {%endfor%}
-                                      {%endif%}
                                     </tbody>
                                   </table>
                                 </div>
@@ -126,7 +124,7 @@
                                     <h3 class="card-title">Log</h3>
                                   </div>
                                   <div class="card-body">
-                                    <pre>{%if execution.log%}{%for log in execution.log.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
+                                    <pre>{%if execution.logs%}{%for log in execution.logs.split("\n")%}{{log}}<br>{%endfor%}{%endif%}</pre>
                                   </div>
                                 </div>
                               </div>

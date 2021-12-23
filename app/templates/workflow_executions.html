@@ -43,9 +43,8 @@
                 <thead>
                   <tr>
                     <th>ID</th>
-                    <th>Status</th>
-                    <th>Start</th>
                     <th>Finished</th>
+                    <th>Start</th>
                     <th>Paths</th>
                     <th>Return Value</th>
                     <th class="w-1">View</th>
@@ -53,14 +52,13 @@
                 </thead>
                 <tbody>
                   {%for execution in executions%}
-                  {%set finished = execution.finished()%}
+                  {%set complete = execution.complete()%}
                   <tr>
                     <td class="subheader">{{execution.id}}</td>
-                    <td><span class="badge {%if execution.is_complete()%}bg-green-lt{%elif execution.status == "failed"%}bg-red-lt{%else%}bg-yellow-lt{%endif%}">{{execution.status}}</span></td>
+                    <td><span class="badge {%if complete%}bg-green-lt{%else%}bg-yellow-lt{%endif%}">{{complete}}</span></td>
                     <td class="subheader">{{execution.date_added}}</td>
-                    <td>{%if execution.status != "complete"%}<span class="badge bg-gray-lt">never</span>{%else%}{%if finished == "never"%}<span class="badge bg-gray-lt">{{finished}}</span>{%else%}<span class="badge bg-blue-lt">{{finished}}</span>{%endif%}{%endif%}</td>
-                    <td><span class="badge bg-blue-lt">{%if execution.paths%}{{execution.paths|length}}{%else%}0{%endif%}</span></td>
-                    <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{execution.return_value}}</div></td>
+                    <td><span class="badge bg-blue-lt">{{execution.paths.count()}}</span></td>
+                    <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{execution.get_return_value()}}</div></td>
                     <td class="text-center">
                       <a href="{{url_for("main.view_executions_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}"><i class="ti ti-report-analytics"></i></a>
                     </td>
@@ -78,7 +76,7 @@
 {%block extrajs%}
 <script>
   $(document).ready(function() {
-    $('#example').DataTable({"pageLength":50,"order": [[ 0, "desc" ]]});
+    $('#example').DataTable({"pageLength":25,"order": [[ 0, "desc" ]]});
   } );
 </script>
 {% endblock %}

@@ -30,11 +30,13 @@ class HiddenPrints:
         sys.stdout = self._original_stdout
 
 class WorkflowRunner():
-    def __init__(self, execution_id, save_to_db=True, print_debug=False,request={}, response={}):
+    def __init__(self, execution_id, save_to_db=True, step_hash=None, path_hash=None, print_debug=False,request={}, response={}):
         self.date_started = datetime.utcnow()
         self.request = request
         self.response = response
+        self.path_hash = path_hash
         self.print_debug = print_debug
+        self.step_hash = step_hash
         self.failed = False
         self.execution_id = execution_id
         self.save_to_db = save_to_db
@@ -53,11 +55,11 @@ class WorkflowRunner():
         self.execution = self.get_execution_object()
         self.execution_results = self.get_results_for_execution()
 
-    def start(self,path_hash=None):
+    def start(self):
         paths = []
         for tree in self.workflow_map.get("paths",[]):
-            if path_hash:
-                if path_hash in tree:
+            if self.path_hash:
+                if self.path_hash in tree:
                     paths.append(tree)
             else:
                 paths.append(tree)
@@ -244,16 +246,16 @@ class WorkflowRunner():
                 self.add_to_path_logs("info","Starting workflow execution path:{}. Total steps:{}".format(path_hash,len(steps)))
                 self.add_to_path_logs("info","Path direction: {}".format(steps))
                 for previous_step, current_step in zip(steps, steps[1:]):
+                    step = self.get_step_object(current_step["hash"])
                     self.step_dict = {"status":"in progress","complete":False,"execution_time":0,"result":None,"logs":""}
                     upsert_step = True
                     if current_step.get("enabled"):
-                        if current_step.get("pause") and not self.resume:
+                        if current_step.get("pause") and self.step_hash != current_step["hash"]:
                             self.add_to_step_logs("info","Pausing the path:{} on block:{}".format(path_hash,current_step["name"]))
                             self.step_dict["status"] = "paused"
                             break
                         else:
                             # get result/previous by hash
-                            step = self.get_step_object(current_step["hash"])
                             if not step.complete:
                                 before_execution = datetime.utcnow()
                                 self.add_to_step_logs("info","Executing the block:{}".format(current_step["name"]))
@@ -283,10 +285,10 @@ class WorkflowRunner():
                         self.step_dict["complete"] = True
                         break
 
-                    # end of step
-                    if upsert_step:
-                        self.execution_results[current_step["hash"]] = self.step_dict["result"]
-                        self.update_step(step,self.step_dict)
+                # end of step
+                if upsert_step:
+                    self.execution_results[current_step["hash"]] = self.step_dict["result"]
+                    self.update_step(step,self.step_dict)
 
             # end of path
             if upsert_path:
@@ -303,7 +305,9 @@ if __name__ == "__main__":
     parser.add_argument('--execution_id', type=int,
                     help='execution ID for the workflow')
     parser.add_argument('--path_hash', type=str,
-                    help='hash of the path to resume (only used if resume is set)')
+                    help='hash of the path to run')
+    parser.add_argument('--step_hash', type=str,
+                    help='step to execute of a paused path')
     parser.add_argument('--request', type=str,
                     help='request that can be passed to the router')
     parser.add_argument('--print', action='store_true',
@@ -315,5 +319,6 @@ if __name__ == "__main__":
         raise ValueError("execution_id is required")
     if args.request:
         request = json.loads(args.request)
-    workflow = WorkflowRunner(execution_id=args.execution_id,request=request,print_debug=args.print)
-    workflow.start(path_hash=args.path_hash)
+    workflow = WorkflowRunner(execution_id=args.execution_id,request=request,
+        print_debug=args.print,path_hash=args.path_hash,step_hash=args.step_hash)
+    workflow.start()

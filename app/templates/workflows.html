@@ -54,7 +54,7 @@
                     <th>Type</th>
                     <th>Last Run</th>
                     <th>Runs</th>
-                    <th class="w-1">Results</th>
+                    <th class="w-1">Executions</th>
                     <th class="w-1">Graph</th>
                     <th class="w-1">Access</th>
                   </tr>
@@ -70,9 +70,9 @@
                     <td>{%if workflow.enabled%}<span class="badge bg-green-lt">{{workflow.enabled}}</span>{%else%}<span class="badge bg-red-lt">{{workflow.enabled}}</span>{%endif%}</td>
                     <td>{%if trigger%}<span class="badge bg-yellow-lt">{{trigger.subtype}}</span>{%else%}<span class="badge bg-red-lt">Missing</span>{%endif%}</td>
                     <td>{%if last_executed == "never"%}<span class="badge bg-gray-lt">{{last_executed}}</span>{%else%}<span class="badge bg-blue-lt">{{last_executed}}</span>{%endif%}</td>
-                    <td><span class="badge bg-blue-lt">{{workflow.results.count()}}</span></td>
+                    <td><span class="badge bg-blue-lt">{{workflow.executions.count()}}</span></td>
                     <td class="text-center">
-                      <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}"><i class="ti ti-report-analytics"></i></a>
+                      <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}"><i class="ti ti-report-analytics"></i></a>
                     </td>
                     <td class="text-center">
                       <a href="{{url_for("main.view_workflow",id=workflow.id)}}"><i class="ti ti-vector-beizer-2"></i></a>
@@ -94,7 +94,7 @@
 {%block extrajs%}
 <script>
   $(document).ready(function() {
-    $('#example').DataTable({"pageLength":50,"order": [[ 0, "desc" ]]});
+    $('#example').DataTable({"pageLength":25,"order": [[ 0, "desc" ]]});
     {%if not workflows%}
       notify_js("Create an workflow to get started!", type = "primary",time=1000)
     {%endif%}
