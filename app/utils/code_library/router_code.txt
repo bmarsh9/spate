@@ -197,6 +197,7 @@ class WorkflowRunner():
     def complete_execution(self):
         self.execution.user_messages = self.get_debug_logs(as_list=False)
         self.execution.logs = self.wf_logs
+        self.execution.failed = self.failed
         self.db_session.commit()
         return True
 

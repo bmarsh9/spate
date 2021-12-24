@@ -115,16 +115,16 @@
                                 <tr>
                                   <th>Step</th>
                                   <th>Status</th>
-                                  <th style="width:60%">Result</th>
+                                  <th style="width:40%">Result</th>
                                   <th colspan="2">Execution Time</th>
                                 </tr>
                               </thead>
                               <tbody>
                                 {%for step in path.get_path_order()%}
-                                <tr>
-                                  <td class="subheader">({{step.id}}) - {{step.name}}</td>
+                                <tr id="{{step.id}}" class="cursor-pointer result">
+                                  <td class="subheader text-primary">({{step.id}}) - {{step.name}}</td>
                                   <td class="subheader">{%if step.complete%}<span class="badge bg-green-lt ms-auto">{{step.status}}</span>{%else%}<span class="badge bg-yellow-lt ms-auto">{{step.status}}</span>{%endif%}</td>
-                                  <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{step.result}}</div></td>
+                                  <td class="subheader">{{step.result}}</td>
                                   <td class="subheader">{{step.execution_time}}</td>
                                   <td class="w-50">
                                     <div class="progress progress-xs">
@@ -159,5 +159,43 @@
       </div>
     </div>
   </div>
+  <div class="modal modal-blur fade" id="operator-result" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Step Result</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <pre><code id="modal-result"></code></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('.result').click(function(){
+      $.ajax({
+        url: "/api/v1/steps/"+$(this).attr('id')+"/results",
+        type: "GET",
+        success: function (response) {
+          $("#operator-result").modal("show");
+          $("#modal-result").html(response["result"])
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

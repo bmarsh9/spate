@@ -497,6 +497,13 @@ def get_input_code(id,input_name):
         return jsonify({"message":"input not found"}),404
     return jsonify({"code":"test code"})
 
+@api.route('/steps/<int:id>/results', methods=['GET'])
+@login_required
+def get_results_for_step(id):
+    step = Step.query.get(id)
+    if not step:
+        return jsonify({"message":"step not found"}),404
+    return jsonify({"result":step.result})
 #----------------------------------------FORM-----------------------------------------
 @api.route("/forms", methods=["POST"])
 @login_required

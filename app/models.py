@@ -222,6 +222,7 @@ class Execution(db.Model, LogMixin):
     uuid = db.Column(db.String())
     return_hash = db.Column(db.String())
     user_messages = db.Column(db.String(),default="")
+    failed = db.Column(db.Boolean, default=False)
     logs = db.Column(db.String(),default="")
     paths = db.relationship('Path', backref='execution', lazy='dynamic')
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=False)
