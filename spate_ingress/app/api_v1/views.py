@@ -12,15 +12,15 @@ def get_health():
         "message":current_app.config["APP_NAME"],
         "version":current_app.config["VERSION"],
         "routes":[
-            {"endpoint":"/api/v1/results/<string:result_uuid>","desc":"view results of execution"},
+            {"endpoint":"/api/v1/executions/<string:execution_uuid>","desc":"view executions of the workflow"},
             {"endpoint":"/api/v1/endpoints/<string:workflow_uuid>","desc":"execute workflow via API route"},
             {"endpoint":"/intake/<string:form_name>","desc":"execute workflow via Form route"},
         ]
     })
 
-@api.route('/results/<string:result_name>', methods=['GET'])
+@api.route('/executions/<string:execution_uuid>', methods=['GET'])
 @token_required
-def get_result_status(result_name):
+def get_result_status(execution_uuid):
     result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == result_name).first()
     if not result:
         return jsonify({"message":"result does not exist"}),404
