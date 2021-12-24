@@ -58,6 +58,9 @@ class WorkflowRunner():
         if "SQLALCHEMY_DATABASE_URL" in self.config: del self.config["SQLALCHEMY_DATABASE_URL"]
 
     def start(self):
+        if self.failed:
+            self.complete_execution()
+            return False
         paths = []
         for tree in self.workflow_map.get("paths",[]):
             if self.path_hash:
@@ -250,6 +253,9 @@ class WorkflowRunner():
                 self.add_to_path_logs("info","Path direction: {}".format(steps))
                 break_path = False
                 for previous_step, current_step in zip(steps, steps[1:]):
+                  if self.failed:
+                      self.complete_execution()
+                      return False
                   if not break_path:
                     step = self.get_step_object(current_step["hash"])
                     self.step_dict = {"status":"in progress","complete":False,"execution_time":0,"result":None,"logs":""}

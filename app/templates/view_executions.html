@@ -53,7 +53,7 @@
                     <div class="markdown">
                       <div>
                         <div class="mb-3">
-                          <h1 class="m-0">Overview {%if execution.complete()%}<span class="badge bg-blue-lt ml-2">Complete</span>{%else%}<span class="badge bg-yellow-lt ml-2">Not Complete</span>{%endif%}</h1>
+                          <h1 class="m-0">Overview {%if execution.failed%}<span class="badge bg-red-lt ml-2">Failed</span>{%elif execution.complete()%}<span class="badge bg-blue-lt ml-2">Complete</span>{%else%}<span class="badge bg-yellow-lt ml-2">Not Complete</span>{%endif%}</h1>
                           <div class="row mb-2 mt-3">
                               <div class="col-md-12 col-lg-12">
                                 <div class="card">
