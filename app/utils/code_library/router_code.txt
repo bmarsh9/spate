@@ -201,7 +201,7 @@ class WorkflowRunner():
         return True
 
     def update_path(self,path,path_dict):
-        path.logs = path_dict["logs"]
+        path.logs += path_dict["logs"]
         self.db_session.commit()
         return True
 
@@ -209,7 +209,7 @@ class WorkflowRunner():
         step.execution_time = step_dict["execution_time"]
         step.result = str(step_dict["result"])
         step.complete = step_dict["complete"]
-        step.logs = step_dict["logs"]
+        step.logs += step_dict["logs"]
         step.status = step_dict["status"]
         self.db_session.commit()
         return True
@@ -278,11 +278,11 @@ class WorkflowRunner():
                                 if result == False:
                                     self.add_to_step_logs("debug","Block:{} has returned False. Stopping the path".format(current_step["name"]))
                                     self.step_dict["status"] = "stopped"
-                                    break_path = True 
+                                    break_path = True
                                 else:
                                     self.step_dict["status"] = "complete"
                             else:
-                                self.add_to_step_logs("debug","Block:{} has already executed. Skipping".format(current_step["name"]))
+                                self.add_to_path_logs("debug","Block:{} has already executed. Skipping".format(current_step["name"]))
                                 upsert_step = False
                     else:
                         self.add_to_step_logs("debug","Block:{} is not enabled. Skipping".format(current_step["name"]))

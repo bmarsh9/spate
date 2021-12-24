@@ -51,7 +51,7 @@
         <div class="markdown">
           <div>
             <div class="mb-3">
-              <h1 class="m-0">Executions from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{{execution.paths.count()}}</span></h1>
+              <h1 class="m-0">Execution Paths<span class="badge bg-blue-lt ml-3 mb-1">{{execution.paths.count()}}</span></h1>
               <div class="row mt-3">
                 {%for path in execution.paths.all()%}
                 {%set paused_hash = path.get_paused_hash()%}
@@ -75,7 +75,7 @@
                               UUID: {{path.uuid}}<br>
                               Hash: {{path.hash}}<br>
                               {%if paused_hash%}
-                              Resume URL: /api/v1/executions/{{path.execution.id}}/steps/{{paused_hash}}
+                              URL to resume the execution: /api/v1/executions/{{path.execution.id}}/steps/{{paused_hash}}
                               {%endif%}
                               </pre>
                             </div>
@@ -114,8 +114,8 @@
                               <thead>
                                 <tr>
                                   <th>Step</th>
-                                  <th>Result</th>
                                   <th>Status</th>
+                                  <th style="width:60%">Result</th>
                                   <th colspan="2">Execution Time</th>
                                 </tr>
                               </thead>
@@ -123,8 +123,8 @@
                                 {%for step in path.get_path_order()%}
                                 <tr>
                                   <td class="subheader">({{step.id}}) - {{step.name}}</td>
-                                  <td class="subheader">{{step.result}}</td>
                                   <td class="subheader">{%if step.complete%}<span class="badge bg-green-lt ms-auto">{{step.status}}</span>{%else%}<span class="badge bg-yellow-lt ms-auto">{{step.status}}</span>{%endif%}</td>
+                                  <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{step.result}}</div></td>
                                   <td class="subheader">{{step.execution_time}}</td>
                                   <td class="w-50">
                                     <div class="progress progress-xs">
