@@ -198,7 +198,7 @@ class Path(db.Model, LogMixin):
         if step.status == "paused":
             return step.hash
         return None
-#haaaaaa
+
     def status(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
             if not step.complete:

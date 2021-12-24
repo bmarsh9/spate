@@ -538,7 +538,7 @@ def graph_get_workflow_executions():
         start,end = span
         categories.append("{}-{} days ago".format(start,end))
         for status in ["not started","in progress","complete","failed"]:
-            count = Execution.query.filter(Execution.date_added < now.shift(days=-start).datetime).filter(Execution.date_added > now.shift(days=-end).datetime).filter(Execution.status == status).count()
+            count = Step.query.filter(Step.date_added < now.shift(days=-start).datetime).filter(Step.date_added > now.shift(days=-end).datetime).filter(Step.status == status).count()
             data[status].append(count)
     series = []
     for key,value in data.items():
