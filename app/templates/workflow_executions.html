@@ -55,7 +55,7 @@
                   {%set complete = execution.complete()%}
                   <tr>
                     <td class="subheader">{{execution.id}}</td>
-                    <td>{%if execution.failed%}<span class="badge bg-red-lt">Failed</span>{%elif complete%}<span class="badge bg-green-lt">Complete</span>{%else%}<span class="badge bg-yellow-lt">{{complete}}</span>{%endif%}
+                    <td>{%if execution.failed%}<span class="badge bg-red-lt">Failed</span>{%elif execution.paused()%}<span class="badge bg-orange-lt">Paused</span>{%elif complete%}<span class="badge bg-green-lt">Complete</span>{%else%}<span class="badge bg-yellow-lt">{{complete}}</span>{%endif%}
                     <td class="subheader">{{execution.date_added}}</td>
                     <td><span class="badge bg-blue-lt">{{execution.paths.count()}}</span></td>
                     <td class="subheader"><div style="height: 30px !important;overflow: scroll;">{{execution.get_return_value()}}</div></td>

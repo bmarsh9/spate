@@ -46,6 +46,19 @@
     </ul>
   </div>
   <div class="col-lg-10">
+    {%if execution.paused()%}
+    <div class="alert alert-important alert-warning alert-dismissible" role="alert">
+          <div class="d-flex">
+            <div>
+              <i class="ti ti-alert-triangle icon mr-2"></i>
+            </div>
+            <div>
+              The execution is currently paused. Select the Paths below to get the URL to resume.
+            </div>
+          </div>
+          <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+    {%endif%}
     <div class="card card-lg">
       <div class="card-body">
         <div class="markdown">

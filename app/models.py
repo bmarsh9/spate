@@ -191,6 +191,12 @@ class Path(db.Model, LogMixin):
                 time += step.execution_time
         return time
 
+    def paused(self):
+        for step in self.steps.order_by(Step.id.asc()).all():
+            if step.status == "paused":
+                return True
+        return False
+
     def result(self):
         step = self.steps.order_by(Step.id.desc()).first()
         return step.result
@@ -248,6 +254,12 @@ class Execution(db.Model, LogMixin):
             if not path.complete():
                 return False
         return True
+
+    def paused(self):
+        for path in self.paths.all():
+            if path.paused():
+                return True
+        return False
 
     def trigger_type(self):
         trigger = self.workflow.get_trigger()

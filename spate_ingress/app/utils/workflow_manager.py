@@ -40,7 +40,8 @@ class WorkflowManager():
         step = current_app.db_session.query(current_app.Step).filter(current_app.Step.hash == hash).filter(current_app.Step.execution_id == execution_id).first()
         if step:
             return step
-        new_step = current_app.Step(uuid=self.generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id,date_added=datetime.utcnow())
+        new_step = current_app.Step(uuid=self.generate_uuid(),name=name,label=label,hash=hash,
+            execution_id=execution_id,status="not started",date_added=datetime.utcnow())
         current_app.db_session.add(new_step)
         current_app.db_session.commit()
         return new_step
