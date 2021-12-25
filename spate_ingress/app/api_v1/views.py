@@ -31,13 +31,19 @@ def get_result_status(execution_uuid):
     if not complete:
         return jsonify({"message":"execution is not complete",
             "complete":False})
+    logs = ""
+    if execution.logs:
+        logs = execution.logs.split("\n")
+    debug = ""
+    if execution.user_messages:
+        debug = execution.user_messages.split("\n")
     template = {
         "id":execution.id,
         "uuid":execution.uuid,
         "return_value":workflow.return_value_for_execution(execution.id, execution.return_hash),
         "return_hash":execution.return_hash,
-        "logs":execution.log.split("\n"),
-        "debug":execution.user_messages.split("\n"),
+        "logs":logs,
+        "debug":debug,
         "complete":True,
         "failed":execution.failed,
         "execution_time":workflow.execution_time_for_execution(execution.id),
