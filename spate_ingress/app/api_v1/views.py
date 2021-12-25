@@ -116,21 +116,20 @@ def submit_intake(workflow_id,name):
     redirect_url = "/workflows/{}/intake/{}/done?request_id={}".format(workflow.id,form.name,request_id)
     return jsonify({"message":"ok","url":redirect_url}),code
 
-@api.route('/intake/<string:name>/status', methods=['GET'])
-def get_intake_status(name):
-    if str(name) == "0":
+@api.route('/intake/<string:uuid>/status', methods=['GET'])
+def get_intake_status(uuid):
+    if str(uuid) == "0":
         return jsonify({"complete":False,"status":"failed",
             "message":"Hmmm... looks like an error occurred. We are looking into it."})
-    result = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == name).first()
-    if not result:
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == uuid).first()
+    if not execution:
         return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
 
-#haaaaaaaa
-#TODO
-    #workflow.is_execution_complete(execution.id)
-
-    if result.status != "complete":
-        return jsonify({"id":result.id,"name":result.name,"complete":False,
-            "status":result.status,"message":"[{}] Please wait...".format(result.status)})
-    return jsonify({"id":result.id,"uuid":result.uuid,"complete":True,
-        "status":result.status,"message":result.return_value})
+    workflow = WorkflowManager(execution.workflow_id)
+    complete = workflow.is_execution_complete(execution.id)
+    if not complete:
+        return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":False,
+            "message":"[{}] Please wait..."})
+    return_value = workflow.return_value_for_execution(execution.id, execution.return_hash)
+    return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":True,
+        "message":return_value})
