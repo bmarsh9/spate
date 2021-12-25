@@ -107,7 +107,7 @@ def submit_intake(workflow_id,name):
     try:
         result = WorkflowManager(workflow.id).run(workflow.name,
             request=request_to_json(request),subtype="form")
-        request_id = result.name
+        request_id = result.uuid
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
@@ -121,11 +121,16 @@ def get_intake_status(name):
     if str(name) == "0":
         return jsonify({"complete":False,"status":"failed",
             "message":"Hmmm... looks like an error occurred. We are looking into it."})
-    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == name).first()
+    result = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == name).first()
     if not result:
         return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
+
+#haaaaaaaa
+#TODO
+    #workflow.is_execution_complete(execution.id)
+
     if result.status != "complete":
         return jsonify({"id":result.id,"name":result.name,"complete":False,
             "status":result.status,"message":"[{}] Please wait...".format(result.status)})
-    return jsonify({"id":result.id,"name":result.name,"complete":True,
+    return jsonify({"id":result.id,"uuid":result.uuid,"complete":True,
         "status":result.status,"message":result.return_value})
