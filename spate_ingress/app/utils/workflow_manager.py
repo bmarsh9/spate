@@ -40,7 +40,7 @@ class WorkflowManager():
         step = current_app.db_session.query(current_app.Step).filter(current_app.Step.hash == hash).filter(current_app.Step.execution_id == execution_id).first()
         if step:
             return step
-        new_step = current_app.Step(uuid=self.generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id)
+        new_step = current_app.Step(uuid=self.generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id,date_added=datetime.utcnow())
         current_app.db_session.add(new_step)
         current_app.db_session.commit()
         return new_step
@@ -50,14 +50,14 @@ class WorkflowManager():
         tree = workflow.map
         # create execution object
         execution = current_app.Execution(uuid=self.generate_uuid(),return_hash=tree["return_path"],
-            workflow_id=self.workflow_id)
+            workflow_id=self.workflow_id,date_added=datetime.utcnow())
         current_app.db_session.add(execution)
         current_app.db_session.flush()
 
         # create all paths and associate them to the steps
         for path in tree["paths"]:
             for path_hash,steps in path.items():
-                new_path = current_app.Path(hash=path_hash,uuid=self.generate_uuid(),execution_id=execution.id)
+                new_path = current_app.Path(hash=path_hash,uuid=self.generate_uuid(),execution_id=execution.id,date_added=datetime.utcnow())
                 current_app.db_session.add(new_path)
                 current_app.db_session.flush()
                 for previous_step, current_step in zip(steps, steps[1:]):
@@ -81,7 +81,9 @@ class WorkflowManager():
         if not path:
             return {}
         steps = self.get_steps_for_path(path.id)
-        return steps[-1]
+        if steps:
+            return steps[-1].result
+        return {}
 
     def execution_time_for_execution(self, execution_id):
         time = 0
@@ -138,13 +140,19 @@ class WorkflowManager():
 
         if trigger.synchronous:
             execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == execution.id).first()
+            logs = ""
+            if execution.logs:
+                logs = execution.logs.split("\n")
+            debug = ""
+            if execution.user_messages:
+                debug = execution.user_messages.split("\n")
             response = {
                 "id":execution.id,
                 "uuid":execution.uuid,
                 "return_value":self.return_value_for_execution(execution.id, execution.return_hash),
                 "return_hash":execution.return_hash,
-                "logs":execution.log.split("\n"),
-                "debug":execution.user_messages.split("\n"),
+                "logs":logs,
+                "debug":debug,
                 "complete":self.is_execution_complete(execution.id),
                 "failed":execution.failed,
                 "execution_time":self.execution_time_for_execution(execution.id),
