@@ -268,12 +268,20 @@ class Execution(db.Model, LogMixin):
         return "unknown"
 
     def as_dict(self):
+        debug = ""
+        logs = ""
+        if self.logs:
+            logs = self.logs.split("\n")
+        if self.user_messages:
+            debug = self.user_messages.split("\n")
         template = {
             "id":self.id,
             "return_value":self.get_return_value(),
             "return_hash":self.return_hash,
-            "debug":self.user_messages.split("\n"),
+            "logs":logs,
+            "debug":debug,
             "complete":self.complete(),
+            "paused":self.paused(),
             "execution_time":self.execution_time(),
             "date_requested":str(self.date_added),
         }
