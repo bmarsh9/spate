@@ -150,6 +150,7 @@ class PathSteps(db.Model):
 class Step(db.Model, LogMixin):
     __tablename__ = 'steps'
     id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
     hash = db.Column(db.String(),nullable=False)
@@ -167,7 +168,7 @@ class Step(db.Model, LogMixin):
         step = Step.query.filter(Step.hash == hash).filter(Step.execution_id == execution_id).first()
         if step:
             return step
-        new_step = Step(name=name,label=label,hash=hash,execution_id=execution_id)
+        new_step = Step(uuid=generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id)
         db.session.add(new_step)
         db.session.commit()
         return new_step
@@ -282,6 +283,7 @@ class Workflow(db.Model, LogMixin):
     description = db.Column(db.String())
     imports = db.Column(db.String())
     log_level = db.Column(db.String(),default="info")
+    map = db.Column(db.JSON(),default="{}")
     config = db.Column(db.JSON(),default="{}")
     lockers = db.relationship('Locker', secondary='assoc_lockers', lazy='dynamic')
     operators = db.relationship('Operator', backref='workflow', lazy='dynamic')
@@ -555,8 +557,11 @@ class Workflow(db.Model, LogMixin):
             if not os.path.exists(op_dir):
                 os.mkdir(op_dir)
             operator.create_code_folder(op_dir)
+        map = self.path_tree()
+        self.map = map
+        db.session.commit()
         self.create_file(os.path.join(workflow_dir,"router.py"),default_router_code(workflow_dir))
-        self.create_file(os.path.join(workflow_dir,"workflow_map.json"),json.dumps(self.path_tree(),indent=4))
+        self.create_file(os.path.join(workflow_dir,"workflow_map.json"),json.dumps(map,indent=4))
         self.create_file(os.path.join(workflow_dir,"config.ini"),self.to_config_file())
         self.create_file(os.path.join(workflow_dir,"store.json"),"{}")
         self.create_file(os.path.join(workflow_dir,"__init__.py"),"")

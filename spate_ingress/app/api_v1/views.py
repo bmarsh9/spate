@@ -14,6 +14,7 @@ def get_health():
         "routes":[
             {"endpoint":"/api/v1/executions/<string:execution_uuid>","desc":"view executions of the workflow"},
             {"endpoint":"/api/v1/endpoints/<string:workflow_uuid>","desc":"execute workflow via API route"},
+            {"endpoint":"/api/v1/endpoints/<string:step_uuid>/resume","desc":"resume execution of workflow step"},
             {"endpoint":"/intake/<string:form_name>","desc":"execute workflow via Form route"},
         ]
     })
@@ -21,26 +22,51 @@ def get_health():
 @api.route('/executions/<string:execution_uuid>', methods=['GET'])
 @token_required
 def get_result_status(execution_uuid):
-    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == result_name).first()
-    if not result:
-        return jsonify({"message":"result does not exist"}),404
-    if result.status != "complete":
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == execution_uuid).first()
+    if not execution:
+        return jsonify({"message":"execution does not exist"}),404
+
+    workflow = WorkflowManager(execution.workflow_id)
+    complete = workflow.is_execution_complete(execution.id)
+    if not complete:
         return jsonify({"message":"execution is not complete",
-            "complete":False,"status":result.status})
+            "complete":False})
     template = {
-        "id":result.id,
-        "name":result.name,
-        "return_value":result.return_value,
-        "return_hash":result.return_hash,
-        "paths":result.paths,
-        "logs":result.log.split("\n"),
-        "debug":result.user_messages.split("\n"),
+        "id":execution.id,
+        "uuid":execution.uuid,
+        "return_value":workflow.return_value_for_execution(execution.id, execution.hash),
+        "return_hash":execution.return_hash,
+        "logs":execution.log.split("\n"),
+        "debug":execution.user_messages.split("\n"),
         "complete":True,
-        "status":result.status,
-        "execution_time":result.execution_time,
-        "date_requested":str(result.date_added),
+        "failed":execution.failed,
+        "execution_time":workflow.execution_time_for_execution(execution.id),
+        "date_requested":str(execution.date_added),
     }
     return jsonify(template)
+
+@api.route('/endpoints/<string:step_uuid>/resume', methods=['POST'])
+def resume_workflow_execution(step_uuid):
+    step = current_app.db_session.query(current_app.Step).filter(current_app.Step.uuid == step_uuid).first()
+    if not step:
+        return jsonify({"message":"step not found"}),404
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == step.execution_id).first()
+    if not execution:
+        return jsonify({"message":"execution not found"}),404
+    data = request.get_json()
+    response = data.get("response")
+    if not response:
+        return jsonify({"message":"<response> key is missing from the payload"}),400
+    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == execution.workflow_id).first()
+#haaaaaa
+    try:
+        results = WorkflowManager(workflow.id).resume(workflow.name,execution,step,response)
+        code = 200
+    except Exception as e:
+        logging.error("An error occurred upon resuming workflow execution:{}. Execution:{}. Error:{}".format(workflow.name,execution.id,str(e)))
+        results = str(e)
+        code = 500
+    return jsonify({"response":results}),code
 
 @api.route('/endpoints/<string:workflow_uuid>', methods=['GET'])
 def execute_api_workflow(workflow_uuid):

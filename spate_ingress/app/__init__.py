@@ -24,6 +24,7 @@ def create_app(config_name="default"):
     app.Execution = getattr(db.classes,"executions")
     app.Path = getattr(db.classes,"paths")
     app.Step = getattr(db.classes,"steps")
+    app.PathSteps = getattr(db.classes,"path_steps")
     app.IntakeForm = getattr(db.classes,"intake_forms")
 
     app.docker_client = docker.from_env()
