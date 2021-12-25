@@ -205,7 +205,10 @@ class WorkflowRunner():
         return True
 
     def update_path(self,path,path_dict):
-        path.logs += path_dict["logs"]
+        if path.logs == None:
+            path.logs = path_dict["logs"]
+        else:
+            path.logs += path_dict["logs"]
         self.db_session.commit()
         return True
 
@@ -213,7 +216,10 @@ class WorkflowRunner():
         step.execution_time = step_dict["execution_time"]
         step.result = str(step_dict["result"])
         step.complete = step_dict["complete"]
-        step.logs += step_dict["logs"]
+        if step.logs == None:
+            step.logs = step_dict["logs"]
+        else:
+            step.logs += step_dict["logs"]
         step.status = step_dict["status"]
         self.db_session.commit()
         return True

@@ -40,7 +40,7 @@ class WorkflowManager():
         step = current_app.db_session.query(current_app.Step).filter(current_app.Step.hash == hash).filter(current_app.Step.execution_id == execution_id).first()
         if step:
             return step
-        new_step = current_app.Step(name=name,label=label,hash=hash,execution_id=execution_id)
+        new_step = current_app.Step(uuid=self.generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id)
         current_app.db_session.add(new_step)
         current_app.db_session.commit()
         return new_step
@@ -50,7 +50,7 @@ class WorkflowManager():
         tree = workflow.map
         # create execution object
         execution = current_app.Execution(uuid=self.generate_uuid(),return_hash=tree["return_path"],
-            workflow_id=workflow_id)
+            workflow_id=self.workflow_id)
         current_app.db_session.add(execution)
         current_app.db_session.flush()
 
@@ -58,12 +58,14 @@ class WorkflowManager():
         for path in tree["paths"]:
             for path_hash,steps in path.items():
                 new_path = current_app.Path(hash=path_hash,uuid=self.generate_uuid(),execution_id=execution.id)
+                current_app.db_session.add(new_path)
+                current_app.db_session.flush()
                 for previous_step, current_step in zip(steps, steps[1:]):
                     step_hash = self.create_hash_for_steps(steps[:steps.index(current_step)])
                     step = self.find_or_create_step(current_step["name"],current_step["label"],step_hash,execution.id)
-                    new_path.steps.append(step)
-                db.session.add(new_path)
-                db.session.commit()
+                    ps = current_app.PathSteps(step_id=step.id,path_id=new_path.id)
+                    current_app.db_session.add(ps)
+                current_app.db_session.commit()
         return execution
 
     def get_steps_for_path(self,path_id):
@@ -139,7 +141,7 @@ class WorkflowManager():
             response = {
                 "id":execution.id,
                 "uuid":execution.uuid,
-                "return_value":self.return_value_for_execution(execution.id, execution.hash),
+                "return_value":self.return_value_for_execution(execution.id, execution.return_hash),
                 "return_hash":execution.return_hash,
                 "logs":execution.log.split("\n"),
                 "debug":execution.user_messages.split("\n"),

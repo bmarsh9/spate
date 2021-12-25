@@ -34,7 +34,7 @@ def get_result_status(execution_uuid):
     template = {
         "id":execution.id,
         "uuid":execution.uuid,
-        "return_value":workflow.return_value_for_execution(execution.id, execution.hash),
+        "return_value":workflow.return_value_for_execution(execution.id, execution.return_hash),
         "return_hash":execution.return_hash,
         "logs":execution.log.split("\n"),
         "debug":execution.user_messages.split("\n"),

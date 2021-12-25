@@ -187,7 +187,8 @@ class Path(db.Model, LogMixin):
     def execution_time(self):
         time = 0
         for step in self.steps.all():
-            time += step.execution_time
+            if step.execution_time:
+                time += step.execution_time
         return time
 
     def result(self):
