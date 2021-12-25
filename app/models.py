@@ -194,10 +194,10 @@ class Path(db.Model, LogMixin):
         step = self.steps.order_by(Step.id.desc()).first()
         return step.result
 
-    def get_paused_hash(self):
+    def get_paused_uuid(self):
         step = self.status(as_object=True)
         if step.status == "paused":
-            return step.hash
+            return step.uuid
         return None
 
     def status(self,as_object=False):

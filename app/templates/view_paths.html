@@ -54,7 +54,7 @@
               <h1 class="m-0">Execution Paths<span class="badge bg-blue-lt ml-3 mb-1">{{execution.paths.count()}}</span></h1>
               <div class="row mt-3">
                 {%for path in execution.paths.all()%}
-                {%set paused_hash = path.get_paused_hash()%}
+                {%set paused_uuid = path.get_paused_uuid()%}
                 <div class="accordion mt-2" id="accordion{{path.hash}}">
                   <div class="accordion-item">
                     <h2 class="accordion-header" id="heading{{path.hash}}">
@@ -74,8 +74,8 @@
                               <pre style="white-space:nowrap">
                               UUID: {{path.uuid}}<br>
                               Hash: {{path.hash}}<br>
-                              {%if paused_hash%}
-                              URL to resume the execution: /api/v1/executions/{{path.execution.id}}/steps/{{paused_hash}}
+                              {%if paused_uuid%}
+                              URL to resume the execution: /api/v1/endpoints/{{paused_uuid}}/resume
                               {%endif%}
                               </pre>
                             </div>

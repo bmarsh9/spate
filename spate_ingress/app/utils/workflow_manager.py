@@ -103,7 +103,6 @@ class WorkflowManager():
         return True
 
     def resume(self,name,execution,step,response,env={}):
-#haaaaaaa
         container = self.find_container_by_workflow_name(name)
         if not container:
             raise ValueError("Container not found. Please refresh it.")

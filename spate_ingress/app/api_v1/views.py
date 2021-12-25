@@ -58,7 +58,6 @@ def resume_workflow_execution(step_uuid):
     if not response:
         return jsonify({"message":"<response> key is missing from the payload"}),400
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == execution.workflow_id).first()
-#haaaaaa
     try:
         results = WorkflowManager(workflow.id).resume(workflow.name,execution,step,response)
         code = 200
