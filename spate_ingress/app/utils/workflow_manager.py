@@ -9,10 +9,21 @@ import hashlib
 class WorkflowManager():
     def __init__(self, workflow_id):
         self.workflow_id = workflow_id
+        self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
 
-    def verify_auth_token(token):
-        workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == self.workflow_id).first()
-        s = Serializer(workflow.secret_key)
+    def verify_token_in_request(self,request):
+        if not self.workflow.auth_required:
+            return True
+        token = request.headers.get("token")
+        if not token:
+            return False
+        token_ok = self.verify_auth_token(token)
+        if not token_ok:
+            return False
+        return True
+
+    def verify_auth_token(self, token):
+        s = Serializer(self.workflow.secret_key)
         try:
             data = s.loads(token)
         except SignatureExpired:
@@ -22,8 +33,7 @@ class WorkflowManager():
         return True
 
     def generate_auth_token(self, expiration = 6000):
-        workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == self.workflow_id).first()
-        s = Serializer(workflow.secret_key, expires_in = expiration)
+        s = Serializer(self.workflow.secret_key, expires_in = expiration)
         return s.dumps({ 'workflow_id': self.workflow_id })
 
     def get_trigger(self,subtype):
@@ -64,8 +74,7 @@ class WorkflowManager():
         return new_step
 
     def add_execution(self):
-        workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == self.workflow_id).first()
-        tree = workflow.map
+        tree = self.workflow.map
         # create execution object
         execution = current_app.Execution(uuid=self.generate_uuid(),return_hash=tree["return_path"],
             workflow_id=self.workflow_id,date_added=datetime.utcnow())
@@ -124,8 +133,8 @@ class WorkflowManager():
                 return False
         return True
 
-    def resume(self,name,execution,step,response,env={}):
-        container = self.find_container_by_workflow_name(name)
+    def resume(self,execution,step,response,env={}):
+        container = self.find_container_by_workflow_name(self.workflow.name)
         if not container:
             raise ValueError("Container not found. Please refresh it.")
 
@@ -140,11 +149,11 @@ class WorkflowManager():
         }
         return response
 
-    def run(self,name,env={},request={},subtype="api"):
+    def run(self,env={},request={},subtype="api"):
         trigger = self.get_trigger(subtype=subtype)
         if not trigger:
             raise ValueError("Trigger not found. Please add an API trigger.")
-        container = self.find_container_by_workflow_name(name)
+        container = self.find_container_by_workflow_name(self.workflow.name)
         if not container:
             raise ValueError("Container not found. Please refresh it.")
 

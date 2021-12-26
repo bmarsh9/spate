@@ -301,6 +301,7 @@ class Workflow(db.Model, LogMixin):
     secret_key = db.Column(db.String())
     label = db.Column(db.String())
     base_image = db.Column(db.String())
+    auth_required = db.Column(db.Boolean, default=False)
     enabled = db.Column(db.Boolean, default=False)
     refresh_required = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())

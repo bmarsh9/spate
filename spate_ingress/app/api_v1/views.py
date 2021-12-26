@@ -20,13 +20,15 @@ def get_health():
     })
 
 @api.route('/executions/<string:execution_uuid>', methods=['GET'])
-@token_required
 def get_result_status(execution_uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == execution_uuid).first()
     if not execution:
         return jsonify({"message":"execution does not exist"}),404
 
     workflow = WorkflowManager(execution.workflow_id)
+    if not workflow.verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
+
     complete = workflow.is_execution_complete(execution.id)
     if not complete:
         return jsonify({"message":"execution is not complete",
@@ -59,13 +61,15 @@ def resume_workflow_execution(step_uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == step.execution_id).first()
     if not execution:
         return jsonify({"message":"execution not found"}),404
+    workflow = WorkflowManager(execution.workflow_id)
+    if not workflow.verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
     response = request_to_json(request)
-    workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == execution.workflow_id).first()
     try:
-        results = WorkflowManager(workflow.id).resume(workflow.name,execution,step,response)
+        results = workflow.resume(execution,step,response)
         code = 200
     except Exception as e:
-        logging.error("An error occurred upon resuming workflow execution:{}. Execution:{}. Error:{}".format(workflow.name,execution.id,str(e)))
+        logging.error("An error occurred upon resuming execution:{}. Error:{}".format(execution.id,str(e)))
         results = str(e)
         code = 500
     return jsonify({"response":results}),code
@@ -77,9 +81,10 @@ def execute_api_workflow(workflow_uuid):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
+    if not WorkflowManager(workflow.id).verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
     try:
-        results = WorkflowManager(workflow.id).run(workflow.name,
-            request=request_to_json(request))
+        results = WorkflowManager(workflow.id).run(request=request_to_json(request))
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the API trigger:{}. Error:{}".format(workflow.name,str(e)))
@@ -94,6 +99,8 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
+    if not WorkflowManager(workflow_id).verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
     form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
     if not form:
         return jsonify({"message":"form not found"}),404
@@ -102,8 +109,7 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"trigger not found"}),404
     # result returns the name of the submitted Result or 0 (failed)
     try:
-        result = WorkflowManager(workflow.id).run(workflow.name,
-            request=request_to_json(request),subtype="form")
+        result = WorkflowManager(workflow.id).run(request=request_to_json(request),subtype="form")
         request_id = result.uuid
         code = 200
     except Exception as e:
@@ -121,7 +127,6 @@ def get_intake_status(uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == uuid).first()
     if not execution:
         return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
-
     workflow = WorkflowManager(execution.workflow_id)
     complete = workflow.is_execution_complete(execution.id)
     if not complete:
