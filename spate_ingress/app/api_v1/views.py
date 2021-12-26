@@ -1,5 +1,4 @@
 from flask import jsonify, request, current_app
-from app.utils.decorators import token_required
 from . import api
 from app.utils.workflow_manager import WorkflowManager
 from app.utils.misc import request_to_json
