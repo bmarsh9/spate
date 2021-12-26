@@ -1,6 +1,7 @@
 from flask import current_app
 import docker
 import json
+from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from datetime import datetime
 import uuid
 import hashlib
@@ -8,6 +9,22 @@ import hashlib
 class WorkflowManager():
     def __init__(self, workflow_id):
         self.workflow_id = workflow_id
+
+    def verify_auth_token(token):
+        workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == self.workflow_id).first()
+        s = Serializer(workflow.secret_key)
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return False # valid token, but expired
+        except BadSignature:
+            return False # invalid token
+        return True
+
+    def generate_auth_token(self, expiration = 6000):
+        workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == self.workflow_id).first()
+        s = Serializer(workflow.secret_key, expires_in = expiration)
+        return s.dumps({ 'workflow_id': self.workflow_id })
 
     def get_trigger(self,subtype):
         return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
@@ -112,7 +129,7 @@ class WorkflowManager():
         if not container:
             raise ValueError("Container not found. Please refresh it.")
 
-        command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response {}".format(step.execution_id,step.hash,response)
+        command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response '{}' --request '{}'".format(step.execution_id,step.hash,response,step.request)
         container.exec_run(command,environment=env)
         response = {
             "id":execution.id,

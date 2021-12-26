@@ -216,6 +216,7 @@ class WorkflowRunner():
         step.execution_time = step_dict["execution_time"]
         step.result = str(step_dict["result"])
         step.complete = step_dict["complete"]
+        step.request = step_dict["request"]
         if step.logs == None:
             step.logs = step_dict["logs"]
         else:
@@ -264,12 +265,13 @@ class WorkflowRunner():
                       return False
                   if not break_path:
                     step = self.get_step_object(current_step["hash"])
-                    self.step_dict = {"status":"in progress","complete":False,"execution_time":0,"result":None,"logs":""}
+                    self.step_dict = {"request":{},"status":"in progress","complete":False,"execution_time":0,"result":None,"logs":""}
                     upsert_step = True
                     if current_step.get("enabled"):
                         if current_step.get("pause") and self.step_hash != current_step["hash"] and not step.complete:
                             self.add_to_step_logs("info","Pausing the path:{} on block:{}".format(path_hash,current_step["name"]))
                             self.step_dict["status"] = "paused"
+                            self.step_dict["request"] = self.request
                             break_path = True
                         else:
                             # get result/previous by hash

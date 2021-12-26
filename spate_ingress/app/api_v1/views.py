@@ -51,7 +51,7 @@ def get_result_status(execution_uuid):
     }
     return jsonify(template)
 
-@api.route('/endpoints/<string:step_uuid>/resume', methods=['POST'])
+@api.route('/endpoints/<string:step_uuid>/resume', methods=['GET','POST'])
 def resume_workflow_execution(step_uuid):
     step = current_app.db_session.query(current_app.Step).filter(current_app.Step.uuid == step_uuid).first()
     if not step:
@@ -59,10 +59,7 @@ def resume_workflow_execution(step_uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == step.execution_id).first()
     if not execution:
         return jsonify({"message":"execution not found"}),404
-    data = request.get_json()
-    response = data.get("response")
-    if not response:
-        return jsonify({"message":"<response> key is missing from the payload"}),400
+    response = request_to_json(request)
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == execution.workflow_id).first()
     try:
         results = WorkflowManager(workflow.id).resume(workflow.name,execution,step,response)

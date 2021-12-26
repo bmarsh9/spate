@@ -154,6 +154,7 @@ class Step(db.Model, LogMixin):
     name = db.Column(db.String(),nullable=False)
     label = db.Column(db.String())
     hash = db.Column(db.String(),nullable=False)
+    request = db.Column(db.JSON(),default={})
     status = db.Column(db.String(),default="not started") #paused,no started,responded,complete
     complete = db.Column(db.Boolean, default=False)
     result = db.Column(db.String())
@@ -297,6 +298,7 @@ class Workflow(db.Model, LogMixin):
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
+    secret_key = db.Column(db.String())
     label = db.Column(db.String())
     base_image = db.Column(db.String())
     enabled = db.Column(db.Boolean, default=False)
@@ -371,6 +373,7 @@ class Workflow(db.Model, LogMixin):
         if "label" not in kwargs:
             kwargs["label"] = name
         kwargs["uuid"] = uuid
+        kwargs["secret_key"] = generate_uuid()
         workflow = Workflow(**kwargs)
         db.session.add(workflow)
         db.session.commit()
