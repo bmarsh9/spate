@@ -14,7 +14,11 @@ class WorkflowManager():
     def verify_token_in_request(self,request):
         if not self.workflow.auth_required:
             return True
+        # check header
         token = request.headers.get("token")
+        # check url
+        if not token:
+            token = request.args.get("token")
         if not token:
             return False
         token_ok = self.verify_auth_token(token)

@@ -32,7 +32,7 @@
               <pre id="show">&lt;Please generate your token above&gt;</pre>
             </div>
             <div class="mt-4">
-              <pre># Use the token generated to authenticate to your workflow. Spate is expecting the client to send the authentication token in the header under the "token" key.<br>For example, here is what a request might look like with cURL<br><br>curl -H "token: &lt;token here&gt;" https://yourworkflow
+              <pre># Use the token generated to authenticate to your workflow. Spate is expecting the client to send the authentication token in the header (or request args) under the "token" key.<br>For example, here is what a request might look like with cURL<br><br>curl -H "token: &lt;token here&gt;" https://yourworkflow<br><br>curl https://yourworkflow?token=&lt;token here&gt;
               </pre>           
             </div>
           </div>
