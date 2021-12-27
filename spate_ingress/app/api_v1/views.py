@@ -3,6 +3,7 @@ from . import api
 from app.utils.workflow_manager import WorkflowManager
 from app.utils.misc import request_to_json
 import logging
+from datetime import datetime
 
 @api.route('/health', methods=['GET'])
 def get_health():
@@ -131,7 +132,7 @@ def get_intake_status(uuid):
     complete = workflow.is_execution_complete(execution.id)
     if not complete:
         return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":False,
-            "message":"[{}] Please wait..."})
+            "message":"[{}] Please wait...".format(str(datetime.utcnow()))})
     return_value = workflow.return_value_for_execution(execution.id, execution.return_hash)
     return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":True,
         "message":return_value})
