@@ -391,6 +391,7 @@ class Workflow(db.Model, LogMixin):
             kwargs["label"] = name
         kwargs["uuid"] = uuid
         kwargs["secret_key"] = generate_uuid()
+        kwargs["base_image"] = current_app.config["BASE_PYTHON_IMAGE"]
         workflow = Workflow(**kwargs)
         db.session.add(workflow)
         db.session.commit()
@@ -561,11 +562,7 @@ class Workflow(db.Model, LogMixin):
             dict = {}
             if current_app.config["LOCAL_DB"]:
                 dict["network"] = current_app.config["POSTGRES_NW"]
-            if self.base_image:
-                image_name = self.base_image
-            else:
-                image_name = current_app.config["BASE_PYTHON_IMAGE"]
-            dm.run_container(image_name,labels={"workflow_name":self.name},name=self.name,**dict)
+            dm.run_container(self.base_image,labels={"workflow_name":self.name},name=self.name,**dict)
             container = dm.get_container(self.name)
             dm.copy_to(container,workflow_dir,"/app/workflow")
         else:
@@ -670,7 +667,6 @@ class Workflow(db.Model, LogMixin):
             if level == self.log_level:
                 select = "selected"
             log_html+='<option value="{}" {}>{}</option>'.format(level,select,level)
-#haaaaaa
         return """
         <div class="modal-body">
           <div class="mb-2">
@@ -720,6 +716,10 @@ class Workflow(db.Model, LogMixin):
             <textarea class="form-control" id="workflow_description" rows="2">{}</textarea>
           </div>
           <div class="mb-2">
+            <label class="form-label">Base Docker Image</label>
+            <input type="text" class="form-control" id="workflow_image" value="{}" placeholder="Workflow base image">
+          </div>
+          <div class="mb-2">
             <label class="form-label">Imports</label>
             <textarea class="form-control" id="workflow_imports" rows="2">{}</textarea>
           </div>
@@ -737,7 +737,7 @@ class Workflow(db.Model, LogMixin):
             Save
           </a>
         </div>
-        """.format(self.name,self.label,checked,auth_checked,self.description,self.imports,log_html,self.name)
+        """.format(self.name,self.label,checked,auth_checked,self.description,self.base_image,self.imports,log_html,self.name)
 
     def to_workflow(self):
         config = {"operators":{},"links":{}}

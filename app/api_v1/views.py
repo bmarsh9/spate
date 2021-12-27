@@ -128,6 +128,7 @@ def update_config_for_workflow(id):
     data = request.get_json()
     workflow.label = data["label"]
     workflow.description = data["description"]
+    workflow.image = data["image"]
     workflow.imports = data["imports"]
     workflow.enabled = data["enabled"]
     workflow.auth_required = data["auth_enabled"]

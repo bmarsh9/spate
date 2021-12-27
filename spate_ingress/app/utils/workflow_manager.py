@@ -122,6 +122,12 @@ class WorkflowManager():
             time+= step.execution_time
         return time
 
+    def is_execution_paused(self, execution_id):
+        for step in current_app.db_session.query(current_app.Step).filter(current_app.Step.execution_id == execution_id).all():
+            if step.status == "paused":
+                return True
+        return False
+
     def is_path_complete(self,path_id):
         steps = self.get_steps_for_path(path_id)
         if not steps:

@@ -30,8 +30,9 @@ def get_result_status(execution_uuid):
 
     complete = workflow.is_execution_complete(execution.id)
     if not complete:
+        paused = workflow.is_execution_paused(execution.id)
         return jsonify({"message":"execution is not complete",
-            "complete":False})
+            "complete":False,"paused":paused})
     logs = ""
     if execution.logs:
         logs = execution.logs.split("\n")

@@ -102,6 +102,7 @@ function saveWorkflowSettings(name) {
     data: JSON.stringify({
       "label":$("#workflow_label").val(),
       "description":$("#workflow_description").val(),
+      "image":$("#workflow_image").val(),
       "enabled":enabled,
       "auth_enabled":auth_enabled,
       "imports":$("#workflow_imports").val(),
