@@ -142,7 +142,8 @@ class WorkflowManager():
         if not container:
             raise ValueError("Container not found. Please refresh it.")
 
-        command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response '{}' --request '{}'".format(step.execution_id,step.hash,response,step.request)
+        command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response '{}' --request '{}'".format(step.execution_id,step.hash,
+            json.dumps(response),json.dumps(step.request))
         container.exec_run(command,environment=env)
         response = {
             "id":execution.id,

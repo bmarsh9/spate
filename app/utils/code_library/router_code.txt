@@ -199,6 +199,7 @@ class WorkflowRunner():
 
     def complete_execution(self):
         self.execution.user_messages = self.get_debug_logs(as_list=False)
+        self.add_to_wf_logs("info","Successfully completed workflow")
         self.execution.logs = self.wf_logs
         self.execution.failed = self.failed
         self.db_session.commit()
@@ -337,11 +338,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     request = {}
+    response = {}
     if not args.execution_id:
         raise ValueError("execution_id is required")
     if args.request:
         request = json.loads(args.request)
+    if args.response:
+        response = json.loads(args.response)
     workflow = WorkflowRunner(execution_id=args.execution_id,request=request,
         print_debug=args.print,path_hash=args.path_hash,step_hash=args.step_hash,
-        response=args.response)
+        response=response)
     workflow.start()

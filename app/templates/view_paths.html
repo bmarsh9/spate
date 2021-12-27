@@ -156,7 +156,7 @@
                               <h5 class="card-title">Logs</h5>
                             </div>
                             <div class="card-body">
-                              <pre>{%if log%}{%for log in path.logs.split("\n")%}{{log}}<br>{%endfor%}{%for step in path.get_path_order()%}{%for step_log in step.logs.split("\n")%}{{step_log}}{%endfor%}<br>{%endfor%}{%endif%}</pre>
+                              <pre>{%if path.logs%}{%for log in path.logs.split("\n")%}{{log}}<br>{%endfor%}{%for step in path.get_path_order()%}{%if step.logs%}{%for step_log in step.logs.split("\n")%}{{step_log}}<br>{%endfor%}{%endif%}{%endfor%}{%endif%}</pre>
                             </div>
                           </div>
                         </div>
