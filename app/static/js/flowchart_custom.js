@@ -91,13 +91,20 @@ function saveWorkflowSettings(name) {
   } else {
     var enabled = false;
   };
+  if ($("#workflow_auth").is(":checked")) {
+    var auth_enabled = true;
+  } else {
+    var auth_enabled = false;
+  };
   $.ajax({
     url: "/api/v1/workflows/"+get_workflow_id()+"/config",
     type: "PUT",
     data: JSON.stringify({
       "label":$("#workflow_label").val(),
       "description":$("#workflow_description").val(),
+      "image":$("#workflow_image").val(),
       "enabled":enabled,
+      "auth_enabled":auth_enabled,
       "imports":$("#workflow_imports").val(),
       "log_level":$("#log_level").val(),
     }),

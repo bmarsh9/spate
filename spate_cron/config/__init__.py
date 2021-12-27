@@ -19,6 +19,8 @@ class Config():
         self.db_session = Session(db_engine)
         self.Workflow = db.classes.workflows
         self.Operator = db.classes.operators
-        self.Result = db.classes.results
+        self.Execution = db.classes.executions
+        self.Path = db.classes.paths
+        self.Step = db.classes.steps
 
         self.docker_client = docker.from_env()

@@ -1,105 +1,214 @@
 {% extends "layouts/condensed.html" %}
-
 {%block contentHeader%}
 <div class="page-header">
   <div class="row align-items-center">
     <div class="col">
       <div class="page-pretitle">
-        <a href="{{url_for("main.workflow_results",workflow_id=workflow.id)}}">{{workflow.name}} - {{result.id}}</a>
+        <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}">{{workflow.name}} - {{execution.id}}</a>
       </div>
       <h2 class="page-title">
-        Workflow Results
+        Workflow Executions{%if execution.failed%}<span class="badge bg-red-lt ml-2">Failed</span>{%elif execution.paused()%}<span class="badge bg-orange-lt ml-2">Paused</span>{%elif execution.complete()%}<span class="badge bg-blue-lt ml-2">Complete</span>{%else%}<span class="badge bg-yellow-lt ml-2">Not Complete</span>{%endif%}
       </h2>
     </div>
     <div class="col-auto ms-auto">
       <div class="btn-list">
         <span class="d-none d-sm-inline">
-          <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn">
-            View Graph
-          </a>
+        <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn">
+        View Graph
+        </a>
         </span>
         <span class="d-none d-sm-inline">
-          <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,result_id=result.id)}}" class="btn btn-primary">
-            View Endpoint
-          </a>
+        <a href="{{url_for("api.workflow_endpoint",workflow_id=workflow.id,execution_id=execution.id)}}" class="btn btn-primary">
+        View Endpoint
+        </a>
         </span>
       </div>
     </div>
   </div>
 </div>
 {%endblock%}
-
 {%block content%}
 <div class="row gx-lg-4">
-              <div class="d-none d-lg-block col-lg-2">
-                <ul class="nav nav-pills nav-vertical">
-                  <li class="nav-item">
-                    <a href="{{url_for("main.view_results_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
-                      Overview
-                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
-                    </a>
-                  </li>
-                  <li class="nav-item active bg-blue-lt">
-                    <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,result_id=result.id)}}" class="nav-link">
-                      Paths
-                      <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              <div class="col-lg-10">
-                <div class="card card-lg">
-                  <div class="card-body">
-                    <div class="markdown">
-                      <div>
-                        <div class="mb-3">
-                          <h1 class="m-0">Results from Workflow Paths<span class="badge bg-blue-lt ml-3 mb-1">{%if result.paths%}{{result.paths|length}}{%else%}0{%endif%}</span></h1>
-                          <div class="row mt-3">
-                          {%if result.paths%}
-                          {%for path in result.paths%}
-                            {%for hash,data in path.items()%}
-                            <div class="accordion mt-2" id="accordion{{hash}}">
-                              <div class="accordion-item">
-                                <h2 class="accordion-header" id="heading{{hash}}">
-                                  <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{hash}}" aria-expanded="true" aria-controls="collapse{{hash}}">
-                                    {%if data["complete"]%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}Complete: {{data["complete"]}}</span><span class="badge bg-dark mr-3">{{data["execution_time"]}} s</span>{%if hash == result.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{hash}}
-                                  </button>
-                                </h2>
-                                <div id="collapse{{hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{hash}}">
-                                  <div class="accordion-body">
-                                    <div class="row">
-                                      <h4>Result<small class="ml-2"> (Execution took {{data["execution_time"]}} seconds)</small></h4>
-                                      <pre>{{data["result"]}}</pre>
-                                    </div>
-                                    <div class="row mb-3">
-                                      <h4>Path</h4>
-                                      <ol class="breadcrumb breadcrumb-arrows ml-2" aria-label="breadcrumbs">
-                                      {%for direction in data["direction"]%}
-                                        <li class="breadcrumb-item"><a href="#"><span class="badge bg-blue-lt">{{direction["name"]}}</span></a></li>
-                                      {%endfor%}
-                                      </ol>
-                                    </div>
-                                    <div class="row">
-                                      <h4>Execution Path Results</h4>
-                                      <pre>{%for exec in data["execution"]%}{{exec}}<br>{%endfor%}</pre>
-                                    </div>
-                                    <div class="row">
-                                      <h4>Path Logs</h4>
-                                      <pre>{%for log in data["logs"]%}{{log}}<br>{%endfor%}</pre>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
+  <div class="d-none d-lg-block col-lg-2">
+    <ul class="nav nav-pills nav-vertical">
+      <li class="nav-item">
+        <a href="{{url_for("main.view_executions_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
+        Overview
+        <span class="badge bg-blue-lt ms-auto"><i class="ti ti-compass"></i></span>
+        </a>
+      </li>
+      <li class="nav-item active bg-blue-lt">
+        <a href="{{url_for("main.view_paths_of_workflow",workflow_id=workflow.id,execution_id=execution.id)}}" class="nav-link">
+        Paths
+        <span class="badge bg-blue-lt ms-auto"><i class="ti ti-directions"></i></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+  <div class="col-lg-10">
+    {%if execution.paused()%}
+    <div class="alert alert-important alert-warning alert-dismissible" role="alert">
+          <div class="d-flex">
+            <div>
+              <i class="ti ti-alert-triangle icon mr-2"></i>
+            </div>
+            <div>
+              The execution is currently paused. Select the Paths below to get the URL to resume.
+            </div>
+          </div>
+          <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
+    </div>
+    {%endif%}
+    <div class="card card-lg">
+      <div class="card-body">
+        <div class="markdown">
+          <div>
+            <div class="mb-3">
+              <h1 class="m-0">Execution Paths<span class="badge bg-blue-lt ml-3 mb-1">{{execution.paths.count()}}</span></h1>
+              <div class="row mt-3">
+                {%for path in execution.paths.all()%}
+                {%set paused_uuid = path.get_paused_uuid()%}
+                <div class="accordion mt-2" id="accordion{{path.hash}}">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading{{path.hash}}">
+                      <button class="accordion-button subheader" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{path.hash}}" aria-expanded="true" aria-controls="collapse{{path.hash}}">
+                      {%if path.complete() == True%}<span class="badge bg-green-lt mr-3">{%else%}<span class="badge bg-red-lt mr-3">{%endif%}{{path.status()}}</span><span class=
+                        "badge bg-dark mr-3">{{path.execution_time()}} s</span>{%if path.hash == execution.return_hash%}<span class="badge bg-blue-lt mr-3">Return</span>{%endif%}Path Hash: {{path.hash}}
+                      </button>
+                    </h2>
+                    <div id="collapse{{path.hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{path.hash}}">
+                      <div class="accordion-body">
+                        <div class="row mb-2">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Details</h5>
                             </div>
-                            {%endfor%}
-                          {%endfor%}
-                          {%endif%}
+                            <div class="card-body">
+                              <pre style="white-space:nowrap">
+                              UUID: {{path.uuid}}<br>
+                              Hash: {{path.hash}}<br>
+                              {%if paused_uuid%}
+                              URL to resume the execution: /api/v1/endpoints/{{paused_uuid}}/resume
+                              {%endif%}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mb-2">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Result <small class="ml-2"> (Execution took {{path.execution_time()}} seconds)</small></h5>
+                            </div>
+                            <div class="card-body">
+                              <pre>{{path.result()}}</pre>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mb-2">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Steps in Path</h5>
+                            </div>
+                            <div class="card-body">
+                              <ol class="breadcrumb breadcrumb-arrows ml-2" aria-label="breadcrumbs">
+                                {%for step in path.get_path_order()%}
+                                <li class="breadcrumb-item">{%if step.name.startswith("Operator")%}<span class="badge bg-blue-lt">({{step.id}}) - {{step.label}}</span>{%else%}<span class="badge bg-green-lt">({{step.id}}) - {{step.label}}</span>{%endif%}</li>
+                                {%endfor%}
+                              </ol>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="row mb-2">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Step Results</h5>
+                            </div>
+                            <table class="table card-table table-vcenter">
+                              <thead>
+                                <tr>
+                                  <th>Step</th>
+                                  <th>Status</th>
+                                  <th style="width:40%">Result</th>
+                                  <th colspan="2">Execution Time</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {%for step in path.get_path_order()%}
+                                <tr id="{{step.id}}" class="cursor-pointer result">
+                                  <td class="subheader text-primary">({{step.id}}) - {{step.name}}</td>
+                                  <td class="subheader">{%if step.complete%}<span class="badge bg-green-lt ms-auto">{{step.status}}</span>{%else%}<span class="badge bg-yellow-lt ms-auto">{{step.status}}</span>{%endif%}</td>
+                                  <td class="subheader">{{step.result}}</td>
+                                  <td class="subheader">{{step.execution_time}}</td>
+                                  <td class="w-50">
+                                    <div class="progress progress-xs">
+                                      <div class="progress-bar bg-primary" style="width: {%if step.execution_time%}{{(step.execution_time/path.execution_time())*100}}%{%else%}1%{%endif%}"></div>
+                                    </div>
+                                  </td>
+                                </tr>
+                                {%endfor%}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                        <div class="row">
+                          <div class="card">
+                            <div class="card-header">
+                              <h5 class="card-title">Logs</h5>
+                            </div>
+                            <div class="card-body">
+                              <pre>{%if path.logs%}{%for log in path.logs.split("\n")%}{{log}}<br>{%endfor%}{%for step in path.get_path_order()%}{%if step.logs%}{%for step_log in step.logs.split("\n")%}{{step_log}}<br>{%endfor%}{%endif%}{%endfor%}{%endif%}</pre>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
+                {%endfor%}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal modal-blur fade" id="operator-result" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Step Result</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <pre><code id="modal-result"></code></pre>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+    $('.result').click(function(){
+      $.ajax({
+        url: "/api/v1/steps/"+$(this).attr('id')+"/results",
+        type: "GET",
+        success: function (response) {
+          $("#operator-result").modal("show");
+          $("#modal-result").html(response["result"])
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+    });
+  });
+</script>
+{% endblock %}
+

@@ -35,7 +35,7 @@
     <div class="col-8">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Status of Workflow Executions</h3>
+            <h3 class="card-title">Workflow Steps</h3>
           </div>
           <div class="card-body">
             <div id="chartbar" class="chart-lg"></div>
@@ -82,7 +82,7 @@
 $(document).ready(function() {
       //bar chart
       $.ajax({
-        url: "{{url_for("api.graph_get_workflow_results")}}",
+        url: "{{url_for("api.graph_get_workflow_executions")}}",
         type: "GET",
         contentType: "application/json; charset=utf-8",
         success: function (response) {
@@ -132,7 +132,7 @@ $(document).ready(function() {
         chart.render();
         },
         error: function (request, status, error) {
-          notify_js("Error occurred while gather chart data", type = "warning",time=1000)
+          notify_js("Error occurred while gathering chart data", type = "warning",time=1000)
         }
       });
       // donut chart
@@ -174,7 +174,7 @@ $(document).ready(function() {
         chart.render();
         },
         error: function (request, status, error) {
-          notify_js("Error occurred while gather chart data", type = "warning",time=1000)
+          notify_js("Error occurred while gathering chart data", type = "warning",time=1000)
         }
       });
       // datatables

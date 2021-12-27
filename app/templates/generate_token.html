@@ -1,0 +1,64 @@
+{% extends "layouts/condensed.html" %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflows")}}">workflows</a>
+      </div>
+      <h2 class="page-title">
+        Workflow Token
+      </h2>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Generate Token for {{workflow.label}}</h3>
+          </div>
+          <div class="card-body">
+            <div> 
+              <label class="form-label">Enter duration of the time (in seconds) before it expires</label>
+              <div class="input-group mb-2"><input type="number" id="duration" class="form-control" placeholder="Enter duration of the token"></div><button class="btn" id="generate" type="button">Generate</button>
+            </div>
+            <div class="hr-text"></div>
+            <div class="mt-4">
+              <pre id="show">&lt;Please generate your token above&gt;</pre>
+            </div>
+            <div class="mt-4">
+              <pre># Use the token generated to authenticate to your workflow. Spate is expecting the client to send the authentication token in the header (or request args) under the "token" key.<br>For example, here is what a request might look like with cURL<br><br>curl -H "token: &lt;token here&gt;" https://yourworkflow<br><br>curl https://yourworkflow?token=&lt;token here&gt;
+              </pre>           
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+{% block extrajs %}
+  <script>
+    $(document).ready(function() {
+      $('#generate').click(function(){
+        var duration=$("#duration").val();
+        $.ajax({
+          url: "{{url_for("api.get_token_for_workflow",id=workflow.id)}}?id="+duration,
+          type: "GET",
+          contentType: "application/json; charset=utf-8",
+          success: function (response) {
+            notify_js("Successfully generated the token", type = "primary",time=1000)
+            $("#show").html(response["token"]);
+          },
+          error: function (request, status, error) {
+            notify_js("Error while generating the token", type = "warning",time=1000)
+          }
+        });
+      });
+    });
+  </script>
+{% endblock %}
+

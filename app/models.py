@@ -141,20 +141,126 @@ class AssocLocker(LogMixin,db.Model):
     locker_id = db.Column(db.Integer(), db.ForeignKey('lockers.id', ondelete='CASCADE'))
     workflow_id = db.Column(db.Integer(), db.ForeignKey('workflows.id', ondelete='CASCADE'))
 
-class Result(db.Model, LogMixin):
-    __tablename__ = 'results'
+class PathSteps(db.Model):
+    __tablename__ = 'path_steps'
+    id = db.Column(db.Integer(), primary_key=True)
+    step_id = db.Column(db.Integer(), db.ForeignKey('steps.id', ondelete='CASCADE'))
+    path_id = db.Column(db.Integer(), db.ForeignKey('paths.id', ondelete='CASCADE'))
+
+class Step(db.Model, LogMixin):
+    __tablename__ = 'steps'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String())
-    status = db.Column(db.String(),default="not started")
-    paths = db.Column(db.JSON(),default={})
-    return_value = db.Column(db.String())
+    uuid = db.Column(db.String(),nullable=False)
+    name = db.Column(db.String(),nullable=False)
+    label = db.Column(db.String())
+    hash = db.Column(db.String(),nullable=False)
+    request = db.Column(db.JSON(),default={})
+    status = db.Column(db.String(),default="not started") #paused,no started,responded,complete
+    complete = db.Column(db.Boolean, default=False)
+    result = db.Column(db.String())
+    execution_time = db.Column(db.Integer(),default=0)
+    logs = db.Column(db.String(),default="")
+    execution_id = db.Column(db.Integer, db.ForeignKey('executions.id'), nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    @staticmethod
+    def find_or_create_step(name,label,hash,execution_id):
+        step = Step.query.filter(Step.hash == hash).filter(Step.execution_id == execution_id).first()
+        if step:
+            return step
+        new_step = Step(uuid=generate_uuid(),name=name,label=label,hash=hash,execution_id=execution_id)
+        db.session.add(new_step)
+        db.session.commit()
+        return new_step
+
+class Path(db.Model, LogMixin):
+    __tablename__ = 'paths'
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String(),nullable=False)
+    hash = db.Column(db.String(),nullable=False)
+    logs = db.Column(db.String(),default="")
+    steps = db.relationship('Step', secondary='path_steps', lazy='dynamic')
+    execution_id = db.Column(db.Integer, db.ForeignKey('executions.id'), nullable=False)
+    date_added = db.Column(db.DateTime, default=datetime.utcnow)
+    date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def execution_time(self):
+        time = 0
+        for step in self.steps.all():
+            if step.execution_time:
+                time += step.execution_time
+        return time
+
+    def paused(self):
+        for step in self.steps.order_by(Step.id.asc()).all():
+            if step.status == "paused":
+                return True
+        return False
+
+    def result(self):
+        step = self.steps.order_by(Step.id.desc()).first()
+        return step.result
+
+    def get_paused_uuid(self):
+        step = self.status(as_object=True)
+        if step.status == "paused":
+            return step.uuid
+        return None
+
+    def status(self,as_object=False):
+        for step in self.steps.order_by(Step.id.asc()).all():
+            if not step.complete:
+                if as_object:
+                    return step
+                return step.status
+        if as_object:
+            return self.steps.order_by(Step.id.desc()).first()
+        return self.steps.order_by(Step.id.desc()).first().status
+
+    def get_path_order(self):
+        return self.steps.order_by(Step.id.asc()).all()
+
+    def complete(self):
+        step = self.steps.order_by(Step.id.desc()).first()
+        return step.complete
+
+class Execution(db.Model, LogMixin):
+    __tablename__ = 'executions'
+    id = db.Column(db.Integer, primary_key=True)
+    uuid = db.Column(db.String())
     return_hash = db.Column(db.String())
-    execution_time = db.Column(db.Integer())
     user_messages = db.Column(db.String(),default="")
-    log = db.Column(db.String(),default="")
+    failed = db.Column(db.Boolean, default=False)
+    logs = db.Column(db.String(),default="")
+    paths = db.relationship('Path', backref='execution', lazy='dynamic')
     workflow_id = db.Column(db.Integer, db.ForeignKey('workflows.id'), nullable=False)
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def get_return_value(self):
+        path = self.paths.filter(Path.hash == self.return_hash).first()
+        if not path:
+            return {}
+        return path.result()
+
+    def execution_time(self):
+        time = 0
+        for path in self.paths.all():
+            time+= path.execution_time()
+        return time
+
+    def complete(self):
+        for path in self.paths.all():
+            if not path.complete():
+                return False
+        return True
+
+    def paused(self):
+        for path in self.paths.all():
+            if path.paused():
+                return True
+        return False
 
     def trigger_type(self):
         trigger = self.workflow.get_trigger()
@@ -162,24 +268,24 @@ class Result(db.Model, LogMixin):
             return trigger.subtype
         return "unknown"
 
-    def is_complete(self):
-        return self.status == "complete"
-
     def as_dict(self):
+        debug = ""
+        logs = ""
+        if self.logs:
+            logs = self.logs.split("\n")
+        if self.user_messages:
+            debug = self.user_messages.split("\n")
         template = {
             "id":self.id,
-            "return_value":self.return_value,
+            "return_value":self.get_return_value(),
             "return_hash":self.return_hash,
-            "paths":self.paths,
-            "logs":self.log.split("\n"),
-            "debug":self.user_messages.split("\n"),
-            "complete":False,
-            "status":self.status,
-            "execution_time":self.execution_time,
+            "logs":logs,
+            "debug":debug,
+            "complete":self.complete(),
+            "paused":self.paused(),
+            "execution_time":self.execution_time(),
             "date_requested":str(self.date_added),
         }
-        if self.is_complete():
-            template["complete"] = True
         return template
 
     def finished(self):
@@ -192,18 +298,65 @@ class Workflow(db.Model, LogMixin):
     id = db.Column(db.Integer, primary_key=True)
     uuid = db.Column(db.String(),nullable=False)
     name = db.Column(db.String(),nullable=False)
+    secret_key = db.Column(db.String())
     label = db.Column(db.String())
+    base_image = db.Column(db.String())
+    auth_required = db.Column(db.Boolean, default=False)
     enabled = db.Column(db.Boolean, default=False)
     refresh_required = db.Column(db.Boolean, default=True)
     description = db.Column(db.String())
     imports = db.Column(db.String())
     log_level = db.Column(db.String(),default="info")
+    map = db.Column(db.JSON(),default="{}")
     config = db.Column(db.JSON(),default="{}")
     lockers = db.relationship('Locker', secondary='assoc_lockers', lazy='dynamic')
     operators = db.relationship('Operator', backref='workflow', lazy='dynamic')
-    results = db.relationship('Result', backref='workflow', lazy='dynamic')
+    executions = db.relationship('Execution', backref='workflow', lazy='dynamic')
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
+
+    def generate_auth_token(self, expiration = 6000):
+        s = Serializer(self.secret_key, expires_in = expiration)
+        token = s.dumps({ 'workflow_id': self.id })
+        return token.decode("utf-8")
+
+    @staticmethod
+    def verify_invite_token(token):
+        s = Serializer(self.secret_key)
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return False # valid token, but expired
+        except BadSignature:
+            return False # invalid token
+        return True
+
+    def create_hash_for_steps(self,values):
+        sha1 = hashlib.sha1()
+        for value in values:
+            val = str(value["name"]).encode('utf-8')
+            sha1.update(val)
+        return sha1.hexdigest()
+
+    def add_execution(self):
+        tree = self.path_tree()
+        # create execution object
+        execution = Execution(uuid=generate_uuid(),return_hash=tree["return_path"],
+            workflow_id=self.id)
+        db.session.add(execution)
+        db.session.flush()
+
+        # create all paths and associate them to the steps
+        for path in tree["paths"]:
+            for path_hash,steps in path.items():
+                new_path = Path(hash=path_hash,uuid=generate_uuid(),execution_id=execution.id)
+                for previous_step, current_step in zip(steps, steps[1:]):
+                    step_hash = self.create_hash_for_steps(steps[:steps.index(current_step)])
+                    step = Step.find_or_create_step(current_step["name"],current_step["label"],step_hash,execution.id)
+                    new_path.steps.append(step)
+                db.session.add(new_path)
+                db.session.commit()
+        return execution
 
     def as_meta(self):
         needs_trigger = False
@@ -237,6 +390,8 @@ class Workflow(db.Model, LogMixin):
         if "label" not in kwargs:
             kwargs["label"] = name
         kwargs["uuid"] = uuid
+        kwargs["secret_key"] = generate_uuid()
+        kwargs["base_image"] = current_app.config["BASE_PYTHON_IMAGE"]
         workflow = Workflow(**kwargs)
         db.session.add(workflow)
         db.session.commit()
@@ -343,18 +498,19 @@ class Workflow(db.Model, LogMixin):
         return False
 
     def last_executed(self):
-        latest_result = self.results.order_by(Result.id.desc()).first()
-        if not latest_result:
+        latest_execution = self.executions.order_by(Execution.id.desc()).first()
+        if not latest_execution:
             return "never"
-        if not latest_result.date_added:
+        if not latest_execution.date_added:
             return "unknown"
-        return arrow.get(latest_result.date_added).humanize()
+        return arrow.get(latest_execution.date_added).humanize()
 
     def create_file(self, path, content):
         with open(path, 'w') as f:
             f.write(content)
         return True
 
+    '''
     def run(self,setup=False,refresh=True,restart=False,output="log",env={},request={}):
         trigger = self.get_trigger()
         if not trigger:
@@ -362,20 +518,32 @@ class Workflow(db.Model, LogMixin):
         if setup:
             self.setup_workflow(refresh=refresh)
         dm = DockerManager()
-        id = dm.find_container_by_workflow_name(self.name).short_id
-        result = Result(workflow_id=self.id,status="in progress")
-        db.session.add(result)
-        db.session.commit()
-        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py {} '{}'".format(result.id,json.dumps(request)),
+        container_id = dm.find_container_by_workflow_name(self.name).short_id
+
+        execution = self.add_execution()
+
+        response = dm.exec_to_container(container_id,"python3 /app/workflow/tmp/router.py --execution_id {} --request '{}'".format(execution.id,json.dumps(request)),
             output=output,detach=not trigger.synchronous,env=env)
         if trigger.synchronous:
-            response = Result.query.get(result.id).as_dict()
+            response = ""
         else:
             response = {
-                "callback_url":"/api/v1/workflows/{}/results/{}".format(self.id,result.id),
+                "callback_url":"/api/v1/workflows/{}/executions/{}".format(self.id,execution.id),
                 "status":"in progress",
             }
         return response
+
+    #TODO remove and place in api-ingress
+    def resume(self,step,response):
+        trigger = self.get_trigger()
+        if not trigger:
+            return False
+        dm = DockerManager()
+        id = dm.find_container_by_workflow_name(self.name).short_id
+        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response {}".format(step.execution_id,step.hash,response),
+            output="log",detach=not trigger.synchronous,env={})
+        return response
+    '''
 
     def setup_workflow(self,refresh=True,restart=False):
         self.setup_workflow_folder()
@@ -394,7 +562,7 @@ class Workflow(db.Model, LogMixin):
             dict = {}
             if current_app.config["LOCAL_DB"]:
                 dict["network"] = current_app.config["POSTGRES_NW"]
-            dm.run_container(current_app.config["BASE_PYTHON_IMAGE"],labels={"workflow_name":self.name},name=self.name,**dict)
+            dm.run_container(self.base_image,labels={"workflow_name":self.name},name=self.name,**dict)
             container = dm.get_container(self.name)
             dm.copy_to(container,workflow_dir,"/app/workflow")
         else:
@@ -429,8 +597,11 @@ class Workflow(db.Model, LogMixin):
             if not os.path.exists(op_dir):
                 os.mkdir(op_dir)
             operator.create_code_folder(op_dir)
+        map = self.path_tree()
+        self.map = map
+        db.session.commit()
         self.create_file(os.path.join(workflow_dir,"router.py"),default_router_code(workflow_dir))
-        self.create_file(os.path.join(workflow_dir,"workflow_map.json"),json.dumps(self.path_tree(),indent=4))
+        self.create_file(os.path.join(workflow_dir,"workflow_map.json"),json.dumps(map,indent=4))
         self.create_file(os.path.join(workflow_dir,"config.ini"),self.to_config_file())
         self.create_file(os.path.join(workflow_dir,"store.json"),"{}")
         self.create_file(os.path.join(workflow_dir,"__init__.py"),"")
@@ -487,6 +658,9 @@ class Workflow(db.Model, LogMixin):
         checked = ""
         if self.enabled:
             checked = "checked"
+        auth_checked = ""
+        if self.auth_required:
+            auth_checked = "checked"
         log_html = ""
         for level in ["info","debug","warning","error","critical"]:
             select = ""
@@ -521,9 +695,29 @@ class Workflow(db.Model, LogMixin):
               </div>
             </div>
           </div>
+          <div class="form-selectgroup-boxes row mb-2">
+            <div class="col-lg-12">
+              <div class="form-group row">
+                <div class="row">
+                  <label class="row">
+                    <span class="col form-label">Authentication Required</span>
+                    <span class="col-auto">
+                      <label class="form-check form-check-single form-switch">
+                        <input id="workflow_auth" class="form-check-input cursor-pointer" type="checkbox" {}>
+                      </label>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="mb-2">
             <label class="form-label">Description</label>
             <textarea class="form-control" id="workflow_description" rows="2">{}</textarea>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Base Docker Image</label>
+            <input type="text" class="form-control" id="workflow_image" value="{}" placeholder="Workflow base image">
           </div>
           <div class="mb-2">
             <label class="form-label">Imports</label>
@@ -543,7 +737,7 @@ class Workflow(db.Model, LogMixin):
             Save
           </a>
         </div>
-        """.format(self.name,self.label,checked,self.description,self.imports,log_html,self.name)
+        """.format(self.name,self.label,checked,auth_checked,self.description,self.base_image,self.imports,log_html,self.name)
 
     def to_workflow(self):
         config = {"operators":{},"links":{}}
@@ -646,15 +840,6 @@ class Workflow(db.Model, LogMixin):
             sha1.update(val)
         return sha1.hexdigest()
 
-    def labels_to_names(self,labels):
-        values = []
-        for label in labels:
-            if "__" in label:
-                values.append(label.split("__")[0])
-            else:
-                values.append(label)
-        return values
-
     def path_tree(self,source_node=None, operator_id=None, identify_by="name"):
         if not source_node:
             source_node = self.name
@@ -669,18 +854,37 @@ class Workflow(db.Model, LogMixin):
                 for path in set:
                     paths.append(path)
         #get first path since there is only one
-        #paths = [i[0] for i in paths if i]
         trigger = self.get_trigger()
         result = {"return_path":trigger.return_path or "","paths":[]}
         for path in paths:
-            if identify_by != "name":
-                temp_path = self.labels_to_names(path)
-                path_name = self.create_hash(temp_path)
-            else:
-                path_name = self.create_hash(path)
-            #TODO add enabled:true key/value
-            result["paths"].append({path_name:[{'name':i} for i in path if i]})
+            result["paths"].append(self.path_to_dictionary(path))
         return result
+
+    def path_to_dictionary(self,path):
+        data = []
+        paths = []
+        for step in path:
+            name = step.split("__")[0]
+            paths.append(name)
+            if step.startswith("Operator"):
+                pause = False
+                op = Operator.find_by_name(name)
+                if op.subtype == "input":
+                    pause = True
+                temp = {"id":op.id,"name":name,"label":op.label,"enabled":op.enabled,"type":"operator","pause":pause}
+            elif step.startswith("Link"):
+                link = OutputLink.find_by_name(name)
+                temp = {"id":link.id,"name":name,"label":link.label,"enabled":link.enabled,"type":"link","pause":False}
+            elif step.startswith("Workflow"):
+                wf = Workflow.find_by_name(name)
+                temp = {"id":wf.id,"name":name,"label":wf.label,"enabled":wf.enabled,"type":"workflow","pause":False}
+            else:
+                temp = {}
+            if temp:
+                temp["hash"] = self.create_hash(path[:path.index(step)])
+                data.append(temp)
+        path_hash = self.create_hash(paths)
+        return {path_hash:data}
 
 class Operator(db.Model, LogMixin):
     __tablename__ = 'operators'
@@ -744,7 +948,7 @@ class Operator(db.Model, LogMixin):
         operator = Operator(name=name,label=label,type=type,
             code=code,top=top,left=left,workflow_id=workflow_id,
             description=description,official=official,subtype=subtype,
-            imports=imports,documentation=documentation)
+            imports=imports,documentation=documentation,**kwargs)
         db.session.add(operator)
         db.session.commit()
 
@@ -897,6 +1101,27 @@ class Operator(db.Model, LogMixin):
                 </div>""".format(self.name,form_options)
         return template
 
+    def get_additional_input_for_input_trigger(self):
+        template = ""
+        form_options = ""
+        for form in IntakeForm.query.all():
+            select = ""
+            if self.form_id == form.id:
+                select = "selected"
+            form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
+            template = """
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
+                  <div class="col">
+                    <select class="form-select" id="form_{}">
+                      <option value="">Select an Form</option>
+                      {}
+                    </select>
+                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+                  </div>
+                </div>""".format(self.name,form_options)
+        return template
+
     def get_return_path_input(self):
         path_items = ""
         for path in self.workflow.path_tree(operator_id=self.id,identify_by="label").get("paths",[]):
@@ -967,7 +1192,10 @@ class Operator(db.Model, LogMixin):
                 addit_input_template = self.get_additional_input_for_form_trigger()
 
             return_section = self.get_return_path_input()
-
+        # collect user input
+        user_input = ""
+        if self.subtype == "input":
+            user_input = self.get_additional_input_for_input_trigger()
         docs = ""
         if self.documentation:
             docs = """
@@ -1027,12 +1255,13 @@ class Operator(db.Model, LogMixin):
                 </div>
                 {}
                 {}
+                {}
               </form>
             </div>
           </div>
         """.format(docs,operator_variables_html,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
-            self.name,self.imports or "",return_section,addit_input_template)
+            self.name,self.imports or "",return_section,addit_input_template,user_input)
         return template
 
     def create_file(self,path,content=""):

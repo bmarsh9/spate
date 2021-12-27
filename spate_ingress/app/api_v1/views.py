@@ -1,5 +1,4 @@
 from flask import jsonify, request, current_app
-from app.utils.decorators import token_required
 from . import api
 from app.utils.workflow_manager import WorkflowManager
 from app.utils.misc import request_to_json
@@ -12,35 +11,68 @@ def get_health():
         "message":current_app.config["APP_NAME"],
         "version":current_app.config["VERSION"],
         "routes":[
-            {"endpoint":"/api/v1/results/<string:result_uuid>","desc":"view results of execution"},
+            {"endpoint":"/api/v1/executions/<string:execution_uuid>","desc":"view executions of the workflow"},
             {"endpoint":"/api/v1/endpoints/<string:workflow_uuid>","desc":"execute workflow via API route"},
+            {"endpoint":"/api/v1/endpoints/<string:step_uuid>/resume","desc":"resume execution of workflow step"},
             {"endpoint":"/intake/<string:form_name>","desc":"execute workflow via Form route"},
         ]
     })
 
-@api.route('/results/<string:result_name>', methods=['GET'])
-@token_required
-def get_result_status(result_name):
-    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == result_name).first()
-    if not result:
-        return jsonify({"message":"result does not exist"}),404
-    if result.status != "complete":
+@api.route('/executions/<string:execution_uuid>', methods=['GET'])
+def get_result_status(execution_uuid):
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == execution_uuid).first()
+    if not execution:
+        return jsonify({"message":"execution does not exist"}),404
+
+    workflow = WorkflowManager(execution.workflow_id)
+    if not workflow.verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
+
+    complete = workflow.is_execution_complete(execution.id)
+    if not complete:
+        paused = workflow.is_execution_paused(execution.id)
         return jsonify({"message":"execution is not complete",
-            "complete":False,"status":result.status})
+            "complete":False,"paused":paused})
+    logs = ""
+    if execution.logs:
+        logs = execution.logs.split("\n")
+    debug = ""
+    if execution.user_messages:
+        debug = execution.user_messages.split("\n")
     template = {
-        "id":result.id,
-        "name":result.name,
-        "return_value":result.return_value,
-        "return_hash":result.return_hash,
-        "paths":result.paths,
-        "logs":result.log.split("\n"),
-        "debug":result.user_messages.split("\n"),
+        "id":execution.id,
+        "uuid":execution.uuid,
+        "return_value":workflow.return_value_for_execution(execution.id, execution.return_hash),
+        "return_hash":execution.return_hash,
+        "logs":logs,
+        "debug":debug,
         "complete":True,
-        "status":result.status,
-        "execution_time":result.execution_time,
-        "date_requested":str(result.date_added),
+        "failed":execution.failed,
+        "execution_time":workflow.execution_time_for_execution(execution.id),
+        "date_requested":str(execution.date_added),
     }
     return jsonify(template)
+
+@api.route('/endpoints/<string:step_uuid>/resume', methods=['GET','POST'])
+def resume_workflow_execution(step_uuid):
+    step = current_app.db_session.query(current_app.Step).filter(current_app.Step.uuid == step_uuid).first()
+    if not step:
+        return jsonify({"message":"step not found"}),404
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == step.execution_id).first()
+    if not execution:
+        return jsonify({"message":"execution not found"}),404
+    workflow = WorkflowManager(execution.workflow_id)
+    if not workflow.verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
+    response = request_to_json(request)
+    try:
+        results = workflow.resume(execution,step,response)
+        code = 200
+    except Exception as e:
+        logging.error("An error occurred upon resuming execution:{}. Error:{}".format(execution.id,str(e)))
+        results = str(e)
+        code = 500
+    return jsonify({"response":results}),code
 
 @api.route('/endpoints/<string:workflow_uuid>', methods=['GET'])
 def execute_api_workflow(workflow_uuid):
@@ -49,9 +81,10 @@ def execute_api_workflow(workflow_uuid):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
+    if not WorkflowManager(workflow.id).verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
     try:
-        results = WorkflowManager(workflow.id).run(workflow.name,
-            request=request_to_json(request))
+        results = WorkflowManager(workflow.id).run(request=request_to_json(request))
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the API trigger:{}. Error:{}".format(workflow.name,str(e)))
@@ -66,6 +99,8 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
+    if not WorkflowManager(workflow_id).verify_token_in_request(request):
+        return jsonify({"message":"authentication failed"}),401
     form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
     if not form:
         return jsonify({"message":"form not found"}),404
@@ -74,9 +109,8 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"trigger not found"}),404
     # result returns the name of the submitted Result or 0 (failed)
     try:
-        result = WorkflowManager(workflow.id).run(workflow.name,
-            request=request_to_json(request),subtype="form")
-        request_id = result.name
+        result = WorkflowManager(workflow.id).run(request=request_to_json(request),subtype="form")
+        request_id = result.uuid
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
@@ -85,16 +119,19 @@ def submit_intake(workflow_id,name):
     redirect_url = "/workflows/{}/intake/{}/done?request_id={}".format(workflow.id,form.name,request_id)
     return jsonify({"message":"ok","url":redirect_url}),code
 
-@api.route('/intake/<string:name>/status', methods=['GET'])
-def get_intake_status(name):
-    if str(name) == "0":
+@api.route('/intake/<string:uuid>/status', methods=['GET'])
+def get_intake_status(uuid):
+    if str(uuid) == "0":
         return jsonify({"complete":False,"status":"failed",
             "message":"Hmmm... looks like an error occurred. We are looking into it."})
-    result = current_app.db_session.query(current_app.Result).filter(current_app.Result.name == name).first()
-    if not result:
+    execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == uuid).first()
+    if not execution:
         return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
-    if result.status != "complete":
-        return jsonify({"id":result.id,"name":result.name,"complete":False,
-            "status":result.status,"message":"[{}] Please wait...".format(result.status)})
-    return jsonify({"id":result.id,"name":result.name,"complete":True,
-        "status":result.status,"message":result.return_value})
+    workflow = WorkflowManager(execution.workflow_id)
+    complete = workflow.is_execution_complete(execution.id)
+    if not complete:
+        return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":False,
+            "message":"[{}] Please wait..."})
+    return_value = workflow.return_value_for_execution(execution.id, execution.return_hash)
+    return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":True,
+        "message":return_value})
