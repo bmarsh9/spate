@@ -144,7 +144,7 @@ class WorkflowManager():
 
         command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response '{}' --request '{}'".format(step.execution_id,step.hash,
             json.dumps(response),json.dumps(step.request))
-        container.exec_run(command,environment=env)
+        container.exec_run(command,environment=env,detach=True)
         response = {
             "id":execution.id,
             "uuid":execution.uuid,

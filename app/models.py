@@ -317,7 +317,8 @@ class Workflow(db.Model, LogMixin):
 
     def generate_auth_token(self, expiration = 6000):
         s = Serializer(self.secret_key, expires_in = expiration)
-        return s.dumps({ 'workflow_id': self.id })
+        token = s.dumps({ 'workflow_id': self.id })
+        return token.decode("utf-8")
 
     @staticmethod
     def verify_invite_token(token):
@@ -508,6 +509,7 @@ class Workflow(db.Model, LogMixin):
             f.write(content)
         return True
 
+    '''
     def run(self,setup=False,refresh=True,restart=False,output="log",env={},request={}):
         trigger = self.get_trigger()
         if not trigger:
@@ -540,6 +542,7 @@ class Workflow(db.Model, LogMixin):
         response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response {}".format(step.execution_id,step.hash,response),
             output="log",detach=not trigger.synchronous,env={})
         return response
+    '''
 
     def setup_workflow(self,refresh=True,restart=False):
         self.setup_workflow_folder()
@@ -667,6 +670,7 @@ class Workflow(db.Model, LogMixin):
             if level == self.log_level:
                 select = "selected"
             log_html+='<option value="{}" {}>{}</option>'.format(level,select,level)
+#haaaaaa
         return """
         <div class="modal-body">
           <div class="mb-2">
