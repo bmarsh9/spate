@@ -242,3 +242,15 @@ def edit_locker_settings(id):
     Logs.add_log("{} updated the settings of locker:{}".format(current_user.email,
         locker.name),namespace="events")
     return redirect(url_for("main.view_locker",id=id))
+
+@main.route('/workflows/<int:id>/token', methods=['GET'])
+@login_required
+def generate_token_for_workflow(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
+    return render_template("generate_token.html",workflow=workflow)

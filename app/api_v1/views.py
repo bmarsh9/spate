@@ -130,6 +130,7 @@ def update_config_for_workflow(id):
     workflow.description = data["description"]
     workflow.imports = data["imports"]
     workflow.enabled = data["enabled"]
+    workflow.auth_required = data["auth_enabled"]
     workflow.log_level = data["log_level"]
     workflow.refresh_required = True
     db.session.commit()
@@ -477,6 +478,17 @@ def get_input_code(id,input_name):
     if not input:
         return jsonify({"message":"input not found"}),404
     return jsonify({"code":"test code"})
+
+@api.route('/workflows/<int:id>/token', methods=['GET'])
+@login_required
+def get_token_for_workflow(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        return jsonify({"message":"workflow not found"}),404
+    if not workflow.user_can_read(current_user.id):
+        return jsonify({"message":"access denied"}),403
+    token = workflow.generate_auth_token()
+    return jsonify({"token":token})
 
 @api.route('/steps/<int:id>/results', methods=['GET'])
 @login_required

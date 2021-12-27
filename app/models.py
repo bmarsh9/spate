@@ -315,6 +315,21 @@ class Workflow(db.Model, LogMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+    def generate_auth_token(self, expiration = 6000):
+        s = Serializer(self.secret_key, expires_in = expiration)
+        return s.dumps({ 'workflow_id': self.id })
+
+    @staticmethod
+    def verify_invite_token(token):
+        s = Serializer(self.secret_key)
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            return False # valid token, but expired
+        except BadSignature:
+            return False # invalid token
+        return True
+
     def create_hash_for_steps(self,values):
         sha1 = hashlib.sha1()
         for value in values:
@@ -643,6 +658,9 @@ class Workflow(db.Model, LogMixin):
         checked = ""
         if self.enabled:
             checked = "checked"
+        auth_checked = ""
+        if self.auth_required:
+            auth_checked = "checked"
         log_html = ""
         for level in ["info","debug","warning","error","critical"]:
             select = ""
@@ -677,6 +695,22 @@ class Workflow(db.Model, LogMixin):
               </div>
             </div>
           </div>
+          <div class="form-selectgroup-boxes row mb-2">
+            <div class="col-lg-12">
+              <div class="form-group row">
+                <div class="row">
+                  <label class="row">
+                    <span class="col form-label">Authentication Required</span>
+                    <span class="col-auto">
+                      <label class="form-check form-check-single form-switch">
+                        <input id="workflow_auth" class="form-check-input cursor-pointer" type="checkbox" {}>
+                      </label>
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="mb-2">
             <label class="form-label">Description</label>
             <textarea class="form-control" id="workflow_description" rows="2">{}</textarea>
@@ -699,7 +733,7 @@ class Workflow(db.Model, LogMixin):
             Save
           </a>
         </div>
-        """.format(self.name,self.label,checked,self.description,self.imports,log_html,self.name)
+        """.format(self.name,self.label,checked,auth_checked,self.description,self.imports,log_html,self.name)
 
     def to_workflow(self):
         config = {"operators":{},"links":{}}
