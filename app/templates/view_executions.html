@@ -8,7 +8,7 @@
         <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}">{{workflow.name}} - {{execution.id}}</a>
       </div>
       <h2 class="page-title">
-        Workflow Executions
+        Workflow Executions{%if execution.failed%}<span class="badge bg-red-lt ml-2">Failed</span>{%elif execution.paused()%}<span class="badge bg-orange-lt ml-2">Paused</span>{%elif execution.complete()%}<span class="badge bg-blue-lt ml-2">Complete</span>{%else%}<span class="badge bg-yellow-lt ml-2">Not Complete</span>{%endif%}
       </h2>
     </div>
     <div class="col-auto ms-auto">
