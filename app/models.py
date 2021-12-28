@@ -209,12 +209,13 @@ class Path(db.Model, LogMixin):
             return step.uuid
         return None
 
-    def send_paused_email(self):
-#haaaaaa
+    def send_paused_email(self,to):
+#haaaaaaaa
+        button_link = "https://18.209.248.151/resume/{}".format(self.get_paused_uuid())
         send_email(
           title,
           sender=current_app.config['ADMINS'][0],
-          recipients=[user_email],
+          recipients=[to],
           text_body=render_template(
             'email/invite_user.txt',
             token=token),
@@ -1067,16 +1068,37 @@ class Operator(db.Model, LogMixin):
         return operator_variables_html
 
     def get_html_form_for_input(self):
+        form_html = self.get_additional_input_for_input_trigger()
         operator_input_html = """
             <div class="card mb-2">
               <div class="card-header bg-light">
                 <h3 class="card-title">User Input Settings</h3>
               </div>
               <div class="card-body">
+                <div class="alert alert-important bg-blue-lt alert-dismissible" role="alert">
+                  <div class="d-flex">
+                    <div>
+                      <i class="ti ti-info-circle icon mr-2"></i>
+                    </div>
+                    <div>
+                      When your workflow is paused on this Operator, optionally set up a UI form to collect user input.
+                    </div>
+                  </div>
+                  <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
+                </div>
                 {}
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Send Notification Email</label>
+                  <div class="col">
+                    <input type="text" class="form-control" placeholder="Comma separated list of email(s)">
+                    <small class="form-hint">Specify if we should send a email to someone when the workflow is paused</small>
+                  </div>
+                </div>
+
               </div>
             </div>
-        """.format(self.name)
+        """.format(form_html)
+#haaaaaa
         return operator_input_html
 
     def get_additional_input_for_api_trigger(self):
@@ -1135,7 +1157,7 @@ class Operator(db.Model, LogMixin):
         form_options = ""
         template = """
             <div class="form-group mb-3 row">
-              <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
+              <label class="form-label col-3 col-form-label">Select UI Form</label>
               <div class="col">
                 <select class="form-select" id="form_{}">
                   <option value="">Select an Form</option>
@@ -1227,7 +1249,6 @@ class Operator(db.Model, LogMixin):
         user_input = ""
         user_input_settings = ""
         if self.subtype == "input":
-            user_input = self.get_additional_input_for_input_trigger()
             user_input_settings = self.get_html_form_for_input()
         docs = ""
         if self.documentation:
