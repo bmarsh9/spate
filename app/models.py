@@ -11,6 +11,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 import networkx as nx
 from datetime import datetime
+from app.email import send_email
 from app import db, login
 import hashlib
 import shutil
@@ -207,6 +208,21 @@ class Path(db.Model, LogMixin):
         if step.status == "paused":
             return step.uuid
         return None
+
+    def send_paused_email(self):
+#haaaaaa
+        send_email(
+          title,
+          sender=current_app.config['ADMINS'][0],
+          recipients=[user_email],
+          text_body=render_template(
+            'email/invite_user.txt',
+            token=token),
+          html_body=render_template(
+            'email/invite_user.html',
+            title="",content="",button_link="")
+        )
+        return
 
     def status(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
@@ -1050,6 +1066,19 @@ class Operator(db.Model, LogMixin):
         """.format(self.name,custom_html_form)
         return operator_variables_html
 
+    def get_html_form_for_input(self):
+        operator_input_html = """
+            <div class="card mb-2">
+              <div class="card-header bg-light">
+                <h3 class="card-title">User Input Settings</h3>
+              </div>
+              <div class="card-body">
+                {}
+              </div>
+            </div>
+        """.format(self.name)
+        return operator_input_html
+
     def get_additional_input_for_api_trigger(self):
         sync_html = ""
         for sync in ["synchronous","asynchronous"]:
@@ -1081,45 +1110,47 @@ class Operator(db.Model, LogMixin):
         return template
 
     def get_additional_input_for_form_trigger(self):
-        template = ""
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Form</label>
+              <div class="col">
+                <select class="form-select" id="form_{}">
+                  <option value="">Select an Form</option>
+                  {}
+                </select>
+                <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+              </div>
+            </div>
+        """
         form_options = ""
         for form in IntakeForm.query.all():
             select = ""
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-            template = """
-                <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Form</label>
-                  <div class="col">
-                    <select class="form-select" id="form_{}">
-                      <option value="">Select an Form</option>
-                      {}
-                    </select>
-                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
-                  </div>
-                </div>""".format(self.name,form_options)
+        template.format(self.name,form_options)
         return template
 
     def get_additional_input_for_input_trigger(self):
-        template = ""
         form_options = ""
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
+              <div class="col">
+                <select class="form-select" id="form_{}">
+                  <option value="">Select an Form</option>
+                  {}
+                </select>
+                <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+              </div>
+            </div>
+        """
         for form in IntakeForm.query.all():
             select = ""
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-            template = """
-                <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
-                  <div class="col">
-                    <select class="form-select" id="form_{}">
-                      <option value="">Select an Form</option>
-                      {}
-                    </select>
-                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
-                  </div>
-                </div>""".format(self.name,form_options)
+        template.format(self.name,form_options)
         return template
 
     def get_return_path_input(self):
@@ -1194,8 +1225,10 @@ class Operator(db.Model, LogMixin):
             return_section = self.get_return_path_input()
         # collect user input
         user_input = ""
+        user_input_settings = ""
         if self.subtype == "input":
             user_input = self.get_additional_input_for_input_trigger()
+            user_input_settings = self.get_html_form_for_input()
         docs = ""
         if self.documentation:
             docs = """
@@ -1206,6 +1239,7 @@ class Operator(db.Model, LogMixin):
             </div>
             """.format(self.documentation)
         template = """
+          {}
           {}
           {}
           <div class="card">
@@ -1259,7 +1293,7 @@ class Operator(db.Model, LogMixin):
               </form>
             </div>
           </div>
-        """.format(docs,operator_variables_html,self.name,self.name,
+        """.format(docs,operator_variables_html,user_input_settings,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
             self.name,self.imports or "",return_section,addit_input_template,user_input)
         return template
