@@ -205,6 +205,14 @@ class Path(db.Model, LogMixin):
         step = self.steps.order_by(Step.id.desc()).first()
         return step.result
 
+    def has_form(self):
+        step = self.paused(as_object=True)
+        if step:
+            operator = Operator.query.filter(Operator.name == step.name).first()
+            if operator:
+                return operator.form_id
+        return False
+
     def get_paused_uuid(self):
         step = self.status(as_object=True)
         if step.status == "paused":
