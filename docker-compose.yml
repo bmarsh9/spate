@@ -9,7 +9,8 @@ services:
 
   spate_ui:
     container_name: spate-ui
-    image: bmarsh13/spate-ui:2.0.0
+    image: spate-ui
+#    image: bmarsh13/spate-ui:2.0.0
     depends_on:
       - postgres_db
     networks:
@@ -19,6 +20,8 @@ services:
       - "8443:5000"
     restart: unless-stopped
     environment:
+      - UI_HOST=https://44.200.204.132:8443
+      - API_HOST=https://44.200.204.132
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
       - DEFAULT_EMAIL=admin@example.com
       - DEFAULT_PASSWORD=admin
@@ -31,7 +34,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
     container_name: spate-ingress
-    image: bmarsh13/spate-ingress:2.0.2
+    image: spate-ingress
+#    image: bmarsh13/spate-ingress:2.0.2
     depends_on:
       - postgres_db
     networks:

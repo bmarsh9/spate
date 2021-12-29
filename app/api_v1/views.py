@@ -82,6 +82,9 @@ def refresh_workflow(id):
         return jsonify({"message":"workflow not found"}),404
     if not workflow.user_can_write(current_user.id):
         return jsonify({"message":"access denied"}),403
+    has_trigger = workflow.get_trigger()
+    if not has_trigger:
+        return jsonify({"message":"missing trigger"}),400
     results = workflow.setup_workflow()
     workflow.refresh_required = False
     db.session.commit()
@@ -315,6 +318,8 @@ def update_config_for_operator(id,operator_name):
         operator.run_every = data.get("runevery")
     if data.get("form"):
         operator.form_id = data.get("form")
+    if data.get("paused_email_to"):
+        operator.paused_email_to = data.get("paused_email_to")
     workflow.refresh_required = True
     db.session.commit()
     Logs.add_log("{} updated config of operator:{}".format(current_user.email,

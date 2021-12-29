@@ -33,7 +33,7 @@ $(window).on('load', function() {
           initSidebar($flowchart,$container)
         },
         error: function (request, status, error) {
-          notify_js("Error occurred while searching", type = "warning",time=1000)
+          notify_js("Error occurred while searching", type="warning",time=1000)
         }
       });
   }
@@ -63,11 +63,11 @@ $(document).on('click','.workflow_refresh', function(){
     type: "GET",
     success: function (response) {
         $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
-        notify_js("Refreshed workflow", type = "primary",time=1000)
+        notify_js("Refreshed workflow", type="primary",time=1000)
     },
     error: function (request, status, error) {
         $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
-        notify_js("Error occurred", type = "warning",time=1000)
+        notify_js(request.responseJSON["message"], type="warning",time=1000)
     }
   });
 });
@@ -81,7 +81,7 @@ $(document).on('click','.workflow_settings', function(){
       $("#workflow-modal").modal("show");
     },
     error: function (request, status, error) {
-        notify_js("Error occurred", type = "warning",time=1000)
+        notify_js("Error occurred", type="warning",time=1000)
     }
   });
 });
@@ -112,12 +112,12 @@ function saveWorkflowSettings(name) {
     dataType: "json",
     success: function (response) {
       $("#workflow-modal").modal("toggle");
-      notify_js("Saved settings", type = "primary",time=1000)
+      notify_js("Saved settings", type="primary",time=1000,placement={from:"top",align:"center"})
       return true;
     },
     error: function (request, status, error) {
       $("#workflow-modal").modal("toggle");
-      notify_js("Unknown error", type = "warning",time=1000)
+      notify_js("Unknown error", type="warning",time=1000,placement={from:"top",align:"center"})
       return false;
     }
   });
@@ -301,11 +301,11 @@ function saveOperatorCode(operatorName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      notify_js("Saved successfully",type="primary")
+      notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
       return true;
     },
     error: function (request, status, error) {
-      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger",time=1000,placement={from:"top",align:"center"})
       return false;
     }
   });
@@ -332,6 +332,7 @@ function saveOperatorSettings(operatorName) {
       "imports":$("#imports_"+operatorName).val(),
       "return_path":$("#path_"+operatorName+" input[type='radio']:checked").val(),
       "synchronous":$("#synchronous_"+operatorName).val(),
+      "paused_email_to":$("#email_"+operatorName).val(),
       "runevery":$("#runevery_"+operatorName).val(),
       "form":$("#form_"+operatorName).val(),
       "custom_variables":custom_vars
@@ -339,11 +340,11 @@ function saveOperatorSettings(operatorName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      notify_js("Saved successfully",type="primary")
+      notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
       return true;
     },
     error: function (request, status, error) {
-      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger",time=1000,placement={from:"top",align:"center"})
       return false;
     }
   });
@@ -360,11 +361,11 @@ function saveLinkCode(linkName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      notify_js("Saved successfully",type="primary")
+      notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
       return true;
     },
     error: function (request, status, error) {
-      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger",time=1000,placement={from:"top",align:"center"})
       return false;
     }
   });
@@ -383,11 +384,11 @@ function saveLinkSettings(linkName) {
     contentType: "application/json; charset=utf-8",
     dataType: "json",
     success: function (response) {
-      notify_js("Saved successfully",type="primary")
+      notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
       return true;
     },
     error: function (request, status, error) {
-      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger")
+      notify_js("Hmm. Something went wrong. Your data may not have saved!", type="danger",time=1000,placement={from:"top",align:"center"})
       return false;
     }
   });
@@ -533,7 +534,7 @@ function loadFlowchart(selector, workflowId) {
           loadOperatorModal(operatorName)
         },
         error: function (request, status, error) {
-          notify_js("Error occurred", type = "warning",time=1000)
+          notify_js("Error occurred", type="warning",time=1000)
         }
     });
   });
@@ -627,7 +628,7 @@ function loadFlowchart(selector, workflowId) {
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (response) {
-              notify_js("Added Link", type = "primary",time=1000)
+              notify_js("Added Link", type="primary",time=1000)
               $flowchart.flowchart('createLink', response["link_id"], response["link_data"]);
               var currentData = $flowchart.flowchart('getData');
               $flowchart.flowchart('setData', currentData);
@@ -635,7 +636,7 @@ function loadFlowchart(selector, workflowId) {
               return false;
             },
             error: function (request, status, error) {
-              notify_js("Failed to add Link", type = "danger",time=1000)
+              notify_js("Failed to add Link", type="danger",time=1000)
               return false;
             }
 
@@ -647,12 +648,12 @@ function loadFlowchart(selector, workflowId) {
             url: "/api/v1/workflows/"+get_workflow_id()+"/operators/" + operatorId,
             type: "DELETE",
             success: function (response) {
-              notify_js("Deleted block", type = "warning",time=1000)
+              notify_js("Deleted block", type="warning",time=1000)
               var data = $flowchart.flowchart('getData');
               $flowchart.flowchart('setData', data);
             },
             error: function (request, status, error) {
-              notify_js("Error occurred", type = "warning",time=1000)
+              notify_js("Error occurred", type="warning",time=1000)
             }
           });
           return true;
@@ -665,10 +666,10 @@ function loadFlowchart(selector, workflowId) {
             url: "/api/v1/workflows/"+get_workflow_id()+"/links/"+linkId,
             type: "DELETE",
             success: function (response) {
-              notify_js("Deleted Link", type = "primary",time=1000)
+              notify_js("Deleted Link", type="primary",time=1000)
             },
             error: function (request, status, error) {
-              notify_js("Error occurred", type = "warning",time=1000)
+              notify_js("Error occurred", type="warning",time=1000)
             }
           });
           return true;
@@ -687,7 +688,7 @@ function loadFlowchart(selector, workflowId) {
               console.log("operator moved")
             },
             error: function (request, status, error) {
-              notify_js("Error occurred", type = "warning",time=1000)
+              notify_js("Error occurred", type="warning",time=1000)
             }
           });
         },
@@ -698,7 +699,7 @@ function loadFlowchart(selector, workflowId) {
       setInitialZoom()
     }, //end ajax success callback
     error: function (request, status, error) {
-      notify_js("Failed to load the flowchart!", type = "danger",time=1000)
+      notify_js("Failed to load the flowchart!", type="danger",time=1000)
       return false;
     }
   }); // end ajax get load workflow data
@@ -715,7 +716,7 @@ function loadFlowchart(selector, workflowId) {
     var data = $flowchart.flowchart('getData');
     $('#flowchart_data').val(JSON.stringify(data, null, 2));
     console.log(data)
-    notify_js("Check console for debugging", type = "primary",time=1000)
+    notify_js("Check console for debugging", type="primary",time=1000)
   })
   /*
   $("#set_data").click(function () {
@@ -727,12 +728,12 @@ function loadFlowchart(selector, workflowId) {
       contentType: "application/json; charset=utf-8",
       dataType: "json",
       success: function (data) {
-        notify_js("Saved workflow", type = "primary",time=1000)
+        notify_js("Saved workflow", type="primary",time=1000)
         var currentData = $flowchart.flowchart('getData');
         $flowchart.flowchart('setData', currentData);
       },
       error: function (request, status, error) {
-        notify_js("Error occurred", type = "warning",time=1000)
+        notify_js("Error occurred", type="warning",time=1000)
       }
     });
   })
@@ -826,7 +827,7 @@ function initSidebar($flowchart,$container) {
           contentType: "application/json; charset=utf-8",
           dataType: "json",
           success: function (response) {
-            notify_js("Added block", type = "primary",time=1000)
+            notify_js("Added block", type="primary",time=1000)
             var newData = {
               "top": data.top,
               "left": data.left,
@@ -840,7 +841,7 @@ function initSidebar($flowchart,$container) {
             return false;
           },
           error: function (request, status, error) {
-            notify_js("[WARNING] "+request.responseJSON["message"], type = "warning",time=1000)
+            notify_js("[WARNING] "+request.responseJSON["message"], type="warning",time=1000)
             return false;
           }
         });

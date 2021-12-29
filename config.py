@@ -3,6 +3,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     #SERVER_NAME = "localhost"
+    UI_HOST = os.environ.get("UI_HOST")
+    API_HOST = os.environ.get("API_HOST")
     APP_NAME = os.environ.get("APP_NAME","Spate")
     APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
     CR_YEAR = os.environ.get("CR_YEAR","2021")
@@ -18,6 +20,7 @@ class Config:
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    MAIL_DEBUG = os.environ.get('MAIL_DEBUG',False)
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     BASE_DIR = basedir

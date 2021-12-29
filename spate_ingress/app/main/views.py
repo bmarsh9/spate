@@ -35,6 +35,13 @@ def intake_complete(workflow_id,name):
     return render_template("complete_form.html",request_id=request_id,
         workflow_id=workflow_id,form=form)
 
+@main.route('/resume/<string:step_uuid>/done', methods=['GET'])
+def resume_complete(step_uuid):
+    '''show this form when the user submits their response to
+    a paused workflow execution
+    '''
+    return render_template("resume_complete.html",step_uuid=step_uuid)
+
 @main.route('/resume/<string:step_uuid>', methods=['GET'])
 def view_intake_for_paused_path(step_uuid):
     step = current_app.db_session.query(current_app.Step).filter(current_app.Step.uuid == step_uuid).first()

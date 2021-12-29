@@ -4,7 +4,7 @@ from app.utils.mixin_models import LogMixin
 from flask_login import UserMixin
 from app.utils.misc import generate_uuid
 from app.utils.code_template import *
-from flask import current_app
+from flask import current_app,render_template
 from networkx.readwrite import json_graph
 from app.utils.docker_manager import DockerManager
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -193,9 +193,11 @@ class Path(db.Model, LogMixin):
                 time += step.execution_time
         return time
 
-    def paused(self):
+    def paused(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
             if step.status == "paused":
+                if as_object:
+                    return step
                 return True
         return False
 
@@ -209,21 +211,30 @@ class Path(db.Model, LogMixin):
             return step.uuid
         return None
 
-    def send_paused_email(self,to):
-#haaaaaaaa
-        button_link = "https://18.209.248.151/resume/{}".format(self.get_paused_uuid())
+    def send_paused_email(self):
+        step = self.paused(as_object=True)
+        if not step:
+            raise ValueError("Path is not paused")
+        operator = Operator.find_by_name(step.name)
+        if not operator:
+            raise ValueError("Operator name not found for the paused path")
+        button_link = os.path.join(current_app.config["API_HOST"],"resume/{}".format(step.uuid))
+        title = "{}: We need your input".format(current_app.config["APP_NAME"])
+        content = "We need to collect your input for the {} workflow".format(operator.workflow.label)
         send_email(
           title,
-          sender=current_app.config['ADMINS'][0],
-          recipients=[to],
+          sender=current_app.config["DEFAULT_EMAIL"],
+          recipients=operator.paused_email_to.split(","),
           text_body=render_template(
-            'email/invite_user.txt',
-            token=token),
+            'email/user_input.txt',
+            title=title,content=content,button_link=button_link
+          ),
           html_body=render_template(
-            'email/invite_user.html',
-            title="",content="",button_link="")
+            'email/user_input.html',
+            title=title,content=content,button_link=button_link
+          )
         )
-        return
+        return True
 
     def status(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
@@ -527,7 +538,6 @@ class Workflow(db.Model, LogMixin):
             f.write(content)
         return True
 
-    '''
     def run(self,setup=False,refresh=True,restart=False,output="log",env={},request={}):
         trigger = self.get_trigger()
         if not trigger:
@@ -549,7 +559,7 @@ class Workflow(db.Model, LogMixin):
                 "status":"in progress",
             }
         return response
-
+    '''
     #TODO remove and place in api-ingress
     def resume(self,step,response):
         trigger = self.get_trigger()
@@ -928,6 +938,7 @@ class Operator(db.Model, LogMixin):
     top = db.Column(db.Integer(),nullable=False)
     left = db.Column(db.Integer(),nullable=False)
     return_path = db.Column(db.String())
+    paused_email_to = db.Column(db.String())
     form_id = db.Column(db.Integer, db.ForeignKey('intake_forms.id'))
     inputs = db.relationship('Input', backref='operator', lazy='dynamic')
     outputs = db.relationship('Output', backref='operator', lazy='dynamic')
@@ -1090,15 +1101,13 @@ class Operator(db.Model, LogMixin):
                 <div class="form-group mb-3 row">
                   <label class="form-label col-3 col-form-label">Send Notification Email</label>
                   <div class="col">
-                    <input type="text" class="form-control" placeholder="Comma separated list of email(s)">
+                    <input id="email_{}" type="text" value="{}" class="form-control" placeholder="Comma separated list of email(s)">
                     <small class="form-hint">Specify if we should send a email to someone when the workflow is paused</small>
                   </div>
                 </div>
-
               </div>
             </div>
-        """.format(form_html)
-#haaaaaa
+        """.format(form_html,self.name,self.paused_email_to)
         return operator_input_html
 
     def get_additional_input_for_api_trigger(self):
@@ -1150,7 +1159,7 @@ class Operator(db.Model, LogMixin):
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-        template.format(self.name,form_options)
+        template = template.format(self.name,form_options)
         return template
 
     def get_additional_input_for_input_trigger(self):
@@ -1172,7 +1181,7 @@ class Operator(db.Model, LogMixin):
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-        template.format(self.name,form_options)
+        template = template.format(self.name,form_options)
         return template
 
     def get_return_path_input(self):
