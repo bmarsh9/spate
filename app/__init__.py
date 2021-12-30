@@ -78,6 +78,7 @@ def configure_models(app):
 def configure_extensions(app):
     db.init_app(app)
     logs.init_app(app)
+    mail.init_app(app)
     migrate.init_app(app, db)
     babel.init_app(app)
     login.init_app(app)

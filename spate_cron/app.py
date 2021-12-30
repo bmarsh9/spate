@@ -26,7 +26,7 @@ class Scheduler():
         if not workflow:
             logging.warning("Workflow ID: {} does not exist".format(trigger.workflow_id))
             return False
-        results = WorkflowManager(app,app.docker_client,workflow.id).run(workflow.name)
+        results = WorkflowManager(app,app.docker_client,workflow.id).run()
         return results
 
     def get_workflow(self,id):

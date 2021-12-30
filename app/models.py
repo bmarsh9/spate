@@ -4,13 +4,14 @@ from app.utils.mixin_models import LogMixin
 from flask_login import UserMixin
 from app.utils.misc import generate_uuid
 from app.utils.code_template import *
-from flask import current_app
+from flask import current_app,render_template
 from networkx.readwrite import json_graph
 from app.utils.docker_manager import DockerManager
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 import networkx as nx
 from datetime import datetime
+from app.email import send_email
 from app import db, login
 import hashlib
 import shutil
@@ -192,9 +193,11 @@ class Path(db.Model, LogMixin):
                 time += step.execution_time
         return time
 
-    def paused(self):
+    def paused(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
             if step.status == "paused":
+                if as_object:
+                    return step
                 return True
         return False
 
@@ -202,11 +205,44 @@ class Path(db.Model, LogMixin):
         step = self.steps.order_by(Step.id.desc()).first()
         return step.result
 
+    def has_form(self):
+        step = self.paused(as_object=True)
+        if step:
+            operator = Operator.query.filter(Operator.name == step.name).first()
+            if operator:
+                return operator.form_id
+        return False
+
     def get_paused_uuid(self):
         step = self.status(as_object=True)
         if step.status == "paused":
             return step.uuid
         return None
+
+    def send_paused_email(self):
+        step = self.paused(as_object=True)
+        if not step:
+            raise ValueError("Path is not paused")
+        operator = Operator.find_by_name(step.name)
+        if not operator:
+            raise ValueError("Operator name not found for the paused path")
+        button_link = os.path.join(current_app.config["API_HOST"],"resume/{}".format(step.uuid))
+        title = "{}: We need your input".format(current_app.config["APP_NAME"])
+        content = "We need to collect your input for the {} workflow".format(operator.workflow.label)
+        send_email(
+          title,
+          sender=current_app.config["DEFAULT_EMAIL"],
+          recipients=operator.paused_email_to.split(","),
+          text_body=render_template(
+            'email/user_input.txt',
+            title=title,content=content,button_link=button_link
+          ),
+          html_body=render_template(
+            'email/user_input.html',
+            title=title,content=content,button_link=button_link
+          )
+        )
+        return True
 
     def status(self,as_object=False):
         for step in self.steps.order_by(Step.id.asc()).all():
@@ -510,7 +546,6 @@ class Workflow(db.Model, LogMixin):
             f.write(content)
         return True
 
-    '''
     def run(self,setup=False,refresh=True,restart=False,output="log",env={},request={}):
         trigger = self.get_trigger()
         if not trigger:
@@ -532,7 +567,7 @@ class Workflow(db.Model, LogMixin):
                 "status":"in progress",
             }
         return response
-
+    '''
     #TODO remove and place in api-ingress
     def resume(self,step,response):
         trigger = self.get_trigger()
@@ -911,6 +946,9 @@ class Operator(db.Model, LogMixin):
     top = db.Column(db.Integer(),nullable=False)
     left = db.Column(db.Integer(),nullable=False)
     return_path = db.Column(db.String())
+    paused_email_to = db.Column(db.String())
+    email_notification = db.Column(db.Boolean, default=False) # on paused steps
+    email_status = db.Column(db.String())
     form_id = db.Column(db.Integer, db.ForeignKey('intake_forms.id'))
     inputs = db.relationship('Input', backref='operator', lazy='dynamic')
     outputs = db.relationship('Output', backref='operator', lazy='dynamic')
@@ -1050,6 +1088,53 @@ class Operator(db.Model, LogMixin):
         """.format(self.name,custom_html_form)
         return operator_variables_html
 
+    def get_html_form_for_input(self):
+        form_html = self.get_additional_input_for_input_trigger()
+        checked = ""
+        if self.email_notification:
+            checked = "checked"
+        operator_input_html = """
+            <div class="card mb-2">
+              <div class="card-header bg-light">
+                <h3 class="card-title">User Input Settings</h3>
+              </div>
+              <div class="card-body">
+                <div class="alert alert-important bg-blue-lt alert-dismissible" role="alert">
+                  <div class="d-flex">
+                    <div>
+                      <i class="ti ti-info-circle icon mr-2"></i>
+                    </div>
+                    <div>
+                      When your workflow is paused on this Operator, optionally set up a UI form to collect user input.
+                    </div>
+                  </div>
+                  <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
+                </div>
+                {}
+                <div class="form-group mb-3 row">
+                  <div class="row">
+                    <label class="row">
+                      <span class="col form-label">Notification Email Enabled</span>
+                      <span class="col-auto">
+                        <label class="form-check form-check-single form-switch">
+                          <input id="notification_{}" class="form-check-input cursor-pointer" type="checkbox" {}>
+                        </label>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Notification Email Recipients</label>
+                  <div class="col">
+                    <input id="email_{}" type="text" value="{}" class="form-control" placeholder="Comma separated list of email(s)">
+                    <small class="form-hint">Specify if we should send a email to someone when the workflow is paused</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+        """.format(form_html,self.name,checked,self.name,self.paused_email_to)
+        return operator_input_html
+
     def get_additional_input_for_api_trigger(self):
         sync_html = ""
         for sync in ["synchronous","asynchronous"]:
@@ -1081,45 +1166,47 @@ class Operator(db.Model, LogMixin):
         return template
 
     def get_additional_input_for_form_trigger(self):
-        template = ""
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Form</label>
+              <div class="col">
+                <select class="form-select" id="form_{}">
+                  <option value="">Select an Form</option>
+                  {}
+                </select>
+                <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+              </div>
+            </div>
+        """
         form_options = ""
         for form in IntakeForm.query.all():
             select = ""
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-            template = """
-                <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Form</label>
-                  <div class="col">
-                    <select class="form-select" id="form_{}">
-                      <option value="">Select an Form</option>
-                      {}
-                    </select>
-                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
-                  </div>
-                </div>""".format(self.name,form_options)
+        template = template.format(self.name,form_options)
         return template
 
     def get_additional_input_for_input_trigger(self):
-        template = ""
         form_options = ""
+        template = """
+            <div class="form-group mb-3 row">
+              <label class="form-label col-3 col-form-label">Select UI Form</label>
+              <div class="col">
+                <select class="form-select" id="form_{}">
+                  <option value="">Select an Form</option>
+                  {}
+                </select>
+                <small class="form-hint">Select which form you want end users to see for your Workflow</small>
+              </div>
+            </div>
+        """
         for form in IntakeForm.query.all():
             select = ""
             if self.form_id == form.id:
                 select = "selected"
             form_options += '<option value="{}" {}>({}) {}</option>'.format(form.id,select,form.id,form.label)
-            template = """
-                <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Select what is shown when your workflow is paused</label>
-                  <div class="col">
-                    <select class="form-select" id="form_{}">
-                      <option value="">Select an Form</option>
-                      {}
-                    </select>
-                    <small class="form-hint">Select which form you want end users to see for your Workflow</small>
-                  </div>
-                </div>""".format(self.name,form_options)
+        template = template.format(self.name,form_options)
         return template
 
     def get_return_path_input(self):
@@ -1194,8 +1281,9 @@ class Operator(db.Model, LogMixin):
             return_section = self.get_return_path_input()
         # collect user input
         user_input = ""
+        user_input_settings = ""
         if self.subtype == "input":
-            user_input = self.get_additional_input_for_input_trigger()
+            user_input_settings = self.get_html_form_for_input()
         docs = ""
         if self.documentation:
             docs = """
@@ -1206,6 +1294,7 @@ class Operator(db.Model, LogMixin):
             </div>
             """.format(self.documentation)
         template = """
+          {}
           {}
           {}
           <div class="card">
@@ -1259,7 +1348,7 @@ class Operator(db.Model, LogMixin):
               </form>
             </div>
           </div>
-        """.format(docs,operator_variables_html,self.name,self.name,
+        """.format(docs,operator_variables_html,user_input_settings,self.name,self.name,
             self.label,self.name,self.description,self.name,checked,
             self.name,self.imports or "",return_section,addit_input_template,user_input)
         return template

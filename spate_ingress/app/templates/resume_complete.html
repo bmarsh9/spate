@@ -1,0 +1,26 @@
+{% extends "layouts/overlap.html" %}
+
+{%block contentHeader_pretitle%}{%endblock%}
+{%block contentHeader_title%}{%endblock%}
+{%block navbar%}{%endblock%}
+{%block toolbar%}{%endblock%}
+
+{%block content%}
+  <div class="row row-cards">
+    <div class="col-12">
+      <a href="{{url_for('main.view_intake_for_paused_path',step_uuid=step_uuid)}}"><i class="ti ti-arrow-big-left icon text-white"></i></a>
+    </div>
+    <div class="col-12">
+        <div class="card">
+          <div class="card-body">
+            <div class="empty">
+              <p id="title" class="empty-title">Response has been recorded</p>
+              <p id="subtitle" class="empty-subtitle text-muted">
+                Your response has been recorded. The execution will continue.
+              </p>
+            </div>
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}

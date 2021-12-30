@@ -2,3 +2,5 @@ Flask-SQLAlchemy==2.3.2
 psycopg2==2.8.6
 arrow==0.17.0
 docker==4.1.0
+Mako==1.1.4
+

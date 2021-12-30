@@ -78,6 +78,21 @@
                     </h2>
                     <div id="collapse{{path.hash}}" class="accordion-collapse collapse" aria-labelledby="heading{{path.hash}}">
                       <div class="accordion-body">
+                        {%if paused_uuid%}
+                        <div class="alert alert-important bg-red-lt alert-dismissible" role="alert">
+                          <div class="d-flex">
+                            <div>
+                              <i class="ti ti-player-pause icon mr-2"></i>
+                            </div>
+                            <div>
+                              <h4>This path is currently paused. To resume execution, see the API/Form links below.</h4>
+                              <h5>API endpoint: <a class="text-primary" href="{{config["API_HOST"]}}/api/v1/endpoints/{{paused_uuid}}/resume">View</a></h5>
+                              <h5>Form endpoint: {%if path.has_form()%}<a class="text-primary" href="{{config["API_HOST"]}}/resume/{{paused_uuid}}">View</a>{%else%}Missing UI Form{%endif%}</h5>
+                            </div>
+                          </div>
+                          <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
+                        </div>
+                        {%endif%}
                         <div class="row mb-2">
                           <div class="card">
                             <div class="card-header">
@@ -87,9 +102,6 @@
                               <pre style="white-space:nowrap">
                               UUID: {{path.uuid}}<br>
                               Hash: {{path.hash}}<br>
-                              {%if paused_uuid%}
-                              URL to resume the execution: /api/v1/endpoints/{{paused_uuid}}/resume
-                              {%endif%}
                               </pre>
                             </div>
                           </div>

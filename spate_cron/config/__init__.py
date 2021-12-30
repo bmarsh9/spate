@@ -22,5 +22,6 @@ class Config():
         self.Execution = db.classes.executions
         self.Path = db.classes.paths
         self.Step = db.classes.steps
+        self.PathSteps = db.classes.path_steps
 
         self.docker_client = docker.from_env()

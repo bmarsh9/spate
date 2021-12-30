@@ -1,9 +1,15 @@
-function notify_js(message,type="error",time=5000) {
+function notify_js(message,type="error",time=5000, placement=false) {
+  if (!placement) {
+    var placement = {from:"top",align:"right"};
+  } else {
+    var placement = placement;
+  };
   $.notify({
       message: message
     },{
+    placement:placement,
     type: type,
-    delay:5000,
+    delay:time,
     z_index: 2000,
     timer:time,
     animate: {
@@ -12,5 +18,4 @@ function notify_js(message,type="error",time=5000) {
     }
   });
 }
-
 

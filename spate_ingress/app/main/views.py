@@ -34,3 +34,29 @@ def intake_complete(workflow_id,name):
         return redirect(url_for("main.home"))
     return render_template("complete_form.html",request_id=request_id,
         workflow_id=workflow_id,form=form)
+
+@main.route('/resume/<string:step_uuid>/done', methods=['GET'])
+def resume_complete(step_uuid):
+    '''show this form when the user submits their response to
+    a paused workflow execution
+    '''
+    return render_template("resume_complete.html",step_uuid=step_uuid)
+
+@main.route('/resume/<string:step_uuid>', methods=['GET'])
+def view_intake_for_paused_path(step_uuid):
+    step = current_app.db_session.query(current_app.Step).filter(current_app.Step.uuid == step_uuid).first()
+    if not step:
+        flash("Intake not found!","danger")
+        return redirect(url_for("main.home"))
+    if step.status != "paused":
+        flash("Step is not paused!","danger")
+        return redirect(url_for("main.home"))
+    operator = current_app.db_session.query(current_app.Operator).filter(current_app.Operator.name == step.name).first()
+    if not operator:
+        flash("Operator does not exist anymore!","danger")
+        return redirect(url_for("main.home"))
+    form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.id == operator.form_id).first()
+    if not form or not form.enabled:
+        flash("Form not found or it is disabled","danger")
+        return redirect(url_for("main.home"))
+    return render_template("show_form_for_paused_path.html",form=form,step=step)

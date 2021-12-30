@@ -3,6 +3,8 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     #SERVER_NAME = "localhost"
+    UI_HOST = os.environ.get("UI_HOST")
+    API_HOST = os.environ.get("API_HOST")
     APP_NAME = os.environ.get("APP_NAME","Spate")
     APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
     CR_YEAR = os.environ.get("CR_YEAR","2021")
@@ -18,6 +20,7 @@ class Config:
     MAIL_SERVER = 'smtp.googlemail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
+    MAIL_DEBUG = os.environ.get('MAIL_DEBUG',False)
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     BASE_DIR = basedir
@@ -28,6 +31,8 @@ class Config:
 
     DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL", "admin@example.com")
     DEFAULT_PASSWORD = os.environ.get("DEFAULT_PASSWORD", "admin")
+
+    BLOCK_TIMEOUT = os.environ.get("BLOCK_TIMEOUT",30)
 
     WORKFLOW_MOUNT_DIRECTORY = os.environ.get("WORKFLOW_MOUNT_DIRECTORY",os.path.join(basedir,"app","workflow_executions"))
     if not os.path.exists(WORKFLOW_MOUNT_DIRECTORY):
