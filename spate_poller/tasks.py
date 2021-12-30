@@ -16,3 +16,6 @@ def remove_stale_workflow_containers(app, logging):
                 number_of_stopped_containers += 1
     logging.info("Removed {} containers.".format(number_of_stopped_containers))
     return True
+
+def send_email_for_paused_path(app, logging):
+    pass

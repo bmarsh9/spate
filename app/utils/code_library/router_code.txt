@@ -17,6 +17,7 @@ import argparse
 
 # path inside docker container
 CONFIG_PATH = "/app/workflow/tmp/config.ini"
+BLOCK_TIMEOUT = BLOCK_TIMEOUT_PARAMETER
 
 DB = automap_base()
 
@@ -126,7 +127,7 @@ class WorkflowRunner():
             self.add_to_wf_logs("warning","Workflow file:{} not found!".format(path))
         return None
 
-    @timeout_decorator.timeout(30)
+    @timeout_decorator.timeout(BLOCK_TIMEOUT)
     def execute_function(self,operator_name,function_name,event={},**kwargs):
         if function_name == "code":
             file_name = "operator"

@@ -5,4 +5,3 @@ arrow==0.17.0
 uWSGI==2.0.20
 docker==4.1.0
 itsdangerous==1.1.0
-

@@ -32,6 +32,8 @@ class Config:
     DEFAULT_EMAIL = os.environ.get("DEFAULT_EMAIL", "admin@example.com")
     DEFAULT_PASSWORD = os.environ.get("DEFAULT_PASSWORD", "admin")
 
+    BLOCK_TIMEOUT = os.environ.get("BLOCK_TIMEOUT",30)
+
     WORKFLOW_MOUNT_DIRECTORY = os.environ.get("WORKFLOW_MOUNT_DIRECTORY",os.path.join(basedir,"app","workflow_executions"))
     if not os.path.exists(WORKFLOW_MOUNT_DIRECTORY):
         os.mkdir(WORKFLOW_MOUNT_DIRECTORY)

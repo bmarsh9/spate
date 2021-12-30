@@ -43,8 +43,8 @@ def default_router_code(workflow_dir):
     path = os.path.join(current_app.config["BASE_DIR"],"app/utils/code_library/router_code.txt")
     if os.path.exists(path):
         with open(path) as f:
-            return f.read()
-            #return data.replace("REPLACE",os.path.join(workflow_dir,"config.ini"))
+            contents = f.read()
+            return contents.replace(int(current_app.config("BLOCK_TIMEOUT",30)),"BLOCK_TIMEOUT_PARAMETER")
     return ""
 
 def default_store_code():
