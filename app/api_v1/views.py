@@ -320,6 +320,7 @@ def update_config_for_operator(id,operator_name):
         operator.form_id = data.get("form")
     if data.get("paused_email_to"):
         operator.paused_email_to = data.get("paused_email_to")
+    operator.email_notification = data["email_notification"]
     workflow.refresh_required = True
     db.session.commit()
     Logs.add_log("{} updated config of operator:{}".format(current_user.email,

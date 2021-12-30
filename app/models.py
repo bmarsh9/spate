@@ -947,6 +947,8 @@ class Operator(db.Model, LogMixin):
     left = db.Column(db.Integer(),nullable=False)
     return_path = db.Column(db.String())
     paused_email_to = db.Column(db.String())
+    email_notification = db.Column(db.Boolean, default=False) # on paused steps
+    email_status = db.Column(db.String())
     form_id = db.Column(db.Integer, db.ForeignKey('intake_forms.id'))
     inputs = db.relationship('Input', backref='operator', lazy='dynamic')
     outputs = db.relationship('Output', backref='operator', lazy='dynamic')
@@ -1088,6 +1090,9 @@ class Operator(db.Model, LogMixin):
 
     def get_html_form_for_input(self):
         form_html = self.get_additional_input_for_input_trigger()
+        checked = ""
+        if self.email_notification:
+            checked = "checked"
         operator_input_html = """
             <div class="card mb-2">
               <div class="card-header bg-light">
@@ -1107,7 +1112,19 @@ class Operator(db.Model, LogMixin):
                 </div>
                 {}
                 <div class="form-group mb-3 row">
-                  <label class="form-label col-3 col-form-label">Send Notification Email</label>
+                  <div class="row">
+                    <label class="row">
+                      <span class="col form-label">Notification Email Enabled</span>
+                      <span class="col-auto">
+                        <label class="form-check form-check-single form-switch">
+                          <input id="notification_{}" class="form-check-input cursor-pointer" type="checkbox" {}>
+                        </label>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+                <div class="form-group mb-3 row">
+                  <label class="form-label col-3 col-form-label">Notification Email Recipients</label>
                   <div class="col">
                     <input id="email_{}" type="text" value="{}" class="form-control" placeholder="Comma separated list of email(s)">
                     <small class="form-hint">Specify if we should send a email to someone when the workflow is paused</small>
@@ -1115,7 +1132,7 @@ class Operator(db.Model, LogMixin):
                 </div>
               </div>
             </div>
-        """.format(form_html,self.name,self.paused_email_to)
+        """.format(form_html,self.name,checked,self.name,self.paused_email_to)
         return operator_input_html
 
     def get_additional_input_for_api_trigger(self):

@@ -17,7 +17,7 @@ import argparse
 
 # path inside docker container
 CONFIG_PATH = "/app/workflow/tmp/config.ini"
-BLOCK_TIMEOUT = BLOCK_TIMEOUT_PARAMETER
+BLOCK_TIMEOUT = int(BLOCK_TIMEOUT_PARAMETER)
 
 DB = automap_base()
 
@@ -240,6 +240,14 @@ class WorkflowRunner():
             results[step.hash] = step.result
         return results
 
+    def notification_email(self,operator_name):
+        operator = self.db_session.query(self.Operator).filter(self.Operator.name == operator_name).first()
+        if operator:
+            if operator.email_notification:
+                operator.email_status = "ready"
+                self.db_session.commit()
+        return True
+
     def execute(self,paths):
         # iterate over the paths
         for tree in paths:
@@ -274,6 +282,7 @@ class WorkflowRunner():
                             self.add_to_step_logs("info","Pausing the path:{} on block:{}".format(path_hash,current_step["name"]))
                             self.step_dict["status"] = "paused"
                             self.step_dict["request"] = self.request
+                            self.notification_email(current_step["name"])
                             break_path = True
                         else:
                             # get result/previous by hash

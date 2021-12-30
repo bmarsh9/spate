@@ -332,6 +332,7 @@ function saveOperatorSettings(operatorName) {
       "imports":$("#imports_"+operatorName).val(),
       "return_path":$("#path_"+operatorName+" input[type='radio']:checked").val(),
       "synchronous":$("#synchronous_"+operatorName).val(),
+      "email_notification":$("#notification_"+operatorName).is(":checked"),
       "paused_email_to":$("#email_"+operatorName).val(),
       "runevery":$("#runevery_"+operatorName).val(),
       "form":$("#form_"+operatorName).val(),
