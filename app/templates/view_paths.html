@@ -86,8 +86,8 @@
                             </div>
                             <div>
                               <h4>This path is currently paused. To resume execution, see the API/Form links below.</h4>
-                              <h5>API endpoint: <a class="text-primary" href="{{config["API_HOST"]}}/api/v1/endpoints/{{paused_uuid}}/resume">View</a></h5>
-                              <h5>Form endpoint: {%if path.has_form()%}<a class="text-primary" href="{{config["API_HOST"]}}/resume/{{paused_uuid}}">View</a>{%else%}Missing UI Form{%endif%}</h5>
+                              <h5>API endpoint: <code>{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/api/v1/endpoints/{{paused_uuid}}/resume</code></h5>
+                              <h5>Form endpoint:<code>{%if path.has_form()%}{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/resume/{{paused_uuid}}{%else%}Missing UI Form{%endif%}</code></h5>
                             </div>
                           </div>
                           <a class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="close"></a>
