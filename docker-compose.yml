@@ -71,6 +71,9 @@ services:
     environment:
       - SQLALCHEMY_DATABASE_URL=postgresql://db1:db1@postgres_db/db1
       - VERSION=2.1.0
+      - MAIL_USERNAME=tomkeene91@gmail.com
+      - MAIL_PASSWORD=vkhqemijxhalqgzg
+      - API_HOST=https://44.200.204.132
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   postgres_db:

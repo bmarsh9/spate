@@ -133,7 +133,7 @@
                 <button class="btn workflow_form_endpoints"><i class="ti ti-access-point"></i><small class="ml-2">Form Link</small></button>
                 {%endif%}
                 {%endif%}
-                <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}" class="btn"><i class="ti ti-report-analytics"></i><small class="ml-2">Executions</small></a>
+                <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}" class="btn"><i class="ti ti-report-analytics"></i><small class="ml-2">Executions<span class="ml-2">{{workflow.executions.count()}}</span></small></a>
                 {%if workflow.auth_required%}
                   <a href="{{url_for("main.generate_token_for_workflow",id=workflow.id)}}" class="btn "><i class="ti ti-key"></i><small class="ml-2">Get Token</small></a>
                 {%else%}
@@ -157,10 +157,10 @@
         </div>
         <div class="modal-body">
           <h5>Run Workflow</h5>
-          <code>{{config["API_HOST"]}}/api/v1/endpoints/{{workflow.uuid}}</code>
+          <code>{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/api/v1/endpoints/{{workflow.uuid}}</code>
           <br>
           <h5 class="mt-2">View Results for Executions</h5>
-          <code>{{config["API_HOST"]}}/api/v1/executions/&lt;uuid&gt;</code>
+          <code>{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/api/v1/executions/&lt;uuid&gt;</code>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
