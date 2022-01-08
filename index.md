@@ -223,5 +223,5 @@ You can check the status of the deployment by viewing the "Status" page
 - [x] Improve admin controls in UI (e.g. what users can edit/view workflows)
 - [ ] Improve documentation
 - [x] Add RBAC to the Lockers
-- [ ] Multi-processing of single executions of workflows (e.g. paths are executed)
-- [ ] Pause workflows and wait for user response
+- [x] Multi-processing of single executions of workflows (e.g. paths are executed)
+- [x] Pause workflows and wait for user response
