@@ -3,6 +3,7 @@ def request_to_json(request):
         "headers":dict(request.headers),
         "body":request.get_json(silent=True),
         "args":request.args.to_dict(),
+        "file":request.files.get("file")
     }
     for property in ["origin","method","mimetype","referrer","remote_addr","url"]:
         data[property] = getattr(request,property)
