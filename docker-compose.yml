@@ -9,8 +9,8 @@ services:
 
   spate_ui:
     container_name: spate-ui
-#    image: bmarsh13/spate-ui:2.1.0
-    image: spate-ui
+    image: bmarsh13/spate-ui:2.1.0
+#    image: spate-ui
     depends_on:
       - postgres_db
     networks:
@@ -32,8 +32,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:rw
   spate_ingress:
     container_name: spate-ingress
-#    image: bmarsh13/spate-ingress:2.1.0
-    image: spate-ingress
+    image: bmarsh13/spate-ingress:2.1.0
+#    image: spate-ingress
     depends_on:
       - postgres_db
     networks:
