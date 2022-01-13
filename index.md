@@ -213,6 +213,24 @@ Your 'docker ps' command should look something like this (4 containers with spat
 
 <img src="images/spate_debug.PNG" alt="" class="inline"/>
 
+##### Setting up developer workspace
+
+The below steps will show you how to set up the minimal dev environment to edit the code of the specific containers. We will run everything in the foreground and use the Flask dev server so that your changes reload. 
+
+For `spate-ui` container:  
+1. You will need a postgresql database set up. You can either install it on your local machine or start one via docker (and proxy it). I prefer the local machine set up. I just run `sudo apt install postgresql postgresql-contrib` to install it. Then I run `bash setup_db.sh db1` (found in `spate/server_config`) to set up the database.
+2. After the database/roles are set up, I need to run `export SQLALCHEMY_DATABASE_URL="postgresql://db1:db1@localhost/db1"`
+3. Run `python3 manage.py init_db` to set up the tables
+4. Run `python3 manage.py runserver -h 0.0.0.0` and the `spate-ui` web server will start on `http://<your-ip>:5000`
+
+For `spate-ingress` container:
+1. Steps 1-3 in `spate-ui` should already be complete.
+2. Run `flask run -h 0.0.0.0 -p 5001` from `spate/spate_ingress` and `spate-ingress` web server will start on `http:<your-ip>:5001`
+
+For `spate-poller` and `spate-cron`:
+1. Steps 1-3 in `spate-ui` should already be complete.
+2. Run `python3 app.py`
+
 ##### Service status
 You can check the status of the deployment by viewing the "Status" page
 
