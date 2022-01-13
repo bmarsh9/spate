@@ -188,6 +188,19 @@ I would say the best way is to check the "Status" page on the Spate-ui container
 ##### Is there a timeout on the workflow?
 There is a default 30 second timeout for each execution. So if the code within the Operator or Link takes longer than 30 seconds to complete, the specific path will stop executing. If you want to set a longer timeout, you need to set the `BLOCK_TIMEOUT` env variable on the `spate-ui` container.
 
+##### How can I access files uploaded to my workflow?
+API and Form based workflows support files. In other words, if you POST a file (e.g. via curl) to the API endpoint, you can access/read the file in your workflow. The same thing for Form based workflows. Let's look at Form based workflows first. Head over and create a Form in the UI. After you drop the `File Upload`field onto your form, you need to edit the `name` field and set it to `file`. See the screenshot below.
+
+<img src="images/spate-fileinput.PNG" alt="" class="inline"/>
+
+When a file is uploaded to your workflow, it gets saved to the docker container (files don't persist on reboots!). To access the file within your workflow, see the following code to list all the files that have been uploaded to your execution
+
+```
+glob.glob("/files/{}_*".format(kwargs["config"]["execution_id"]))
+```
+
+Once you have the filename, you can perform whatever work needs to be done on the file. Just be aware that you could have multiple files uploaded (e.g. if your workflow is paused and resumed).
+
 ### Disclaimer  
 Spate should not be used with users that you do not trust. For example, you should not set up Spate and allow anyone in the world to connect and run workflows. It would be pretty easy for an attacker to obtain shell access to your servers by running a workflow.
 
