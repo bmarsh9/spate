@@ -199,7 +199,11 @@ When a file is uploaded to your workflow, it gets saved to the docker container 
 glob.glob("/files/{}_*".format(kwargs["config"]["execution_id"]))
 ```
 
-Once you have the filename, you can perform whatever work needs to be done on the file. Just be aware that you could have multiple files uploaded (e.g. if your workflow is paused and resumed).
+Once you have the filename, you can perform whatever work needs to be done on the file. Just be aware that you could have multiple files uploaded (e.g. if your workflow is paused and resumed). And here is a example with Curl of sending a file (for an API workflow):
+
+```
+curl -k -i -X GET -H "Content-Type: multipart/form-data" -F "file=@test.txt" https://<your-ip>/api/v1/endpoints/<your-id>
+```
 
 ### Disclaimer  
 Spate should not be used with users that you do not trust. For example, you should not set up Spate and allow anyone in the world to connect and run workflows. It would be pretty easy for an attacker to obtain shell access to your servers by running a workflow.
