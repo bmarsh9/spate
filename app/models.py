@@ -421,7 +421,7 @@ class Workflow(db.Model, LogMixin):
         uuid = generate_uuid(length=10)
         name = "Workflow_{}".format(uuid)
         if not kwargs.get("imports"):
-            kwargs["imports"] = "import logging,os,sys,json,random"
+            kwargs["imports"] = "import logging,os,sys,json,random,glob"
         kwargs["name"] = name
         if "label" not in kwargs:
             kwargs["label"] = name

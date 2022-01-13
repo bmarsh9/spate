@@ -110,7 +110,7 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"trigger not found"}),404
     # result returns the name of the submitted Result or 0 (failed)
     try:
-        result = WorkflowManager(workflow.id).run(request=request_to_json(request),subtype="form")
+        result = WorkflowManager(workflow.id).run(request=request_to_json(request),file=request.files.get("file"),subtype="form")
         request_id = result.uuid
         code = 200
     except Exception as e:
