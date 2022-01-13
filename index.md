@@ -186,7 +186,7 @@ As you already know, the API and Form trigger consumes data from the end user. Y
 I would say the best way is to check the "Status" page on the Spate-ui container. Log into the web UI (port 443) and navigate to the Status page in the header. If everything is healthy, you are good to go. If not, I would recommend re-reading the docs for getting started.
 
 ##### Is there a timeout on the workflow?
-There is a default 30 second timeout for each execution. So if the code within the Operator or Link takes longer than 30 seconds to complete, the specific path will stop executing. 
+There is a default 30 second timeout for each execution. So if the code within the Operator or Link takes longer than 30 seconds to complete, the specific path will stop executing. If you want to set a longer timeout, you need to set the `BLOCK_TIMEOUT` env variable on the `spate-ui` container.
 
 ### Disclaimer  
 Spate should not be used with users that you do not trust. For example, you should not set up Spate and allow anyone in the world to connect and run workflows. It would be pretty easy for an attacker to obtain shell access to your servers by running a workflow.
