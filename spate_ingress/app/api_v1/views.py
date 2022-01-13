@@ -67,7 +67,7 @@ def resume_workflow_execution(step_uuid):
         return jsonify({"message":"authentication failed"}),401
     response = request_to_json(request)
     try:
-        results = workflow.resume(execution,step,response)
+        results = workflow.resume(execution,step,response,file=request.files.get("file"))
         code = 200
     except Exception as e:
         logging.error("An error occurred upon resuming execution:{}. Error:{}".format(execution.id,str(e)))
@@ -85,7 +85,7 @@ def execute_api_workflow(workflow_uuid):
     if not WorkflowManager(workflow.id).verify_token_in_request(request):
         return jsonify({"message":"authentication failed"}),401
     try:
-        results = WorkflowManager(workflow.id).run(request=request_to_json(request))
+        results = WorkflowManager(workflow.id).run(request=request_to_json(request),file=request.files.get("file"))
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the API trigger:{}. Error:{}".format(workflow.name,str(e)))
