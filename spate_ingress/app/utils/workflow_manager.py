@@ -1,10 +1,13 @@
 from flask import current_app
+from werkzeug.utils import secure_filename
 import docker
 import json
 from itsdangerous import (TimedJSONWebSignatureSerializer as Serializer, BadSignature, SignatureExpired)
 from datetime import datetime
 import uuid
 import hashlib
+import tarfile
+import os
 
 class WorkflowManager():
     def __init__(self, workflow_id):
@@ -42,6 +45,18 @@ class WorkflowManager():
 
     def get_trigger(self,subtype):
         return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+
+    def save_file_to_container(self, container, src):
+        os.chdir(os.path.dirname(src))
+        srcname = os.path.basename(src)
+        tar = tarfile.open(src + '.tar', mode='w')
+        try:
+            tar.add(srcname)
+        finally:
+            tar.close()
+        data = open(src + '.tar', 'rb').read()
+        container.put_archive("/files", data)
+        return True
 
     def find_container_by_workflow_name(self,name,by_id=False):
         '''search for workflow_name key set on the
@@ -143,10 +158,16 @@ class WorkflowManager():
                 return False
         return True
 
-    def resume(self,execution,step,response,env={}):
+    def resume(self,execution,step,response,file=None,env={}):
         container = self.find_container_by_workflow_name(self.workflow.name)
         if not container:
             raise ValueError("Container not found. Please refresh it.")
+
+        if file:
+            uploaded_file = "{}_{}".format(step.execution_id,secure_filename(file.filename))
+            full_path = os.path.join(current_app.config['FILE_FOLDER'], uploaded_file)
+            file.save(full_path)
+            self.save_file_to_container(container,full_path)
 
         command = "python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response '{}' --request '{}'".format(step.execution_id,step.hash,
             json.dumps(response),json.dumps(step.request))
@@ -160,7 +181,7 @@ class WorkflowManager():
         }
         return response
 
-    def run(self,env={},request={},subtype="api"):
+    def run(self,env={},request={},file=None,subtype="api"):
         trigger = self.get_trigger(subtype=subtype)
         if not trigger:
             raise ValueError("Trigger not found. Please add an API trigger.")
@@ -169,6 +190,12 @@ class WorkflowManager():
             raise ValueError("Container not found. Please refresh it.")
 
         execution = self.add_execution()
+
+        if file:
+            uploaded_file = "{}_{}".format(execution.id,secure_filename(file.filename))
+            full_path = os.path.join(current_app.config['FILE_FOLDER'], uploaded_file)
+            file.save(full_path)
+            self.save_file_to_container(container,full_path)
 
         command = "python3 /app/workflow/tmp/router.py --execution_id {} --request '{}'".format(execution.id,json.dumps(request))
         container.exec_run(command,environment=env,detach=not trigger.synchronous)

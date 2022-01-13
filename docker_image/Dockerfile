@@ -7,7 +7,7 @@ RUN apt-get update && \
 
 ADD . /app
 WORKDIR /app
-RUN /app/init_container.sh && \
+RUN mkdir /files && /app/init_container.sh && \
   pip3 install -r /app/requirements.txt
 
 CMD ["tail", "-f", "/dev/null"]

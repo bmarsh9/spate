@@ -421,7 +421,7 @@ class Workflow(db.Model, LogMixin):
         uuid = generate_uuid(length=10)
         name = "Workflow_{}".format(uuid)
         if not kwargs.get("imports"):
-            kwargs["imports"] = "import logging,os,sys,json,random"
+            kwargs["imports"] = "import logging,os,sys,json,random,glob"
         kwargs["name"] = name
         if "label" not in kwargs:
             kwargs["label"] = name
@@ -567,18 +567,6 @@ class Workflow(db.Model, LogMixin):
                 "status":"in progress",
             }
         return response
-    '''
-    #TODO remove and place in api-ingress
-    def resume(self,step,response):
-        trigger = self.get_trigger()
-        if not trigger:
-            return False
-        dm = DockerManager()
-        id = dm.find_container_by_workflow_name(self.name).short_id
-        response = dm.exec_to_container(id,"python3 /app/workflow/tmp/router.py --execution_id {} --step_hash {} --response {}".format(step.execution_id,step.hash,response),
-            output="log",detach=not trigger.synchronous,env={})
-        return response
-    '''
 
     def setup_workflow(self,refresh=True,restart=False):
         self.setup_workflow_folder()

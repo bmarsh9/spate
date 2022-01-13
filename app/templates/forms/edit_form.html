@@ -82,6 +82,17 @@
 
     function saveForm(e) {
       var data = formBuilder.formData;
+      let fileCount = 0;
+      var parsedData = JSON.parse(data);
+      for (var i = 0; i < parsedData.length; ++i) {
+        if (parsedData[i].type == "file") {
+          fileCount++;
+        };
+      };
+      if (fileCount > 1) {
+        notify_js("Only one(1) file input is allowed.",type="danger")
+        return
+      };
       $.ajax({
         type: "PUT",
         url: "/api/v1/forms/{{form.name}}",

@@ -66,7 +66,7 @@ $(document).on('click','.workflow_refresh', function(){
         notify_js("Refreshed workflow", type="primary",time=1000)
     },
     error: function (request, status, error) {
-        $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Refresh</small></button>')
+        $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Save</small></button>')
         notify_js(request.responseJSON["message"], type="warning",time=1000)
     }
   });
@@ -281,6 +281,10 @@ function clickOperatorSettings(operatorName) {
       resetModalCodeArea()
       $("#code-editor").html(response["config"])
       $("#modalSaveButton").html('<button onclick=saveOperatorSettings("'+operatorName+'") type="button" class="btn subheader text-white btn-primary">Save</button>')
+      $("form :input").change(function() {
+        notify_js("Dont forget to save changes", type="warning",time=1000,placement={from:"top",align:"center"})
+        $("#modalSaveButton").html('<button onclick=saveOperatorSettings("'+operatorName+'") type="button" class="btn subheader bg-red text-white"><span style="width:1rem;height:1rem" class="spinner-grow text-white mr-2" role="status"></span>Save</button>')
+      });
     }
   });
 }
@@ -302,6 +306,7 @@ function saveOperatorCode(operatorName) {
     dataType: "json",
     success: function (response) {
       notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
+      $("#modalSaveButton").html('<button onclick=saveOperatorCode("'+operatorName+'") type="button" class="btn subheader text-white bg-primary">Save</button>')
       return true;
     },
     error: function (request, status, error) {
@@ -342,6 +347,7 @@ function saveOperatorSettings(operatorName) {
     dataType: "json",
     success: function (response) {
       notify_js("Saved successfully",type="primary",time=1000,placement={from:"top",align:"center"})
+      $("#modalSaveButton").html('<button onclick=saveOperatorSettings("'+operatorName+'") type="button" class="btn subheader text-white btn-primary">Save</button>')
       return true;
     },
     error: function (request, status, error) {
@@ -471,11 +477,15 @@ function loadEditor(operatorName) {
       //editor.setReadOnly(true);  // false to make it editable
       editor.setValue(response["code"]);
       readOnlyLines(editor);
+
+      editor.getSession().on('change', function(){
+        $("#modalSaveButton").html('<button onclick=saveOperatorCode("'+operatorName+'") type="button" class="btn subheader bg-red text-white"><span style="width:1rem;height:1rem" class="spinner-grow text-white mr-2" role="status"></span>Save</button>')
+      })
       /*
       editor.getSession().setAnnotations([{
         row: 1,
         column: 0,
-        text: "Error Message", // Or the Json reply from the parser 
+        text: "Error Message", // Or the Json reply from the parser
         type: "error" // also "warning" and "information"
       }]);
       */

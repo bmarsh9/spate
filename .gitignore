@@ -2,6 +2,7 @@
 env/*
 migrations
 app/workflow_executions/*
+spate_ingress/app/execution_files/*
 *pyc
 # C extensions
 *.so

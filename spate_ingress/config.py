@@ -23,6 +23,10 @@ class Config:
     SHARED_TOKEN = os.environ.get("SHARED_TOKEN","changeme")
     ENFORCE_TOKEN_FOR_RESULTS = os.environ.get("ENFORCE_TOKEN_FOR_RESULTS",False)
 
+    FILE_FOLDER = os.environ.get("FILE_FOLDER",os.path.join(basedir,"app","execution_files"))
+    if not os.path.exists(FILE_FOLDER):
+        os.mkdir(FILE_FOLDER)
+
     @staticmethod
     def init_app(app):
         pass
