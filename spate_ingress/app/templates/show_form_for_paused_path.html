@@ -17,10 +17,10 @@
     <div class="col-12">
         <div class="card">
           <div class="card-body">
-            <form method="POST">
+            <form id="data" method="POST" enctype="multipart/form-data">
               <div id="form-body"></div>
               <div class="form-footer">
-                <button id="submit" type="button" class="btn btn-primary">Submit</button>
+                <button class="btn btn-primary">Submit</button>
               </div>
             </form>
           </div>
@@ -34,17 +34,20 @@
   $(document).ready(function() {
     var formRenderOptions = {
       formData: {{form.data|tojson}}
-    }    
+    }
     var formRenderInstance = $('#form-body').formRender(formRenderOptions);
-    $('#submit').click( function() {
-      var data = {"data":formRenderInstance.userData};
-      console.log(data)
+
+    $("form#data").submit(function(e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+      console.log(formData)
       $.ajax({
         url: '{{url_for('api.resume_workflow_execution',step_uuid=step.uuid)}}',
         type: 'post',
-        dataType: 'json',
-        contentType: "application/json; charset=utf-8",
-        data: JSON.stringify(data),
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
         success: function(data) {
           window.location.replace("{{url_for("main.resume_complete",step_uuid=step.uuid)}}");
         },

@@ -35,7 +35,7 @@ def create_users():
 
 def create_default_workflow():
     attrs = {
-        "imports":"import logging,os,sys,json,random",
+        "imports":"import logging,os,sys,json,glob",
         "label":"Default Workflow",
         "description":"This is the demo workflow",
     }
