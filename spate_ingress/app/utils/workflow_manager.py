@@ -12,6 +12,8 @@ import os
 class WorkflowManager():
     def __init__(self, workflow_id=None, workflow=None):
         if not workflow:
+            if not workflow_id:
+                raise ValueError("workflow_id is required if workflow object is not passed")
             self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
             self.workflow_id = self.workflow.id
         else:
