@@ -16,11 +16,21 @@ def view_intake(workflow_id,name):
     if not workflow.enabled:
         flash("Workflow is not enabled!","danger")
         return redirect(url_for("main.home"))
+    trigger = WorkflowManager(workflow=workflow).get_trigger()
+    if not trigger:
+        flash("Missing trigger!","danger")
+        return redirect(url_for("main.home"))
+    if trigger.subtype != "form":
+        flash("Trigger is not type form!","danger")
+        return redirect(url_for("main.home"))
+    if not WorkflowManager(workflow=workflow).verify_token_in_request(request):
+        flash("Authentication failed","danger")
+        return redirect(url_for("main.home"))
     form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
     if not form or not form.enabled:
         flash("Form not found or it is disabled","danger")
         return redirect(url_for("main.home"))
-    return render_template("show_form.html",form=form,workflow=workflow)
+    return render_template("show_form.html",form=form,workflow=workflow,token=request.args.get("token"))
 
 @main.route('/workflows/<int:workflow_id>/intake/<string:name>/done', methods=['GET'])
 def intake_complete(workflow_id,name):
@@ -33,7 +43,7 @@ def intake_complete(workflow_id,name):
         flash("Request ID was not found","danger")
         return redirect(url_for("main.home"))
     return render_template("complete_form.html",request_id=request_id,
-        workflow_id=workflow_id,form=form)
+        workflow_id=workflow_id,form=form,token=request.args.get("token"))
 
 @main.route('/resume/<string:step_uuid>/done', methods=['GET'])
 def resume_complete(step_uuid):

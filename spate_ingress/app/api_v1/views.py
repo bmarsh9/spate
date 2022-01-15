@@ -25,7 +25,7 @@ def get_result_status(execution_uuid):
     if not execution:
         return jsonify({"message":"execution does not exist"}),404
 
-    workflow = WorkflowManager(execution.workflow_id)
+    workflow = WorkflowManager(workflow_id=execution.workflow_id)
     if not workflow.verify_token_in_request(request):
         return jsonify({"message":"authentication failed"}),401
 
@@ -62,7 +62,7 @@ def resume_workflow_execution(step_uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.id == step.execution_id).first()
     if not execution:
         return jsonify({"message":"execution not found"}),404
-    workflow = WorkflowManager(execution.workflow_id)
+    workflow = WorkflowManager(workflow_id=execution.workflow_id)
     if not workflow.verify_token_in_request(request):
         return jsonify({"message":"authentication failed"}),401
     response = request_to_json(request)
@@ -75,17 +75,22 @@ def resume_workflow_execution(step_uuid):
         code = 500
     return jsonify({"response":results}),code
 
-@api.route('/endpoints/<string:workflow_uuid>', methods=['GET'])
+@api.route('/endpoints/<string:workflow_uuid>', methods=['GET','POST'])
 def execute_api_workflow(workflow_uuid):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.uuid == workflow_uuid).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
-    if not WorkflowManager(workflow.id).verify_token_in_request(request):
+    trigger = WorkflowManager(workflow=workflow).get_trigger()
+    if not trigger:
+        return jsonify({"message":"trigger not found"}),400
+    if trigger.subtype != "api":
+        return jsonify({"message":"trigger is not type api"}),400
+    if not WorkflowManager(workflow=workflow).verify_token_in_request(request):
         return jsonify({"message":"authentication failed"}),401
     try:
-        results = WorkflowManager(workflow.id).run(request=request_to_json(request),file=request.files.get("file"))
+        results = WorkflowManager(workflow=workflow).run(request=request_to_json(request),file=request.files.get("file"))
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the API trigger:{}. Error:{}".format(workflow.name,str(e)))
@@ -93,14 +98,14 @@ def execute_api_workflow(workflow_uuid):
         code = 500
     return jsonify({"response":results}),code
 
-@api.route('/workflows/<int:workflow_id>/intake/<string:name>', methods=['POST'])
+@api.route('/workflows/<int:workflow_id>/intake/<string:name>', methods=['GET','POST'])
 def submit_intake(workflow_id,name):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
     if not workflow:
         return jsonify({"message":"workflow not found"}),404
     if not workflow.enabled:
         return jsonify({"message":"workflow is disabled"}),400
-    if not WorkflowManager(workflow_id).verify_token_in_request(request):
+    if not WorkflowManager(workflow=workflow).verify_token_in_request(request):
         return jsonify({"message":"authentication failed"}),401
     form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
     if not form:
@@ -110,14 +115,14 @@ def submit_intake(workflow_id,name):
         return jsonify({"message":"trigger not found"}),404
     # result returns the name of the submitted Result or 0 (failed)
     try:
-        result = WorkflowManager(workflow.id).run(request=request_to_json(request),file=request.files.get("file"),subtype="form")
+        result = WorkflowManager(workflow=workflow).run(request=request_to_json(request),file=request.files.get("file"),subtype="form")
         request_id = result.uuid
         code = 200
     except Exception as e:
         logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
         request_id = "0"
         code = 500
-    redirect_url = "/workflows/{}/intake/{}/done?request_id={}".format(workflow.id,form.name,request_id)
+    redirect_url = "/workflows/{}/intake/{}/done?request_id={}&token={}".format(workflow.id,form.name,request_id,request.args.get("token"))
     return jsonify({"message":"ok","url":redirect_url}),code
 
 @api.route('/intake/<string:uuid>/status', methods=['GET'])
@@ -128,7 +133,7 @@ def get_intake_status(uuid):
     execution = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.uuid == uuid).first()
     if not execution:
         return jsonify({"complete":False,"status":"failed","message":"The requested resource was not found"}),404
-    workflow = WorkflowManager(execution.workflow_id)
+    workflow = WorkflowManager(workflow_id=execution.workflow_id)
     complete = workflow.is_execution_complete(execution.id)
     if not complete:
         return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":False,

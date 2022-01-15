@@ -10,9 +10,15 @@ import tarfile
 import os
 
 class WorkflowManager():
-    def __init__(self, workflow_id):
-        self.workflow_id = workflow_id
-        self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
+    def __init__(self, workflow_id=None, workflow=None):
+        if not workflow:
+            if not workflow_id:
+                raise ValueError("workflow_id is required if workflow object is not passed")
+            self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
+            self.workflow_id = self.workflow.id
+        else:
+            self.workflow = workflow
+            self.workflow_id = self.workflow.id
 
     def verify_token_in_request(self,request):
         if not self.workflow.auth_required:
@@ -43,8 +49,10 @@ class WorkflowManager():
         s = Serializer(self.workflow.secret_key, expires_in = expiration)
         return s.dumps({ 'workflow_id': self.workflow_id })
 
-    def get_trigger(self,subtype):
-        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+    def get_trigger(self,subtype=None):
+        if subtype:
+            return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.workflow_id == self.workflow_id).first()
 
     def save_file_to_container(self, container, src):
         os.chdir(os.path.dirname(src))

@@ -42,7 +42,7 @@
       var formData = new FormData(this);
       console.log(formData)
       $.ajax({
-        url: '{{url_for('api.submit_intake',workflow_id=workflow.id,name=form.name)}}',
+        url: '{{url_for('api.submit_intake',workflow_id=workflow.id,name=form.name,token=token)}}',
         type: 'post',
         data: formData,
         cache: false,

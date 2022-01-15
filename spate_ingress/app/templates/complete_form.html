@@ -8,7 +8,7 @@
 {%block content%}
   <div class="row row-cards">
     <div class="col-12">
-      <a href="{{url_for("main.view_intake",workflow_id=workflow_id,name=form.name)}}"><i class="ti ti-arrow-big-left icon text-white"></i></a>
+      <a href="{{url_for("main.view_intake",workflow_id=workflow_id,name=form.name,token=token)}}"><i class="ti ti-arrow-big-left icon text-white"></i></a>
     </div>
     <div class="col-12">
         <div class="card">
@@ -24,6 +24,7 @@
             <pre id="waiting">
             </pre>
           </div>
+          <div class="card-footer" id="url"></div>
         </div>
     </div>
   </div>
@@ -33,6 +34,7 @@
   <script>
     var stop = false;
     var loop = 0;
+    $("#url").html("Save this URL for reference <code>"+window.location.href+"</code>");
     (function worker() {
       $.ajax({
         url: "/api/v1/intake/{{request_id}}/status",
