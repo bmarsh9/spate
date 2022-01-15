@@ -49,8 +49,10 @@ class WorkflowManager():
         s = Serializer(self.workflow.secret_key, expires_in = expiration)
         return s.dumps({ 'workflow_id': self.workflow_id })
 
-    def get_trigger(self,subtype):
-        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+    def get_trigger(self,subtype=None):
+        if subtype:
+            return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.workflow_id == self.workflow_id).first()
 
     def save_file_to_container(self, container, src):
         os.chdir(os.path.dirname(src))

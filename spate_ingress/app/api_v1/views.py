@@ -75,7 +75,7 @@ def resume_workflow_execution(step_uuid):
         code = 500
     return jsonify({"response":results}),code
 
-@api.route('/endpoints/<string:workflow_uuid>', methods=['GET'])
+@api.route('/endpoints/<string:workflow_uuid>', methods=['GET','POST'])
 def execute_api_workflow(workflow_uuid):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.uuid == workflow_uuid).first()
     if not workflow:
@@ -98,7 +98,7 @@ def execute_api_workflow(workflow_uuid):
         code = 500
     return jsonify({"response":results}),code
 
-@api.route('/workflows/<int:workflow_id>/intake/<string:name>', methods=['POST'])
+@api.route('/workflows/<int:workflow_id>/intake/<string:name>', methods=['GET','POST'])
 def submit_intake(workflow_id,name):
     workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
     if not workflow:
@@ -122,7 +122,7 @@ def submit_intake(workflow_id,name):
         logging.error("An error occurred upon submission of the Form trigger:{}. Error:{}".format(workflow.name,str(e)))
         request_id = "0"
         code = 500
-    redirect_url = "/workflows/{}/intake/{}/done?request_id={}".format(workflow.id,form.name,request_id)
+    redirect_url = "/workflows/{}/intake/{}/done?request_id={}&token={}".format(workflow.id,form.name,request_id,request.args.get("token"))
     return jsonify({"message":"ok","url":redirect_url}),code
 
 @api.route('/intake/<string:uuid>/status', methods=['GET'])
