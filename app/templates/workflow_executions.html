@@ -14,7 +14,7 @@
         <a href="{{url_for("main.workflows")}}">workflows</a>
       </div>
       <h2 class="page-title">
-        Workflow Executions
+        Workflow Executions{%if workflow.get_trigger()%}<span class="badge bg-blue-lt ml-2">{{workflow.get_trigger().subtype}}{%endif%}</span>
       </h2>
     </div>
     <div class="col-auto ms-auto">
