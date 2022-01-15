@@ -16,6 +16,16 @@ def view_intake(workflow_id,name):
     if not workflow.enabled:
         flash("Workflow is not enabled!","danger")
         return redirect(url_for("main.home"))
+    trigger = workflow.get_trigger()
+    if not trigger:
+        flash("Missing trigger!","danger")
+        return redirect(url_for("main.home"))
+    if trigger.subtype != "form":
+        flash("Trigger is not type form!","danger")
+        return redirect(url_for("main.home"))
+    if not WorkflowManager(workflow=workflow).verify_token_in_request(request):
+        flash("Authentication failed","danger")
+        return redirect(url_for("main.home"))
     form = current_app.db_session.query(current_app.IntakeForm).filter(current_app.IntakeForm.name == name).first()
     if not form or not form.enabled:
         flash("Form not found or it is disabled","danger")

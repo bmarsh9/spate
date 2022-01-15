@@ -10,9 +10,13 @@ import tarfile
 import os
 
 class WorkflowManager():
-    def __init__(self, workflow_id):
-        self.workflow_id = workflow_id
-        self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
+    def __init__(self, workflow_id=None, workflow=None):
+        if not workflow:
+            self.workflow = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.id == workflow_id).first()
+            self.workflow_id = self.workflow.id
+        else:
+            self.workflow = workflow
+            self.workflow_id = self.workflow.id
 
     def verify_token_in_request(self,request):
         if not self.workflow.auth_required:
