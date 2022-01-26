@@ -1,3 +1,4 @@
+#docker build -t dev .
 # install base
 FROM ubuntu
 
