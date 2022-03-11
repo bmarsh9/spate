@@ -20,6 +20,9 @@
     <div class="col-auto ms-auto">
       <div class="btn-list">
         <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.view_dashboard_for_workflow",id=workflow.id)}}" class="btn btn-white">
+            View Dashboard
+          </a>
           <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn btn-primary">
             View Graph
           </a>

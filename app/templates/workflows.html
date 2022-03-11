@@ -54,6 +54,8 @@
                     <th>Type</th>
                     <th>Last Run</th>
                     <th>Runs</th>
+                    <th class="w-1">Endpoints</th>
+                    <th class="w-1">Dashboard</th>
                     <th class="w-1">Executions</th>
                     <th class="w-1">Graph</th>
                     <th class="w-1">Access</th>
@@ -72,6 +74,12 @@
                     <td>{%if last_executed == "never"%}<span class="badge bg-gray-lt">{{last_executed}}</span>{%else%}<span class="badge bg-blue-lt">{{last_executed}}</span>{%endif%}</td>
                     <td><span class="badge bg-blue-lt">{{workflow.executions.count()}}</span></td>
                     <td class="text-center">
+                      <a href="#" class="btn btn-ghost-primary" data-bs-toggle="modal" data-content="{{workflow.get_access_points()}}" data-id="{{workflow.id}}" data-bs-target="#accessModal"><i class="ti ti-access-point"></i></a>
+                    </td>
+                    <td class="text-center">
+                      <a href="{{url_for("main.view_dashboard_for_workflow",id=workflow.id)}}"><i class="ti ti-dashboard"></i></a>
+                    </td>
+                    <td class="text-center">
                       <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}"><i class="ti ti-report-analytics"></i></a>
                     </td>
                     <td class="text-center">
@@ -89,6 +97,21 @@
         </div>
     </div>
   </div>
+<div class="modal modal-blur fade" id="accessModal" tabindex="-1" aria-hidden="true" style="display: none;">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Execution Endpoints</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn me-auto" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 {%endblock%}
 
 {%block extrajs%}
@@ -98,6 +121,12 @@
     {%if not workflows%}
       notify_js("Create an workflow to get started!", type = "primary",time=1000)
     {%endif%}
+
+    $('#accessModal').on('shown.bs.modal', function (e) {
+      var workflowID = $(e.relatedTarget).data('id');
+      $(".modal-body").html($(e.relatedTarget).data('content'))
+      console.log(workflowID)
+    });
   } );
 </script>
 {% endblock %}

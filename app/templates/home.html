@@ -125,6 +125,9 @@
                 <button class="btn"  id="reset"><i class="ti ti-refresh"></i><small class="ml-2">Reload</small></button>
               </div>
               <div class="col-10 text-end">
+                {%if config.DOC_LINK%}
+                <a href="{{config.DOC_LINK}}" class="btn"><i class="ti ti-question-mark"></i><small class="ml-2">Docs</small></a>
+                {%endif%}
                 {%set trigger = workflow.get_trigger()%}
                 {%if trigger%}
                 {%if trigger.subtype == "api"%}

@@ -47,8 +47,9 @@ a.nav-link.active {
 .flowchart-operator .flowchart-operator-title {
     border-radius: 8px 8px 0px 0px !important;
     border-bottom: 1px solid #c5c5cb !important;
-    background: #FFF;
+    background: #f4f6fa!important;
     padding: 10px !important;
+    color: #656d77;
 }
 
 #chart_container {

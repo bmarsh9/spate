@@ -158,7 +158,7 @@ def add_operator_for_workflow(id):
     '''only allowing one trigger per workflow right now'''
     if operator.type == "trigger":
         if workflow.get_trigger():
-            return jsonify({"message":"one trigger per workflow"}),400
+            return jsonify({"message":"One trigger per workflow. Try adding an 'Action' instead."}),400
     add_output = operator.outputs.count()
     new_operator = Operator.add(workflow.id,operator.id,type=operator.type,top=data["top"],left=data["left"],add_output=add_output)
     workflow.refresh_required = True
@@ -569,3 +569,65 @@ def graph_get_events():
     for log in Logs.query.filter(Logs.date_added > now.shift(days=-7).datetime).order_by(Logs.id.desc()).all():
         data["data"].append([log.id,log.log_type,log.message,log.date_added])
     return jsonify(data)
+
+@api.route("/graphs/workflows/<int:workflow_id>/execution-date", methods=["GET"])
+@login_required
+def graph_get_execution_for_workflow(workflow_id):
+    workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        return jsonify({})
+    span_of_days = [(0,1),(1,3),(3,7),(7,15),(15,90)]
+    now = arrow.utcnow()
+    data = []
+    categories = []
+    for span in span_of_days:
+        start,end = span
+        categories.append("{}-{} days ago".format(start,end))
+        count = Execution.query.filter(Execution.date_added < now.shift(days=-start).datetime).filter(Execution.date_added > now.shift(days=-end).datetime).count()
+        data.append(count)
+    series = {"name":"# of Executions","data":data}
+    return jsonify({"series":[series],"categories":categories})
+
+@api.route("/graphs/workflows/<int:workflow_id>/execution-time", methods=["GET"])
+@login_required
+def graph_get_execution_time_for_workflow(workflow_id):
+    span_of_time = [(0,2),(2,5),(5,10),(10,20),(20,60)]
+    data = {0:0,1:0,2:0,3:0,4:0}
+    workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        return jsonify({})
+    now = arrow.utcnow()
+    for execution in workflow.executions.filter(Execution.date_added >= now.shift(days=-30).datetime).all():
+        execution_time = execution.execution_time()
+        for enum,range in enumerate(span_of_time):
+            if enum == 4:
+                data[enum] += 1
+            else:
+                start,end = range
+                if start <= execution_time <= end:
+                    data[enum] += 1
+                    break
+    categories = ["0-2s","2-5s","5-10s","10-20s","20+s"]
+    series = {"name":"Execution Time","data":list(data.values())}
+    return jsonify({"series":[series],"categories":categories})
+
+@api.route("/graphs/workflows/<int:workflow_id>/execution-results", methods=["GET"])
+@login_required
+def graph_get_execution_results_for_workflow(workflow_id):
+    workflow = Workflow.query.get(workflow_id)
+    if not workflow:
+        return jsonify({})
+    now = arrow.utcnow()
+    data = {}
+    for execution in workflow.executions.filter(Execution.date_added >= now.shift(days=-30).datetime).all():
+        value = "{}..".format(str(execution.get_return_value())[:16])
+        if value not in data:
+            data[value] = 1
+        else:
+            data[value] += 1
+    formatted_data = []
+    if data:
+        for k,v in data.items():
+            formatted_data.append({"x":k,"y":v})
+    series = {"data":formatted_data}
+    return jsonify({"series":[series]})

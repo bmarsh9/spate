@@ -86,6 +86,18 @@ def view_workflow(id):
         return redirect(url_for("main.home"))
     return render_template("home.html",workflow=workflow)
 
+@main.route('/workflows/<int:id>/dashboard', methods=['GET'])
+@login_required
+def view_dashboard_for_workflow(id):
+    workflow = Workflow.query.get(id)
+    if not workflow:
+        flash("Workflow does not exist","warning")
+        return redirect(url_for("main.home"))
+    if not workflow.user_can_read(current_user.id):
+        flash("You do not have access to this resource","warning")
+        return redirect(url_for("main.home"))
+    return render_template("dashboard_for_workflow.html",workflow=workflow)
+
 @main.route('/workflows/add', methods=['GET','POST'])
 @roles_accepted('user','admin')
 def add_workflow():
