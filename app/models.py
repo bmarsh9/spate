@@ -351,6 +351,30 @@ class Workflow(db.Model, LogMixin):
     date_added = db.Column(db.DateTime, default=datetime.utcnow)
     date_updated = db.Column(db.DateTime, onupdate=datetime.utcnow)
 
+    def get_access_points(self):
+        template = """
+          <h5>Run Workflow</h5>
+          {}
+          <br>
+          <h5 class="mt-2">View Results for Executions</h5>
+          <code>{}/api/v1/executions/<uuid></code>
+        """
+        trigger = self.get_trigger()
+        access_link = ""
+        if not trigger:
+            access_link = "This workflow is missing a trigger. Please add one."
+        elif trigger.subtype == "api":
+            access_link = "<code>{}/api/v1/endpoints/{}</code>".format(current_app.config["API_HOST"],self.uuid)
+        elif trigger.subtype == "form":
+            if trigger.form_id:
+                access_link = "<code>{}{}</code>".format(current_app.config["API_HOST"],trigger.get_intake_link())
+            else:
+                access_link = "This workflow is missing a form. Please add one."
+        elif trigger.subtype == "cron":
+            access_link = "This workflow has a 'Cron' trigger. There are no endpoints associated with this type."
+        content = template.format(access_link,current_app.config["API_HOST"])
+        return content
+
     def generate_auth_token(self, expiration = 6000):
         s = Serializer(self.secret_key, expires_in = expiration)
         token = s.dumps({ 'workflow_id': self.id })
@@ -1237,7 +1261,7 @@ class Operator(db.Model, LogMixin):
                   <div id="path_{}" class="form-selectgroup form-selectgroup-boxes d-flex flex-column">
                     {}
                   </div>
-                  <small class="form-hint">Choose a path for the return value</small>
+                  <small class="form-hint">Choose a path for the return value. If you have multiple 'paths' in your worflow, you can select one path to be the definitive return value.</small>
               </div>
             </div>
         """.format(self.name,path_items)
@@ -1372,8 +1396,25 @@ class Operator(db.Model, LogMixin):
 
     def modal_inputs(self):
         data = ""
-        for input in self.inputs.order_by(Input.date_added.desc()).all():
-            data += input.modal_html()
+        inputs = self.inputs.order_by(Input.date_added.desc()).all()
+        if inputs:
+            for input in inputs:
+                data += input.modal_html()
+        else:
+            data += """
+              <div style="border-color:transparent" class="blockelem-hover card card-body d-block">
+                <div class="row">
+                  <div class="col-9 mt-2">
+                    <h5 class="text-secondary inputHeader">No Inputs!</h5>
+                  </div>
+                  <div class="col-3">
+                    <span class="avatar avatar-sm avatar-rounded bg-green-lt">C</span>
+                  </div>
+                </div>
+                <p style="font-size:10px" class="text-muted mb-0"><span class="text-dark font-weight-bold">0 Operator(s) connected</span></p>
+              </div>
+              <div class="hr-text mb-3 mt-3"><i class="ti ti-activity"></i></div>
+            """
         return data
 
     def modal_outputs(self):
@@ -1439,7 +1480,7 @@ class Operator(db.Model, LogMixin):
               "footer": '''<div class="subheader ignore-op-click card-footer"><div class="row"><div class="col-10 ignore-op-click">{}</div>
                   <div class="col-2 ignore-op-click text-end"><div class="nav-item dropdown">
                   <a href="#" class="p-0 ml-2 ignore-op-click" data-bs-toggle="dropdown" aria-label="Open operator menu" aria-expanded="false">
-                  <i class="ti ti-dots-vertical icon"></i></a><div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow bg-dark text-white" data-bs-popper="none">
+                  <i class="ti ti-dots-vertical icon"></i></a><div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow text-dark" data-bs-popper="none">
                   <span class="dropdown-header">Quick Actions</span><a href="#" id="{}" class="dropdown-item h6 edit_operator">
                   <i class="ti ti-code mr-2"></i>Edit</a><a href="#" id="{}" class="dropdown-item h6 delete_operator ignore-op-click">
                   <i class="ti ti-trash mr-2"></i>Delete</a></div></div></div></div>'''.format(active,self.name,self.name),

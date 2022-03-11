@@ -1,0 +1,192 @@
+{% extends "layouts/condensed.html" %}
+
+{% block before_head %}
+  {{ super() }}
+  {% import "helpers/src_macros.html" as macro %}
+  {{ macro.filehelper(datatables=True,apex=True) }}
+{% endblock %}
+
+{%block contentHeader%}
+<div class="page-header">
+  <div class="row align-items-center">
+    <div class="col">
+      <div class="page-pretitle">
+        <a href="{{url_for("main.workflow_executions",workflow_id=workflow.id)}}">workflow</a>
+      </div>
+      <h2 class="page-title">
+        Dashboard for {{workflow.label}} (last 30 days){%if workflow.get_trigger()%}<span class="badge bg-blue-lt ml-2">{{workflow.get_trigger().subtype}}{%endif%}</span>
+      </h2>
+    </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.view_workflow",id=workflow.id)}}" class="btn btn-primary">
+            View Graph
+          </a>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+{%endblock%}
+
+{%block content%}
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Execution Results (treemap)</h3>
+          </div>
+          <div id="graph3" class="card-body">
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Executions by Date</h3>
+          </div>
+          <div id="graph1" class="card-body">
+          </div>
+        </div>
+    </div>
+  </div>
+  <div class="row row-cards mb-3">
+    <div class="col-12">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Time to Execute Workflow</h3>
+          </div>
+          <div id="graph2" class="card-body">
+          </div>
+        </div>
+    </div>
+  </div>
+{%endblock%}
+
+{%block extrajs%}
+<script>
+  $(document).ready(function() {
+      $.ajax({
+        url: "{{url_for("api.graph_get_execution_time_for_workflow",workflow_id=workflow.id)}}",
+        type: "GET",
+        success: function (response) {
+            var options = {
+              chart: {
+              type: 'area',
+              stacked: false,
+              height: 200,
+              zoom: {
+                type: 'x',
+                enabled: true,
+                autoScaleYaxis: true
+              },
+              toolbar: {
+                autoSelected: 'zoom'
+              }
+            },
+            dataLabels: {
+              enabled: false
+            },
+            markers: {
+              size: 0,
+            },
+            fill: {
+              type: 'gradient',
+              gradient: {
+                shadeIntensity: 1,
+                inverseColors: false,
+                opacityFrom: 0.5,
+                opacityTo: 0,
+                stops: [0, 90, 100]
+              },
+            },
+            xaxis:{},
+            yaxis: {
+              title: {
+                text: 'Execution time in seconds'
+              },
+            },
+            };
+            options["series"] = response["series"]
+            options["xaxis"]["categories"] = response["categories"]
+            var chart = new ApexCharts(document.querySelector("#graph2"), options);
+            chart.render();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+      $.ajax({
+        url: "{{url_for("api.graph_get_execution_for_workflow",workflow_id=workflow.id)}}",
+        type: "GET",
+        success: function (response) {
+            var options = {
+              chart: {
+              type: 'area',
+              stacked: false,
+              height: 200,
+              zoom: {
+                type: 'x',
+                enabled: true,
+                autoScaleYaxis: true
+              },
+              toolbar: {
+                autoSelected: 'zoom'
+              }
+            },
+            dataLabels: {
+              enabled: false
+            },
+            markers: {
+              size: 0,
+            },
+            fill: {
+              type: 'gradient',
+              gradient: {
+                shadeIntensity: 1,
+                inverseColors: false,
+                opacityFrom: 0.5,
+                opacityTo: 0,
+                stops: [0, 90, 100]
+              },
+            },
+            xaxis:{},
+            yaxis: {
+              title: {
+                text: 'Number of Executions'
+              },
+            },
+            };
+            options["series"] = response["series"]
+            options["xaxis"]["categories"] = response["categories"]
+            var chart = new ApexCharts(document.querySelector("#graph1"), options);
+            chart.render();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+      $.ajax({
+        url: "{{url_for("api.graph_get_execution_results_for_workflow",workflow_id=workflow.id)}}",
+        type: "GET",
+        success: function (response) {
+            var options = {
+            chart: {
+              height: 200,
+              type: 'treemap'
+            },
+            };
+            options["series"] = response["series"]
+            var chart = new ApexCharts(document.querySelector("#graph3"), options);
+            chart.render();
+        },
+        error: function (request, status, error) {
+          notify_js("Error occurred", type = "warning",time=1000)
+        }
+      });
+  });
+</script>
+{% endblock %}

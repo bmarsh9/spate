@@ -86,6 +86,7 @@
                             </div>
                             <div>
                               <h4>This path is currently paused. To resume execution, see the API/Form links below.</h4>
+                              <p class="text-small">For example, the endpoints below will resume execution if you send a request to the respective endpoint.</p>
                               <h5>API endpoint: <code>{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/api/v1/endpoints/{{paused_uuid}}/resume</code></h5>
                               <h5>Form endpoint:<code>{%if path.has_form()%}{%if config["API_HOST"]%}{{config["API_HOST"]}}{%endif%}/resume/{{paused_uuid}}{%else%}Missing UI Form{%endif%}</code></h5>
                             </div>

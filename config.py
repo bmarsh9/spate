@@ -7,7 +7,7 @@ class Config:
     API_HOST = os.environ.get("API_HOST")
     APP_NAME = os.environ.get("APP_NAME","Spate")
     APP_SUBTITLE = os.environ.get("APP_SUBTITLE","Workflows made easy")
-    CR_YEAR = os.environ.get("CR_YEAR","2021")
+    CR_YEAR = os.environ.get("CR_YEAR","2022")
     VERSION = os.environ.get("VERSION","1.0.0")
 
     LOG_TYPE = os.environ.get("LOG_TYPE", "stream")
