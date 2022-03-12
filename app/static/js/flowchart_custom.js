@@ -58,16 +58,20 @@ $(document).on('click','.workflow_form_endpoints', function(){
   $(".modal-title").html("Workflow Endpoint")
 });
 $(document).on('click','.workflow_refresh', function(){
+  $("#workflow-refresh").html('<p>We are refreshing your workflow. This may take a few seconds. Please wait!</p><div class="text-center mt-3"><div class="spinner-border" role="status"></div></div>')
+  $("#refresh-modal").modal("show");
   $.ajax({
     url: "/api/v1/workflows/"+get_workflow_id()+"/actions/refresh",
     type: "GET",
     success: function (response) {
         $("#refresh_button").html('<button class="btn workflow_refresh"><i class="ti ti-checks text-green"></i><small class="ml-2">Refresh</small></button>')
         notify_js("Refreshed workflow", type="primary",time=1000)
+        $("#workflow-refresh").html("<p>Successfully refreshed your workflow</p><div class='text-center mt-3'><i style='font-size:3rem' class='ti ti-check text-success'></i></div>")
     },
     error: function (request, status, error) {
         $("#refresh_button").html('<button class="btn workflow_refresh"><span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span><small class="ml-2">Save</small></button>')
         notify_js(request.responseJSON["message"], type="warning",time=1000)
+        $("#workflow-refresh").html("<p>Hmmm something went wrong.. Please try again.</p><div class='text-center mt-3'><i style='font-size:3rem' class='ti ti-x text-danger'></i></div>")
     }
   });
 });
