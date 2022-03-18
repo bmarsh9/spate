@@ -19,6 +19,7 @@ class SpateCLI():
         if not result:
             sys.exit()
         if self.config.get("wait"):
+            logging.debug("Waiting on the response")
             if result["response"]["status"] == "complete":
                 logging.info(json.dumps(result,indent=4))
             self.check_callback_url(result["response"]["callback_url"])
@@ -52,6 +53,18 @@ class SpateCLI():
         self.print_table(response.json())
         return
 
+    def get_execution_status(self):
+        if "execution_id" not in self.config:
+            logging.error("execution_id is required")
+            sys.exit()
+        data = self.format_request()
+        data["url"] = "{}/api/v1/executions/{}".format(self.config["url"],self.config["execution_id"])
+        response = requests.get(**data)
+        if not response.ok:
+            logging.warning("Non 200 response from the workflow: {}".format(response.json()))
+            return
+        logging.info(json.dumps(response.json(),indent=4))
+
     def send_request_for_execution(self):
         data = self.format_request(add_payload=True)
         data["url"] = "{}/api/v1/endpoints/{}".format(self.config["url"],self.config["uuid"])
@@ -69,6 +82,8 @@ class SpateCLI():
             for each_section in parser.sections():
                 for (each_key, each_val) in parser.items(each_section):
                     config[each_key.lower()] = each_val
+        else:
+            logging.warning("Config file:{} does not exist".format(path))
         return config
 
     def print_table(self, myDict, colList=None):
@@ -96,6 +111,7 @@ class SpateCLI():
             "verify":True
         }
         if "skip_verification" in self.config:
+            logging.debug("TLS certificate verification is disabled")
             data["verify"] = False
         if add_payload:
             if "payload" in self.config:
@@ -113,6 +129,8 @@ if __name__ == "__main__":
                     help='uuid of the workflow')
     parser.add_argument('--url', type=str,
                     help='url for the spate-ingress service')
+    parser.add_argument('--execution-id', type=str,
+                    help='execution id (only used when <action> is status')
     parser.add_argument('--payload', type=str,
                     help="payload (json) that is sent to the workflow (e.g. '{\"key\":\"value\"}')")
     parser.add_argument('--token', type=str,
@@ -126,7 +144,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip-verification', action='store_true',
                     help='skip certificate verification')
     parser.add_argument('--action', type=str,
-                    help='action to perform (e.g. execute,view,config')
+                    help='action to perform (e.g. execute,view,config,status')
     parser.add_argument('--wait', action='store_true',
                     help='wait for the execution to complete')
     parser.add_argument('--poll', type=int, default=10,
@@ -168,5 +186,7 @@ if __name__ == "__main__":
         client.view_executions()
     elif args.action == "config":
         logging.info(json.dumps(config,indent=4))
+    elif args.action == "status":
+        client.get_execution_status()
     else:
-        logging.info("Nothing to do!")
+        logging.warning("Nothing to do!")
