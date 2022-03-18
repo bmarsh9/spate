@@ -73,6 +73,8 @@ You can get started by either building the images locally or running the already
 + Check the [Health of your deployment](#service-status)
 + See the following "Setting Up Your First Workflow" section for your first Workflow
 
+3.) (Optional) Install the spate-cli tool to run workflows  
++ The spate-cli tool can be found [here](https://github.com/bmarsh9/spate/releases/tag/1.0.0)
 
 
 ### Setting Up Your First Workflow
