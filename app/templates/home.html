@@ -140,7 +140,7 @@
                 {%if workflow.auth_required%}
                   <a href="{{url_for("main.generate_token_for_workflow",id=workflow.id)}}" class="btn "><i class="ti ti-key"></i><small class="ml-2">Get Token</small></a>
                 {%else%}
-                  <a href="" class="btn disabled"><i class="ti ti-key"></i><small class="ml-2">Auth Disabled</small></a>
+                  <a href="{{url_for("main.generate_token_for_workflow",id=workflow.id)}}" class="btn"><i class="ti ti-key"></i><small class="ml-2">Auth Disabled</small></a>
                 {%endif%}
                 <button class="btn workflow_settings"><i class="ti ti-tools"></i><small class="ml-2">Settings</small></button>
                 <span id="refresh_button"><button class="btn workflow_refresh">{%if workflow.refresh_required%}<span style="width:1rem;height:1rem" class="spinner-grow text-orange" role="status"></span>{%else%}<i class="ti ti-checks text-green"></i>{%endif%}<small class="ml-2">Refresh</small></button></span>

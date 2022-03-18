@@ -141,3 +141,35 @@ def get_intake_status(uuid):
     return_value = workflow.return_value_for_execution(execution.id, execution.return_hash)
     return jsonify({"id":execution.id,"uuid":execution.uuid,"complete":True,
         "message":return_value})
+
+@api.route('/workflows/<string:workflow_uuid>/executions', methods=['GET'])
+def get_executions_for_workflow(workflow_uuid):
+    data = []
+    limit = request.args.get("limit",10)
+    workflow_obj = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.uuid == workflow_uuid).first()
+    if not workflow_obj:
+        return jsonify({"message":"workflow not found"}),404
+
+    workflow = WorkflowManager(workflow=workflow_obj)
+    if not workflow.verify_token_in_request(request,stats=True):
+        return jsonify({"message":"authentication failed"}),401
+
+    executions = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.workflow_id == workflow_obj.id).order_by(current_app.Execution.id.desc()).limit(limit)
+    for execution in executions:
+        logs = ""
+        if execution.logs:
+            logs = execution.logs.split("\n")
+        debug = ""
+        if execution.user_messages:
+            debug = execution.user_messages.split("\n")
+        template = {
+            "uuid":execution.uuid,
+            "return_value":workflow.return_value_for_execution(execution.id, execution.return_hash),
+            "complete":workflow.is_execution_complete(execution.id),
+            "paused":workflow.is_execution_paused(execution.id),
+            "failed":execution.failed,
+            "execution_time":workflow.execution_time_for_execution(execution.id),
+            "date_requested":str(execution.date_added),
+        }
+        data.append(template)
+    return jsonify(data)

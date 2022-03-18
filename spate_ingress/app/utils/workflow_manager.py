@@ -20,9 +20,10 @@ class WorkflowManager():
             self.workflow = workflow
             self.workflow_id = self.workflow.id
 
-    def verify_token_in_request(self,request):
-        if not self.workflow.auth_required:
-            return True
+    def verify_token_in_request(self,request,stats=False):
+        if not stats:
+            if not self.workflow.auth_required:
+                return True
         # check header
         token = request.headers.get("token")
         # check url
@@ -142,7 +143,7 @@ class WorkflowManager():
     def execution_time_for_execution(self, execution_id):
         time = 0
         for step in current_app.db_session.query(current_app.Step).filter(current_app.Step.execution_id == execution_id).all():
-            time+= step.execution_time
+            time+= step.execution_time or 0
         return time
 
     def is_execution_paused(self, execution_id):

@@ -19,22 +19,25 @@ class SpateCLI():
         if self.config.get("wait"):
             if result["response"]["status"] == "complete":
                 logging.info(json.dumps(result,indent=4))
-            callback_url = result["response"]["callback_url"]
-            data = self.format_request()
-            data["url"] = "{}{}".format(self.config["url"],callback_url)
-            for poll in range(self.config["poll"]):
-                result = requests.get(**data)
-                if result.ok:
-                    result = result.json()
-                    if result.get("complete"):
-                        logging.info(json.dumps(result,indent=4))
-                        sys.exit()
-                    elif result.get("paused"):
-                        logging.info("Execution has been paused - please resume in the console")
-                        sys.exit()
-                time.sleep(2)
-            logging.warning("Timed out waiting for the execution results")
+            self.check_callback_url(result["response"]["callback_url"])
         logging.info(json.dumps(result,indent=4))
+        return
+
+    def check_callback_url(self,callback_url):
+        data = self.format_request()
+        data["url"] = "{}{}".format(self.config["url"],callback_url)
+        for poll in range(self.config["poll"]):
+            result = requests.get(**data)
+            if result.ok:
+                result = result.json()
+                if result.get("complete"):
+                    logging.info(json.dumps(result,indent=4))
+                    sys.exit()
+                elif result.get("paused"):
+                    logging.info("Execution has been paused - please resume in the console")
+                    sys.exit()
+            time.sleep(2)
+        logging.warning("Timed out waiting for the execution results")
         return
 
     def view_executions(self):
@@ -46,7 +49,6 @@ class SpateCLI():
             return
         self.print_table(response.json())
         return
-        #haaaaaa
 
     def send_request_for_execution(self):
         data = self.format_request(add_payload=True)
