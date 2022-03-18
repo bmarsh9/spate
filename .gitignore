@@ -3,6 +3,7 @@ env/*
 migrations
 app/workflow_executions/*
 spate_ingress/app/execution_files/*
+spate_cli/config.ini
 *pyc
 # C extensions
 *.so
