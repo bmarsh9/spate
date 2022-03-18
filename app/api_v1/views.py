@@ -504,6 +504,30 @@ def get_results_for_step(id):
     if not step:
         return jsonify({"message":"step not found"}),404
     return jsonify({"result":step.result})
+
+@api.route('/workflows/<string:uuid>/executions', methods=['GET'])
+def get_executions_for_workflow(uuid):
+    data = []
+    limit = request.args.get("limit",10)
+    workflow = Workflow.query.filter(Workflow.uuid == uuid).first()
+    if not workflow:
+        return jsonify({"message":"workflow not found"}),404
+    #TODO implement decorator
+    # check header
+    token = request.headers.get("token")
+    # check url
+    if not token:
+        token = request.args.get("token")
+    if not token:
+        return jsonify({"message":"access denied"}),403
+    token_ok = Workflow.verify_auth_token(token)
+    if not token_ok:
+        return jsonify({"message":"access denied"}),403
+    for execution in workflow.executions.order_by(Execution.id.desc()).limit(limit):
+        data.append(execution.as_dict())
+    return jsonify(data)
+#haaaaaaaa
+
 #----------------------------------------FORM-----------------------------------------
 @api.route("/forms", methods=["POST"])
 @login_required

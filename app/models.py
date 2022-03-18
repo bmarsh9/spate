@@ -357,6 +357,20 @@ class Workflow(db.Model, LogMixin):
         return token.decode("utf-8")
 
     @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except SignatureExpired:
+            current_app.logger.warning("SignatureExpired for token")
+            return None # valid token, but expired
+        except BadSignature:
+            current_app.logger.warning("BadSignature for token")
+            return None # invalid token
+        workflow = Workflow.query.get(data['workflow_id'])
+        return workflow
+
+    @staticmethod
     def verify_invite_token(token):
         s = Serializer(self.secret_key)
         try:
