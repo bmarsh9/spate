@@ -16,6 +16,8 @@ class SpateCLI():
 
     def execute(self):
         result = self.send_request_for_execution()
+        if not result:
+            sys.exit()
         if self.config.get("wait"):
             if result["response"]["status"] == "complete":
                 logging.info(json.dumps(result,indent=4))
