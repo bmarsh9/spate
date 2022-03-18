@@ -4,6 +4,9 @@ migrations
 app/workflow_executions/*
 spate_ingress/app/execution_files/*
 spate_cli/config.ini
+spate_cli/build/*
+spate_cli/dist/*
+spate_cli/spate-cli.spec
 *pyc
 # C extensions
 *.so
