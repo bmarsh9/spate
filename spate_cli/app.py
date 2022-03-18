@@ -19,22 +19,25 @@ class SpateCLI():
         if self.config.get("wait"):
             if result["response"]["status"] == "complete":
                 logging.info(json.dumps(result,indent=4))
-            callback_url = result["response"]["callback_url"]
-            data = self.format_request()
-            data["url"] = "{}{}".format(self.config["url"],callback_url)
-            for poll in range(self.config["poll"]):
-                result = requests.get(**data)
-                if result.ok:
-                    result = result.json()
-                    if result.get("complete"):
-                        logging.info(json.dumps(result,indent=4))
-                        sys.exit()
-                    elif result.get("paused"):
-                        logging.info("Execution has been paused - please resume in the console")
-                        sys.exit()
-                time.sleep(2)
-            logging.warning("Timed out waiting for the execution results")
+            self.check_callback_url(result["response"]["callback_url"])
         logging.info(json.dumps(result,indent=4))
+        return
+
+    def check_callback_url(self,callback_url):
+        data = self.format_request()
+        data["url"] = "{}{}".format(self.config["url"],callback_url)
+        for poll in range(self.config["poll"]):
+            result = requests.get(**data)
+            if result.ok:
+                result = result.json()
+                if result.get("complete"):
+                    logging.info(json.dumps(result,indent=4))
+                    sys.exit()
+                elif result.get("paused"):
+                    logging.info("Execution has been paused - please resume in the console")
+                    sys.exit()
+            time.sleep(2)
+        logging.warning("Timed out waiting for the execution results")
         return
 
     def view_executions(self):
@@ -46,7 +49,6 @@ class SpateCLI():
             return
         self.print_table(response.json())
         return
-        #haaaaaa
 
     def send_request_for_execution(self):
         data = self.format_request(add_payload=True)
@@ -69,11 +71,11 @@ class SpateCLI():
 
     def print_table(self, myDict, colList=None):
         if not colList: colList = list(myDict[0].keys() if myDict else [])
-        myList = [colList] # 1st row = header
+        myList = [colList]
         for item in myDict: myList.append([str(item[col] if item[col] is not None else '') for col in colList])
         colSize = [max(map(len,col)) for col in zip(*myList)]
         formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
-        myList.insert(1, ['-' * i for i in colSize]) # Seperating line
+        myList.insert(1, ['-' * i for i in colSize])
         for item in myList: print(formatStr.format(*item))
 
     def format_request(self,add_payload=False):
