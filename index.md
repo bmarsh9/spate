@@ -18,27 +18,28 @@ https://user-images.githubusercontent.com/26391921/145500806-ee2332b6-52d6-43aa-
 4. [Getting Started](#getting-started)
 5. [Setting Up Your First Workflow](#setting-up-your-first-workflow)
 6. [Setting Up a Form Workflow](#setting-up-a-form-workflow)
-7. [Tips](#tips)
-8. [FAQ](#faq)
-9. [Disclaimer](#disclaimer)
-10. [Development](#development)
-11. [Todo](#todo)
+7. [Using the Spate CLI](#using-the-spate-cli)
+8. [Tips](#tips)
+9. [FAQ](#faq)
+10. [Disclaimer](#disclaimer)
+11. [Development](#development)
+12. [Todo](#todo)
 
 
 ### What is Spate?
 
-Spate is a workflow and automation platform that allows anyone to quickly automate technical/business processes. It was first developed for the Information Security space however it can be used for any vertical. While automation is not always the answer, teams can use this platform to become more efficient and spend their precious (manual) time on other tasks.
+Spate is a workflow and automation platform that allows anyone to quickly automate technical/business processes. It was first developed for the Information Security space however it can be used for any vertical. While automation is not always the answer, teams can use this platform to become more efficient and spend their precious (manual) time on other tasks. For example - I recently used Spate to perform health checks of all my public facing websites and if the health endpoint was not healthy, my workflow sent a text message to me and updated the status page.
 
 ### Use Case
 (BEFORE) Let's look at a typical workflow for Incident Response (IR) for domain enrichment.
 + An alert fires and says "www. bad domain.com" is potentially a C2 channel
 + You have 5 security tools with data (endpoint, firewall, network, AD, etc.) that may be helpful
-+ If you are lucky, you have a engineering team that has spent thousands of hours mapping data between the tools (lol)
++ If you are lucky, you have a engineering team that has spent thousands of hours mapping data between the tools
 + You must log into the tools and perform manual searching and then worry about reporting (huge hassle)
 
 (AFTER) With Spate, you can automate this pretty quickly.
 + An alert fires and says "www. bad domain.com" is potentially a C2 channel
-+ You run the Spate Workflow and Spate queries and filters the data from the security tools
++ You run the Spate Workflow and Spate queries and filters the data from the security tools to determine if its positive
 + On success, it uploads the data to a Google Sheet
 + When complete, it sends a email to a mailing list with the report link
 
@@ -123,6 +124,26 @@ We are going to show you how to set up a form based workflow using a FORM trigge
 
 #### 8.) Add dummy data to the form and click "Submit". After submission, your workflow will execute and in a few seconds, the page will update. Notice that your message appears in the response.
 <img src="images/spate_form_6.PNG" alt="" class="inline"/>
+
+### Using the Spate CLI  
+The [Spate CLI](https://github.com/bmarsh9/spate/releases) allows you to easily connect, execute and query that status of your API based workflows. I created this CLI tool as a quicker way to programmically interact with your workflow. You would typically have to interact with the Spate API with a language (python, powershell, java, etc) but the CLI is a exe that transparently handles that. 
+
+First, download the [Spate CLI exe](https://github.com/bmarsh9/spate/releases)  
+
+##### Show Help menu  
+```
+./spate-cli --help
+```
+##### Execute workflow  
+
+```
+./spate-cli --uuid <workflow uuid> --skip-verification --action execute --wait --url <https://spate-ingress>
+```
+
+##### Check status of executions
+```
+./spate-cli --uuid <workflow uuid> --skip-verification --action view --url <https://spate-ingress> --token <auth token from UI>
+```
 
 ### Tips  
 ```
