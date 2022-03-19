@@ -123,7 +123,7 @@ We are going to show you how to set up a form based workflow using a FORM trigge
 ### Using the Spate CLI  
 The [Spate CLI](https://github.com/bmarsh9/spate/releases) allows you to easily connect, execute and query that status of your API based workflows. I created this CLI tool as a quicker way to programmically interact with your workflow. You would typically have to interact with the Spate API with a language (python, powershell, java, etc) but the CLI is a exe that transparently handles that. 
 
-First, download the [Spate CLI exe](https://github.com/bmarsh9/spate/releases) for your OS. There is a Linux and Windows release.   
+First, download the [Spate CLI exe](https://github.com/bmarsh9/spate/releases) for your OS. There is a Linux and Windows release. For Linux, you likely must run `chmod +x spate-cli` to make it executable.   
 
 ##### Show Help menu  
 ```
