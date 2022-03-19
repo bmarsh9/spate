@@ -31,17 +31,12 @@ https://user-images.githubusercontent.com/26391921/145500806-ee2332b6-52d6-43aa-
 Spate is a workflow and automation platform that allows anyone to quickly automate technical/business processes. It was first developed for the Information Security space however it can be used for any vertical. While automation is not always the answer, teams can use this platform to become more efficient and spend their precious (manual) time on other tasks. For example - I recently used Spate to perform health checks of all my public facing websites and if the health endpoint was not healthy, my workflow sent a text message to me and updated the status page.
 
 ### Use Case
-(BEFORE) Let's look at a typical workflow for Incident Response (IR) for domain enrichment.
-+ An alert fires and says "www. bad domain.com" is potentially a C2 channel
-+ You have 5 security tools with data (endpoint, firewall, network, AD, etc.) that may be helpful
-+ If you are lucky, you have a engineering team that has spent thousands of hours mapping data between the tools
-+ You must log into the tools and perform manual searching and then worry about reporting (huge hassle)
-
-(AFTER) With Spate, you can automate this pretty quickly.
-+ An alert fires and says "www. bad domain.com" is potentially a C2 channel
-+ You run the Spate Workflow and Spate queries and filters the data from the security tools to determine if its positive
-+ On success, it uploads the data to a Google Sheet
-+ When complete, it sends a email to a mailing list with the report link
+Here are some popular use cases that Spate can be used for..  
++ Automate ETL processes - pull data from 3rd party services, parse, and serve the formatted data for other services as a API endpoint
++ Create UI forms that upon submission, parses the data, sends a email/text message and notifies the user
++ Periodically (based on conditions) execute and check the status of your webpages and automatically build a dashboard
++ Parse a submitted CSV file and return a HTML report
++ Automate really any manual process
 
 ### How it Works
 
