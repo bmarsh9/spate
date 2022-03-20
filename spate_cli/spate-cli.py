@@ -66,7 +66,7 @@ class SpateCLI():
         logging.info(json.dumps(response.json(),indent=4))
 
     def send_request_for_execution(self):
-        data = self.format_request(add_payload=True)
+        data = self.format_request(add_payload=True,add_file=True)
         data["url"] = "{}/api/v1/endpoints/{}".format(self.config["url"],self.config["uuid"])
         response = requests.post(**data)
         if not response.ok:
@@ -95,7 +95,7 @@ class SpateCLI():
         myList.insert(1, ['-' * i for i in colSize]) # Seperating line
         for item in myList: print(formatStr.format(*item))
 
-    def format_request(self,add_payload=False):
+    def format_request(self,add_payload=False,add_file=False):
         if "url" not in self.config:
             logging.error("url is required")
             sys.exit()
@@ -116,6 +116,12 @@ class SpateCLI():
         if add_payload:
             if "payload" in self.config:
                 data["json"] = self.config["payload"]
+        if add_file:
+            if not os.path.exists(self.config["file"]):
+                logging.error("{} does not exist".format(self.config["file"]))
+                sys.exit()
+            if "file" in self.config:
+                data["files"] = {'file': open(self.config["file"], 'rb')}
         if "token" in self.config:
             data["headers"]["token"] = self.config["token"]
         return data
@@ -133,6 +139,8 @@ if __name__ == "__main__":
                     help='execution id (only used when <action> is status')
     parser.add_argument('--payload', type=str,
                     help="payload (json) that is sent to the workflow (e.g. '{\"key\":\"value\"}')")
+    parser.add_argument('--file', type=str,
+                    help='file that is sent to the workflow')
     parser.add_argument('--token', type=str,
                     help='authentication token for the workflow')
     parser.add_argument('--config', type=str,
@@ -144,7 +152,7 @@ if __name__ == "__main__":
     parser.add_argument('--skip-verification', action='store_true',
                     help='skip certificate verification')
     parser.add_argument('--action', type=str,
-                    help='action to perform (e.g. execute,view,config,status')
+                    help='action to perform (e.g. execute,view,config,status)')
     parser.add_argument('--wait', action='store_true',
                     help='wait for the execution to complete')
     parser.add_argument('--poll', type=int, default=10,
