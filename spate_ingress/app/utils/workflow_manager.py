@@ -51,9 +51,10 @@ class WorkflowManager():
         return s.dumps({ 'workflow_id': self.workflow_id })
 
     def get_trigger(self,subtype=None):
+        _query = current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.workflow_id == self.workflow_id).filter(current_app.Operator.type == "trigger")
         if subtype:
-            return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.subtype == subtype).filter(current_app.Operator.workflow_id == self.workflow_id).first()
-        return current_app.db_session.query(current_app.Operator).filter(current_app.Operator.official == False).filter(current_app.Operator.workflow_id == self.workflow_id).first()
+            return _query.filter(current_app.Operator.subtype == subtype).first()
+        return _query.first()
 
     def save_file_to_container(self, container, src):
         os.chdir(os.path.dirname(src))
