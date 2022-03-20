@@ -53,6 +53,26 @@ class SpateCLI():
         self.print_table(response.json())
         return
 
+    def view_workflows(self):
+        data = self.format_request()
+        data["url"] = "{}/api/v1/workflows?uuid={}".format(self.config["url"],self.config["uuid"])
+        response = requests.get(**data)
+        if not response.ok:
+            logging.warning("Non 200 response from the server: {}".format(response.json()))
+            return
+        self.print_table(response.json())
+        return
+
+    def view_health(self):
+        data = self.format_request(check_uuid=False)
+        data["url"] = "{}/api/v1/health".format(self.config["url"])
+        response = requests.get(**data)
+        if not response.ok:
+            logging.warning("Non 200 response from the server: {}".format(response.json()))
+            return
+        logging.info(json.dumps(response.json(),indent=4))
+        return
+
     def get_execution_status(self):
         if "execution_id" not in self.config:
             logging.error("execution_id is required")
@@ -87,24 +107,28 @@ class SpateCLI():
         return config
 
     def print_table(self, myDict, colList=None):
-        if not colList: colList = list(myDict[0].keys() if myDict else [])
-        myList = [colList] # 1st row = header
-        for item in myDict: myList.append([str(item[col] if item[col] is not None else '') for col in colList])
-        colSize = [max(map(len,col)) for col in zip(*myList)]
-        formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
-        myList.insert(1, ['-' * i for i in colSize]) # Seperating line
-        for item in myList: print(formatStr.format(*item))
+        try:
+            if not colList: colList = list(myDict[0].keys() if myDict else [])
+            myList = [colList] # 1st row = header
+            for item in myDict: myList.append([str(item[col] if item[col] is not None else '') for col in colList])
+            colSize = [max(map(len,col)) for col in zip(*myList)]
+            formatStr = ' | '.join(["{{:<{}}}".format(i) for i in colSize])
+            myList.insert(1, ['-' * i for i in colSize]) # Seperating line
+            for item in myList: print(formatStr.format(*item))
+        except Exception as e:
+            logging.error("Exception while printing table:{}".format(str(e)))
 
-    def format_request(self,add_payload=False,add_file=False):
+    def format_request(self,add_payload=False,add_file=False,check_uuid=True):
         if "url" not in self.config:
             logging.error("url is required")
             sys.exit()
         if not self.config["url"].startswith("http"):
             logging.error("url does not start with http")
             sys.exit()
-        if "uuid" not in self.config:
-            logging.error("uuid is required")
-            sys.exit()
+        if check_uuid:
+            if "uuid" not in self.config:
+                logging.error("uuid is required")
+                sys.exit()
         data = {
             "url":"",
             "headers":{},
@@ -148,11 +172,11 @@ if __name__ == "__main__":
     parser.add_argument('--level', type=str,
                     help='set the logging level (e.g. info,debug,warning,error)',default="info")
     parser.add_argument('--verbose', action='store_true',
-                    help='enable verbose logging')
+                    help='enable verbose logging (debug log level)')
     parser.add_argument('--skip-verification', action='store_true',
                     help='skip certificate verification')
     parser.add_argument('--action', type=str,
-                    help='action to perform (e.g. execute,view,config,status)')
+                    help='action to perform (e.g. execute,view,config,status,workflows)')
     parser.add_argument('--wait', action='store_true',
                     help='wait for the execution to complete')
     parser.add_argument('--poll', type=int, default=10,
@@ -192,9 +216,13 @@ if __name__ == "__main__":
         client.execute()
     elif args.action == "view":
         client.view_executions()
+    elif args.action == "workflows":
+        client.view_workflows()
     elif args.action == "config":
         logging.info(json.dumps(config,indent=4))
     elif args.action == "status":
         client.get_execution_status()
+    elif args.action == "health":
+        client.view_health()
     else:
         logging.warning("Nothing to do!")

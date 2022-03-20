@@ -20,8 +20,8 @@ class WorkflowManager():
             self.workflow = workflow
             self.workflow_id = self.workflow.id
 
-    def verify_token_in_request(self,request,stats=False):
-        if not stats:
+    def verify_token_in_request(self,request,skip_workflow_check=False):
+        if not skip_workflow_check:
             if not self.workflow.auth_required:
                 return True
         # check header

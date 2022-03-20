@@ -5,7 +5,7 @@ FROM ubuntu
 # update the operating system:
 RUN apt-get update --fix-missing
 RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install tzdata
-RUN apt install -y python3-pip nano libpq-dev net-tools sudo libssl-dev
+RUN apt install -y python3-pip libpq-dev libssl-dev
 
 # copy the folder to the container:
 ADD . /spate

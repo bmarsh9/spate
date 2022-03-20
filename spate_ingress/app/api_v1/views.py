@@ -151,7 +151,7 @@ def get_executions_for_workflow(workflow_uuid):
         return jsonify({"message":"workflow not found"}),404
 
     workflow = WorkflowManager(workflow=workflow_obj)
-    if not workflow.verify_token_in_request(request,stats=True):
+    if not workflow.verify_token_in_request(request,skip_workflow_check=True):
         return jsonify({"message":"authentication failed"}),401
 
     executions = current_app.db_session.query(current_app.Execution).filter(current_app.Execution.workflow_id == workflow_obj.id).order_by(current_app.Execution.id.desc()).limit(limit)
@@ -172,4 +172,32 @@ def get_executions_for_workflow(workflow_uuid):
             "date_requested":str(execution.date_added),
         }
         data.append(template)
+    return jsonify(data)
+
+@api.route('/workflows', methods=['GET'])
+def get_workflows():
+    data = []
+    workflow_uuid = request.args.get("uuid")
+    workflow_obj = current_app.db_session.query(current_app.Workflow).filter(current_app.Workflow.uuid == workflow_uuid).first()
+    if not workflow_obj:
+        return jsonify({"message":"workflow not found"}),404
+
+    workflow = WorkflowManager(workflow=workflow_obj)
+    if not workflow.verify_token_in_request(request,skip_workflow_check=True):
+        return jsonify({"message":"authentication failed"}),401
+
+    workflows = current_app.db_session.query(current_app.Workflow).order_by(current_app.Workflow.id.desc()).all()
+    for record in workflows:
+        type = "n/a"
+        trigger = WorkflowManager(workflow=record).get_trigger()
+        if trigger:
+            type = trigger.subtype or "n/a"
+        data.append({
+            "uuid":record.uuid,
+            "label":record.label,
+            "enabled":record.enabled,
+            "trigger":type,
+            "auth-required":record.auth_required,
+            "date-added":str(record.date_added)
+        })
     return jsonify(data)
