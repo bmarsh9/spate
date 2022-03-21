@@ -16,6 +16,15 @@
         Access for {{workflow.label}}
       </h2>
     </div>
+    <div class="col-auto ms-auto">
+      <div class="btn-list">
+        <span class="d-none d-sm-inline">
+          <a href="{{url_for("main.generate_token_for_workflow",id=workflow.id)}}" class="btn btn-primary">
+            Generate Token
+          </a>
+        </span>
+      </div>
+    </div>
   </div>
 </div>
 {%endblock%}
