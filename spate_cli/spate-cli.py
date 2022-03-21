@@ -141,10 +141,10 @@ class SpateCLI():
             if "payload" in self.config:
                 data["json"] = self.config["payload"]
         if add_file:
-            if not os.path.exists(self.config["file"]):
-                logging.error("{} does not exist".format(self.config["file"]))
-                sys.exit()
             if "file" in self.config:
+                if not os.path.exists(self.config["file"]):
+                    logging.error("{} does not exist".format(self.config["file"]))
+                    sys.exit()
                 data["files"] = {'file': open(self.config["file"], 'rb')}
         if "token" in self.config:
             data["headers"]["token"] = self.config["token"]
