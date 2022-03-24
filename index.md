@@ -10,6 +10,8 @@ Easily create and run Workflows          |
 #### Watch the 30 second video of custom Form automations
 https://user-images.githubusercontent.com/26391921/145500806-ee2332b6-52d6-43aa-93b7-6530d66dbcf5.mp4
 
+#### Watch the simple workflow that summarizes articles
+https://user-images.githubusercontent.com/26391921/159962335-ded8f760-8f32-469d-83c9-dcdded25df51.mp4
 
 ### Table of Contents
 1. [What is Spate?](#what-is-spate)
