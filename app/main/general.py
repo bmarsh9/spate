@@ -6,6 +6,14 @@ from flask_login import login_required,current_user
 from app.utils.decorators import roles_required
 from app.models import Role,User,Logs
 
+from app.utils.mailgun_send_email import Mailgun
+
+mailgun_domain = "sandboxPERSONAL.mailgun.org"
+mailgun_api_key = "MAILGUN API KEY"
+from_email = "Spate Support <support@spate.com>"
+
+mailgun = Mailgun(mailgun_api_key, mailgun_domain, from_email)
+
 @main.route('/admin/users', methods=['GET'])
 @login_required
 def users():
@@ -65,15 +73,22 @@ def view_user(id):
 
 @main.route('/admin/users/add', methods=['GET','POST'])
 @roles_required("admin")
-def add_user():
+def add_user(mailgun):
     token = None
     if request.method == "POST":
-        email = request.form["email"]
-        token = User().generate_invite_token(email)
-        token = "{}{}?token={}".format(request.host_url,"register",token)
-        flash("Provide the following link to the user.")
-        Logs.add_log("{} invited {} to the platform".format(current_user.email,email),namespace="events")
+        to_email = request.form["email"]
+        subject = "Welcome to Spate".format(current_app.config["APP_NAME"])
+        token = User().generate_invite_token(to_email)
+        token = f"{request.host_url}register?token={token}"
+        text = f"invitation to the platform {token}"
+        mailgun_log = mailgun.send_email(to_email, subject, text)
+        Logs.add_log(mailgun_log.text,namespace="mailgun")
+        Logs.add_log(f"{current_user.email} invited {to_email} to the platform", namespace="events")
+
     return render_template('add_user.html',token=token)
+
+
+
 
 @main.route('/workflows/<int:id>/read-access', methods=['POST'])
 @login_required
