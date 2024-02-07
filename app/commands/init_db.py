@@ -13,10 +13,16 @@ class InitDbCommand(Command):
 
 def init_db():
     """ Initialize the database."""
+    print("Trying to drop the models")
     db.drop_all()
+    print("Dropped all models")
     db.create_all()
+    print("Created new models")
     create_users()
+    print("Created users")
+    print("Trying to create default workflows")
     create_default_workflow()
+    print("Created default workflows")
 
 def create_users():
     """ Create users """

@@ -60,19 +60,10 @@ def create_app(config_name="default"):
 
 def configure_models(app):
     # Add all models
-    all_models = {}
-    classes, models, table_names = [], [], []
-    for clazz in db.Model._decl_class_registry.values():
-        try:
-            table_names.append(clazz.__tablename__)
-            classes.append(clazz)
-        except:
-            pass
-    for table in db.metadata.tables.items():
-        if table[0] in table_names:
-            all_models[table[0]] = classes[table_names.index(table[0])]
-            models.append(classes[table_names.index(table[0])])
-    app.models = all_models
+    app.models = {
+        mapper.class_.__name__: mapper.class_
+        for mapper in db.Model.registry.mappers
+    }
     return
 
 def configure_extensions(app):

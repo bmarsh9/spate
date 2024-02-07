@@ -1,6 +1,6 @@
 #docker build -t dev .
 # install base
-FROM ubuntu
+FROM ubuntu:20.04
 
 # update the operating system:
 RUN apt-get update --fix-missing
